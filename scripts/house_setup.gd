@@ -7,7 +7,6 @@ func _ready() -> void:
 	var meshes: Array[MeshInstance3D] = []
 	_collect_meshes(self, meshes)
 	for mesh_instance in meshes:
-		mesh_instance.create_multiple_convex_collisions()
 		_fix_material(mesh_instance, texture)
 
 func _collect_meshes(node: Node, out: Array[MeshInstance3D]) -> void:

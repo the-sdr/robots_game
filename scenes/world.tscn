@@ -16,7 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://j2lupqmy0crp" path="res://assets/quaternius_nature/Flower_4_Group.gltf" id="14"]
 [ext_resource type="PackedScene" uid="uid://dgehr0c5h2rof" path="res://assets/quaternius_nature/Mushroom_Common.gltf" id="15"]
 [ext_resource type="PackedScene" uid="uid://cjjdbh5gbml2x" path="res://assets/quaternius_nature/Rock_Medium_1.gltf" id="16"]
-[ext_resource type="Script" path="res://scripts/house_setup.gd" id="17"]
+[ext_resource type="Script" uid="uid://ci4vl0ll5r5yj" path="res://scripts/house_setup.gd" id="17"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(200, 200)
@@ -26,6 +26,18 @@ albedo_color = Color(0.3, 0.55, 0.3, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(200, 0.2, 200)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_side"]
+size = Vector3(0.2, 4.18, 5.44)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_far"]
+size = Vector3(5.39, 4.18, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_near_seg"]
+size = Vector3(1.99, 4.18, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_ceiling"]
+size = Vector3(5.6, 0.2, 5.6)
 
 [node name="World" type="Node3D" unique_id=1237908528]
 
@@ -44,11 +56,37 @@ transform = Transform3D(0.866025, -0.321394, 0.383022, 0, 0.766044, 0.642788, -0
 shadow_enabled = true
 
 [node name="Player" parent="." unique_id=821479118 instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -7.3)
+transform = Transform3D(-0.73899865, 0, 0.6737068, 0, 1, 0, -0.6737068, 0, -0.73899865, -0.93140256, 0.1018011, -4.322591)
 
 [node name="House" parent="." unique_id=2060891932 instance=ExtResource("2")]
 transform = Transform3D(-2.5, 0, -2.1855695e-07, 0, 2.5, 0, 2.1855695e-07, 0, -2.5, 0, 0, -5)
 script = ExtResource("17")
+
+[node name="HouseCollision" type="StaticBody3D" parent="." unique_id=88086202]
+
+[node name="WallWest" type="CollisionShape3D" parent="HouseCollision" unique_id=327986017]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.69, 2.09, -5.025)
+shape = SubResource("BoxShape3D_house_side")
+
+[node name="WallEast" type="CollisionShape3D" parent="HouseCollision" unique_id=474824885]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.69, 2.09, -5.025)
+shape = SubResource("BoxShape3D_house_side")
+
+[node name="WallFar" type="CollisionShape3D" parent="HouseCollision" unique_id=2073607531]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.09, -2.31)
+shape = SubResource("BoxShape3D_house_far")
+
+[node name="WallNearLeft" type="CollisionShape3D" parent="HouseCollision" unique_id=1625292939]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.695, 2.09, -7.74)
+shape = SubResource("BoxShape3D_house_near_seg")
+
+[node name="WallNearRight" type="CollisionShape3D" parent="HouseCollision" unique_id=214511905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.695, 2.09, -7.74)
+shape = SubResource("BoxShape3D_house_near_seg")
+
+[node name="Ceiling" type="CollisionShape3D" parent="HouseCollision" unique_id=933619733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.18, -5.025)
+shape = SubResource("BoxShape3D_house_ceiling")
 
 [node name="PathTile1" parent="." unique_id=1720402820 instance=ExtResource("9")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)

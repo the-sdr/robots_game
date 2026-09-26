@@ -11,8 +11,10 @@ const PITCH_MAX = deg_to_rad(20)
 const ZOOM_MIN = 1.5
 const ZOOM_MAX = 8.0
 const ZOOM_STEP = 0.5
-const ZOOM_DEFAULT = 4.0
+const ZOOM_DEFAULT = 2.0
 const CAMERA_COLLISION_MARGIN = 0.3
+const CAMERA_ZOOM_SMOOTHING = 10.0
+const CAMERA_PROBE_RADIUS = 0.3
 
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
@@ -20,9 +22,12 @@ const CAMERA_COLLISION_MARGIN = 0.3
 @onready var camera: Camera3D = $CameraRig/CameraArm/Camera3D
 
 var target_zoom := ZOOM_DEFAULT
+var _camera_probe_shape: SphereShape3D
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_camera_probe_shape = SphereShape3D.new()
+	_camera_probe_shape.radius = CAMERA_PROBE_RADIUS
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -39,21 +44,26 @@ func _rotate_camera(yaw_delta: float, pitch_delta: float) -> void:
 	camera_arm.rotate_x(pitch_delta)
 	camera_arm.rotation.x = clamp(camera_arm.rotation.x, PITCH_MIN, PITCH_MAX)
 
-func _update_camera_distance() -> void:
+func _update_camera_distance(delta: float) -> void:
 	var pivot_pos: Vector3 = camera_arm.global_transform.origin
 	var back_dir: Vector3 = camera_arm.global_transform.basis.z
-	var desired_pos: Vector3 = pivot_pos + back_dir * target_zoom
+	var motion: Vector3 = back_dir * target_zoom
+
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = _camera_probe_shape
+	query.transform = Transform3D(Basis(), pivot_pos)
+	query.motion = motion
+	query.exclude = [get_rid()]
 
 	var space_state := get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(pivot_pos, desired_pos)
-	query.exclude = [get_rid()]
-	var result := space_state.intersect_ray(query)
+	var result := space_state.cast_motion(query)
+	var safe_fraction: float = result[0] if result.size() > 0 else 1.0
 
-	var safe_distance := target_zoom
-	if result:
-		safe_distance = max(pivot_pos.distance_to(result.position) - CAMERA_COLLISION_MARGIN, 0.5)
+	var safe_distance: float = max(target_zoom * safe_fraction - CAMERA_COLLISION_MARGIN, 0.5)
 
-	camera.position = Vector3(0, 0, safe_distance)
+	var smoothing: float = clamp(CAMERA_ZOOM_SMOOTHING * delta, 0.0, 1.0)
+	var new_distance: float = lerp(camera.position.z, safe_distance, smoothing)
+	camera.position = Vector3(0, 0, new_distance)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -85,4 +95,4 @@ func _physics_process(delta: float) -> void:
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_angle, TURN_SPEED * delta)
 
 	move_and_slide()
-	_update_camera_distance()
+	_update_camera_distance(delta)
