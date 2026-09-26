@@ -62,9 +62,13 @@ branches are wanted and can be added now that the area's scale is correct.
 
 Narrative-relevant structure (the maze path, points of interest, building
 placement) is hand-placed, not randomly generated — the world should feel
-designed, not scattered. Exception: purely atmospheric background dressing
-(cloud puffs, for instance) can use deterministic or lightweight procedural
-generation, since it carries no narrative weight. Deterministic *formulas*
+designed, not scattered. Exception: sheer background *density* — filling a
+hand-defined area with thousands of trees/bushes so the forest reads as
+impenetrable — is generated (seeded/reproducible, not true randomness),
+since authoring that volume by hand isn't practical and it carries no
+narrative weight itself; the shape of the area it fills, what it excludes
+(buildings, the maze path), and the maze's actual walls/path are still
+hand-designed. Same logic covers cloud puffs. Deterministic *formulas*
 for placement (e.g. a tree ring computed from an angle, or a dense grid
 minus a path corridor) are treated as curated, since the shape is a
 deliberate design choice even though the math is automated — what's
