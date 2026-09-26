@@ -8,10 +8,18 @@ const MOUSE_SENSITIVITY = 0.003
 const LOOK_STICK_SPEED = 3.0
 const PITCH_MIN = deg_to_rad(-60)
 const PITCH_MAX = deg_to_rad(20)
+const ZOOM_MIN = 1.5
+const ZOOM_MAX = 8.0
+const ZOOM_STEP = 0.5
+const ZOOM_DEFAULT = 4.0
+const CAMERA_COLLISION_MARGIN = 0.3
 
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
 @onready var camera_arm: Node3D = $CameraRig/CameraArm
+@onready var camera: Camera3D = $CameraRig/CameraArm/Camera3D
+
+var target_zoom := ZOOM_DEFAULT
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -21,11 +29,31 @@ func _unhandled_input(event: InputEvent) -> void:
 		_rotate_camera(-event.relative.x * MOUSE_SENSITIVITY, -event.relative.y * MOUSE_SENSITIVITY)
 	if event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if event.is_action_pressed("zoom_in"):
+		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
+	if event.is_action_pressed("zoom_out"):
+		target_zoom = clamp(target_zoom + ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 
 func _rotate_camera(yaw_delta: float, pitch_delta: float) -> void:
 	camera_rig.rotate_y(yaw_delta)
 	camera_arm.rotate_x(pitch_delta)
 	camera_arm.rotation.x = clamp(camera_arm.rotation.x, PITCH_MIN, PITCH_MAX)
+
+func _update_camera_distance() -> void:
+	var pivot_pos: Vector3 = camera_arm.global_transform.origin
+	var back_dir: Vector3 = camera_arm.global_transform.basis.z
+	var desired_pos: Vector3 = pivot_pos + back_dir * target_zoom
+
+	var space_state := get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(pivot_pos, desired_pos)
+	query.exclude = [get_rid()]
+	var result := space_state.intersect_ray(query)
+
+	var safe_distance := target_zoom
+	if result:
+		safe_distance = max(pivot_pos.distance_to(result.position) - CAMERA_COLLISION_MARGIN, 0.5)
+
+	camera.position = Vector3(0, 0, safe_distance)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -57,3 +85,4 @@ func _physics_process(delta: float) -> void:
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_angle, TURN_SPEED * delta)
 
 	move_and_slide()
+	_update_camera_distance()
