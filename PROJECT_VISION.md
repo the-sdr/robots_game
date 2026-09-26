@@ -1,7 +1,8 @@
 # Project Vision
 
-This is the game's source of truth. Keep it current as decisions get made —
-when direction changes, update this file in the same session, not later.
+This is the game's source of truth. It is owned and edited by the project
+owner. Claude may propose changes but must get explicit approval before
+altering this file.
 
 ## Game concept
 
@@ -43,6 +44,18 @@ physical one.
 (single winding route) — a scale trade-off. Genuine "get lost a little"
 branches are wanted and can be added now that the area's scale is correct.
 
+## The player robot
+
+The player is a small tracked robot, currently a placeholder inspired by
+Johnny Five (*Short Circuit*): twin treads, a thin column torso, a wide
+chest, two jointed arms with claw hands, and a binocular head on a thin
+neck. It's built from simple primitive shapes rather than an imported model.
+
+It's deliberately **modular** — treads, torso, arms and head are separate
+parts in the scene tree. That mirrors where the robot crafting pillar is
+headed: robots assembled from interchangeable parts. The final art can
+replace each part individually without changing the structure.
+
 ## Visual style decisions
 
 - Primary aesthetic: **stylized/painterly low-poly**, not realistic —
@@ -76,7 +89,8 @@ avoided is true randomness driving where meaningful content ends up.
 
 ## Future plans / open ideas
 
-- Replace the player's placeholder cube with a real robot model.
+- Replace the player's placeholder primitive robot with final art, keeping
+  the part-by-part structure so it can feed into the crafting system.
 - Door interaction (the shed door doesn't open yet — deferred on purpose).
 - Finalize the charging station's design (currently a simple placeholder:
   dark pad, post, glowing core).

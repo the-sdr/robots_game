@@ -34,6 +34,10 @@ Working notes for AI-assisted sessions on this project. Update this as we go
 
 ## Lessons learned / do not repeat
 
+- **`PROJECT_VISION.md` belongs to the project owner.** Never edit it
+  without explicit approval — propose the change in chat (quote the exact
+  wording) and wait for a yes. Established 2026-09-27; the last
+  Claude-authored version is the one committed that day.
 - **Always ask before copying external assets into the project directory.**
 - **Always state clearly when running an executable outside the project
   folder** (the Godot binary lives at `C:\Godot_v4.7.2-stable_win64.exe\`).

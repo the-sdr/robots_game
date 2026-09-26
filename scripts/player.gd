@@ -92,7 +92,8 @@ func _physics_process(delta: float) -> void:
 
 	if move_dir.length() > 0.1:
 		var target_angle := atan2(move_dir.x, move_dir.z) + PI
-		visual.rotation.y = lerp_angle(visual.rotation.y, target_angle, TURN_SPEED * delta)
+		# Global, not local: the Player root itself may be rotated in the level.
+		visual.global_rotation.y = lerp_angle(visual.global_rotation.y, target_angle, TURN_SPEED * delta)
 
 	move_and_slide()
 	_update_camera_distance(delta)

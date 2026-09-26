@@ -1,3 +1,6 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Playtest position saves (F3) - local only
+/playtest/saves.md

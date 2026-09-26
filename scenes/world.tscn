@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://bkiqybl1vqk4j" path="res://assets/quaternius_city/Building_Large_2.gltf" id="27"]
 [ext_resource type="PackedScene" uid="uid://blq153puoe0pu" path="res://assets/quaternius_city/Building_Medium_2_001.gltf" id="28"]
 [ext_resource type="PackedScene" uid="uid://d0rw1mme4e7kl" path="res://assets/quaternius_city/Building_Small_1.gltf" id="29"]
+[ext_resource type="PackedScene" path="res://scenes/ui/coord_overlay.tscn" id="30"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_morning"]
 sky_top_color = Color(0.3, 0.55, 0.85, 1)
@@ -3369,3 +3370,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -76)
 
 [node name="CityBuildingLarge1" parent="." unique_id=64877947 instance=ExtResource("27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -90)
+
+[node name="CoordOverlay" parent="." instance=ExtResource("30")]
