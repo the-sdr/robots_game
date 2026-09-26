@@ -17,6 +17,21 @@
 [ext_resource type="PackedScene" uid="uid://dgehr0c5h2rof" path="res://assets/quaternius_nature/Mushroom_Common.gltf" id="15"]
 [ext_resource type="PackedScene" uid="uid://cjjdbh5gbml2x" path="res://assets/quaternius_nature/Rock_Medium_1.gltf" id="16"]
 [ext_resource type="Script" uid="uid://ci4vl0ll5r5yj" path="res://scripts/house_setup.gd" id="17"]
+[ext_resource type="PackedScene" path="res://scenes/props/solid_tree.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://scenes/props/solid_rock.tscn" id="19"]
+[ext_resource type="PackedScene" path="res://scenes/props/charging_station.tscn" id="20"]
+[ext_resource type="Script" path="res://scripts/bush_sway.gd" id="21"]
+[ext_resource type="Script" path="res://scripts/sky_dressing.gd" id="22"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Wall_UnevenBrick_Straight.gltf" id="24"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Prop_Vine1.gltf" id="25"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Prop_Vine2.gltf" id="26"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_city/Building_Large_2.gltf" id="27"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_city/Building_Medium_2_001.gltf" id="28"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_city/Building_Small_1.gltf" id="29"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_city/Sidewalk_Straight_3m.gltf" id="30"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_city/Prop_Bollard.gltf" id="31"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_city/Prop_Planter_Single.gltf" id="32"]
+[ext_resource type="Script" path="res://scripts/forest_maze.gd" id="33"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(200, 200)
@@ -39,7 +54,38 @@ size = Vector3(1.99, 4.18, 0.2)
 [sub_resource type="BoxShape3D" id="BoxShape3D_house_ceiling"]
 size = Vector3(5.6, 0.2, 5.6)
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_morning"]
+sky_top_color = Color(0.30, 0.55, 0.85, 1)
+sky_horizon_color = Color(0.75, 0.85, 0.92, 1)
+sky_curve = 0.15
+ground_bottom_color = Color(0.3, 0.55, 0.3, 1)
+ground_horizon_color = Color(0.75, 0.85, 0.92, 1)
+sun_angle_max = 30.0
+sun_curve = 0.15
+
+[sub_resource type="Sky" id="Sky_morning"]
+sky_material = SubResource("ProceduralSkyMaterial_morning")
+
+[sub_resource type="Environment" id="Environment_morning"]
+background_mode = 2
+sky = SubResource("Sky_morning")
+
+[sub_resource type="BoxMesh" id="BoxMesh_hill"]
+size = Vector3(10, 0.7, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hill"]
+albedo_color = Color(0.32, 0.5, 0.28, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hill"]
+size = Vector3(10, 0.7, 8)
+
 [node name="World" type="Node3D" unique_id=1237908528]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_morning")
+
+[node name="Clouds" type="Node3D" parent="."]
+script = ExtResource("22")
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=1879614214]
 
@@ -52,10 +98,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 shape = SubResource("BoxShape3D_floor")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1406318878]
-transform = Transform3D(0.866025, -0.321394, 0.383022, 0, 0.766044, 0.642788, -0.5, -0.55667, 0.663414, 0, 5, 0)
+rotation_degrees = Vector3(-35, -60, 0)
+light_color = Color(1.0, 0.95, 0.85, 1)
+light_energy = 1.2
 shadow_enabled = true
 
-[node name="Player" parent="." unique_id=821479118 instance=ExtResource("1")]
+[node name="Player" parent="." unique_id=821479118 instance=ExtResource("1") groups=["player"]]
 transform = Transform3D(-0.73899865, 0, 0.6737068, 0, 1, 0, -0.6737068, 0, -0.73899865, -0.93140256, 0.1018011, -4.322591)
 
 [node name="House" parent="." unique_id=2060891932 instance=ExtResource("2")]
@@ -88,6 +136,9 @@ shape = SubResource("BoxShape3D_house_near_seg")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.18, -5.025)
 shape = SubResource("BoxShape3D_house_ceiling")
 
+[node name="ChargingStation" parent="." instance=ExtResource("20")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3, 0, -2.7)
+
 [node name="PathTile1" parent="." unique_id=1720402820 instance=ExtResource("9")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
 
@@ -97,83 +148,52 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10.5)
 [node name="PathTile3" parent="." unique_id=339592106 instance=ExtResource("9")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -13)
 
-[node name="PathTile4" parent="." unique_id=695428455 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15.5)
+[node name="ShedVine1" parent="." instance=ExtResource("25")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 4.0, -7.5)
 
-[node name="PathTile5" parent="." unique_id=1347291092 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18)
+[node name="ShedVine2" parent="." instance=ExtResource("26")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 4.0, -4.0)
 
-[node name="PathTile6" parent="." unique_id=1553205104 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.5)
+[node name="ShedVine3" parent="." instance=ExtResource("25")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 4.0, -3.0)
 
-[node name="PathTile7" parent="." unique_id=2105568197 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -23)
+[node name="ForestMaze" type="Node3D" parent="."]
+script = ExtResource("33")
 
-[node name="PathTile8" parent="." unique_id=651338430 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -25.5)
+[node name="GateWallLeft" parent="." instance=ExtResource("24")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.8, 0, -9)
 
-[node name="PathTile9" parent="." unique_id=532045428 instance=ExtResource("9")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28)
+[node name="GateWallRight" parent="." instance=ExtResource("24")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.8, 0, -9)
 
-[node name="CanopyTree1" parent="." unique_id=119293751 instance=ExtResource("3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -44)
+[node name="GateVine1" parent="." instance=ExtResource("25")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 3.0, -9)
 
-[node name="CanopyTree2" parent="." unique_id=79645206 instance=ExtResource("4")]
-transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 8, 0, -41.86)
+[node name="GateVine2" parent="." instance=ExtResource("26")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 3.0, -9)
 
-[node name="CanopyTree3" parent="." unique_id=346548749 instance=ExtResource("5")]
-transform = Transform3D(0.49999997, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.49999997, 13.86, 0, -36)
+[node name="RuinWallTurn" parent="." instance=ExtResource("24")]
+transform = Transform3D(0.7660444, 0, 0.6427876, 0, 1, 0, -0.6427876, 0, 0.7660444, 5.5, 0, -14.5)
 
-[node name="CanopyTree4" parent="." unique_id=1898326121 instance=ExtResource("6")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 16, 0, -28)
+[node name="RuinVineTurn" parent="." instance=ExtResource("25")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 3.0, -14.5)
 
-[node name="CanopyTree5" parent="." unique_id=1114359881 instance=ExtResource("7")]
-transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, 13.86, 0, -20)
+[node name="RuinWallExit" parent="." instance=ExtResource("24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0, -20.5)
 
-[node name="CanopyTree6" parent="." unique_id=2075091264 instance=ExtResource("8")]
-transform = Transform3D(-0.8660254, 0, 0.50000006, 0, 1, 0, -0.50000006, 0, -0.8660254, 8, 0, -14.14)
-
-[node name="CanopyTree7" parent="." unique_id=1579491612 instance=ExtResource("3")]
-transform = Transform3D(-0.9936055, 0.062498055, 0.09403312, 0.050364837, 0.9907146, -0.1262849, -0.10105255, -0.12074139, -0.98752713, -1.8307155, 0.12306237, -17.82767)
-
-[node name="CanopyTree8" parent="." unique_id=1930837934 instance=ExtResource("4")]
-transform = Transform3D(-0.8660254, 0, -0.49999997, 0, 1, 0, 0.49999997, 0, -0.8660254, -8, 0, -14.14)
-
-[node name="CanopyTree9" parent="." unique_id=1975599178 instance=ExtResource("5")]
-transform = Transform3D(-0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, -0.4999999, -13.86, 0, -20)
-
-[node name="CanopyTree10" parent="." unique_id=1528036011 instance=ExtResource("6")]
-transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, -16, 0, -28)
-
-[node name="CanopyTree11" parent="." unique_id=1174800442 instance=ExtResource("7")]
-transform = Transform3D(0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, 0.4999999, -13.86, 0, -36)
-
-[node name="CanopyTree12" parent="." unique_id=2011083307 instance=ExtResource("8")]
-transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, -8, 0, -41.86)
+[node name="RuinVineExit" parent="." instance=ExtResource("26")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 3.0, -20.5)
 
 [node name="Bush1" parent="." unique_id=1455996193 instance=ExtResource("10")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -20)
-
-[node name="Bush2" parent="." unique_id=1114778207 instance=ExtResource("10")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -25)
-
-[node name="Bush3" parent="." unique_id=1756378025 instance=ExtResource("10")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -35)
+script = ExtResource("21")
 
 [node name="BushFlowers1" parent="." unique_id=768178 instance=ExtResource("11")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -18)
-
-[node name="BushFlowers2" parent="." unique_id=187064732 instance=ExtResource("11")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -32)
+script = ExtResource("21")
 
 [node name="Fern1" parent="." unique_id=1018398646 instance=ExtResource("12")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -16)
-
-[node name="Fern2" parent="." unique_id=129290873 instance=ExtResource("12")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -30)
-
-[node name="Fern3" parent="." unique_id=417473136 instance=ExtResource("12")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -40)
 
 [node name="Flower3Group1" parent="." unique_id=1776921191 instance=ExtResource("13")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
@@ -181,20 +201,34 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
 [node name="Flower3Group2" parent="." unique_id=976053877 instance=ExtResource("13")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -22)
 
-[node name="Flower4Group1" parent="." unique_id=1132642364 instance=ExtResource("14")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -27)
+[node name="Rock1" parent="." unique_id=891847414 instance=ExtResource("19")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, -21)
+model_path = "res://assets/quaternius_nature/Rock_Medium_1.gltf"
 
-[node name="Flower4Group2" parent="." unique_id=1699590652 instance=ExtResource("14")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -37)
+[node name="HillPlatform" type="StaticBody3D" parent="."]
 
-[node name="Mushroom1" parent="." unique_id=1863901432 instance=ExtResource("15")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -24)
+[node name="HillPlatformMesh" type="MeshInstance3D" parent="HillPlatform"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, -28)
+mesh = SubResource("BoxMesh_hill")
+surface_material_override/0 = SubResource("StandardMaterial3D_hill")
 
-[node name="Mushroom2" parent="." unique_id=1683238882 instance=ExtResource("15")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -33)
+[node name="HillPlatformCollision" type="CollisionShape3D" parent="HillPlatform"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, -28)
+shape = SubResource("BoxShape3D_hill")
 
-[node name="Rock1" parent="." unique_id=891847414 instance=ExtResource("16")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -22)
+[node name="HillTreeLeft1" parent="." instance=ExtResource("18")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, -24)
+model_path = "res://assets/quaternius_nature/TwistedTree_4.gltf"
 
-[node name="Rock2" parent="." unique_id=1502664532 instance=ExtResource("16")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -28)
+[node name="HillTreeRight1" parent="." instance=ExtResource("18")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, -24)
+model_path = "res://assets/quaternius_nature/CommonTree_5.gltf"
+
+[node name="CityBuildingSmall1" parent="." instance=ExtResource("29")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -45)
+
+[node name="CityBuildingMedium1" parent="." instance=ExtResource("28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -48)
+
+[node name="CityBuildingLarge1" parent="." instance=ExtResource("27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -62)
