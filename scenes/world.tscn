@@ -1,7 +1,22 @@
 [gd_scene format=3 uid="uid://cgaxwrphyu0fu"]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/shed.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://cufb1p8kwmkno" path="res://assets/quaternius_buildings/Finished Textured Buildings/FBX/1Story.fbx" id="2"]
+[ext_resource type="PackedScene" uid="uid://5kkrcogamxo8" path="res://assets/quaternius_nature/CommonTree_1.gltf" id="3"]
+[ext_resource type="PackedScene" uid="uid://cg7mf8k8w677a" path="res://assets/quaternius_nature/TwistedTree_2.gltf" id="4"]
+[ext_resource type="PackedScene" uid="uid://d1pmpxto8rw1u" path="res://assets/quaternius_nature/CommonTree_3.gltf" id="5"]
+[ext_resource type="PackedScene" uid="uid://2n4ubmj786jl" path="res://assets/quaternius_nature/DeadTree_1.gltf" id="6"]
+[ext_resource type="PackedScene" uid="uid://bukb2403q7rke" path="res://assets/quaternius_nature/TwistedTree_4.gltf" id="7"]
+[ext_resource type="PackedScene" uid="uid://bch486pfu68rl" path="res://assets/quaternius_nature/CommonTree_5.gltf" id="8"]
+[ext_resource type="PackedScene" uid="uid://dp8wrsy5q8g6y" path="res://assets/quaternius_nature/RockPath_Round_Wide.gltf" id="9"]
+[ext_resource type="PackedScene" uid="uid://dvonujkh8ug0e" path="res://assets/quaternius_nature/Bush_Common.gltf" id="10"]
+[ext_resource type="PackedScene" uid="uid://bafpim1j2xxu2" path="res://assets/quaternius_nature/Bush_Common_Flowers.gltf" id="11"]
+[ext_resource type="PackedScene" uid="uid://cyyk62bbem5v4" path="res://assets/quaternius_nature/Fern_1.gltf" id="12"]
+[ext_resource type="PackedScene" uid="uid://cofoqpvtrebdg" path="res://assets/quaternius_nature/Flower_3_Group.gltf" id="13"]
+[ext_resource type="PackedScene" uid="uid://j2lupqmy0crp" path="res://assets/quaternius_nature/Flower_4_Group.gltf" id="14"]
+[ext_resource type="PackedScene" uid="uid://dgehr0c5h2rof" path="res://assets/quaternius_nature/Mushroom_Common.gltf" id="15"]
+[ext_resource type="PackedScene" uid="uid://cjjdbh5gbml2x" path="res://assets/quaternius_nature/Rock_Medium_1.gltf" id="16"]
+[ext_resource type="Script" path="res://scripts/house_setup.gd" id="17"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(200, 200)
@@ -12,25 +27,136 @@ albedo_color = Color(0.3, 0.55, 0.3, 1)
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(200, 0.2, 200)
 
-[node name="World" type="Node3D" unique_id=512365180]
+[node name="World" type="Node3D" unique_id=1237908528]
 
-[node name="Floor" type="StaticBody3D" parent="." unique_id=1468813227]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1879614214]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1032558981]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004096031, -0.030336618, 0.023473501)
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1899800824]
 mesh = SubResource("PlaneMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=914672059]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=2049820261]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 shape = SubResource("BoxShape3D_floor")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2096087172]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1406318878]
 transform = Transform3D(0.866025, -0.321394, 0.383022, 0, 0.766044, 0.642788, -0.5, -0.55667, 0.663414, 0, 5, 0)
 shadow_enabled = true
 
-[node name="Player" parent="." unique_id=1142288867 instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -6)
+[node name="Player" parent="." unique_id=821479118 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -7.3)
 
-[node name="Shed" parent="." unique_id=1435494421 instance=ExtResource("2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+[node name="House" parent="." unique_id=2060891932 instance=ExtResource("2")]
+transform = Transform3D(-2.5, 0, -2.1855695e-07, 0, 2.5, 0, 2.1855695e-07, 0, -2.5, 0, 0, -5)
+script = ExtResource("17")
+
+[node name="PathTile1" parent="." unique_id=1720402820 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="PathTile2" parent="." unique_id=106577121 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10.5)
+
+[node name="PathTile3" parent="." unique_id=339592106 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -13)
+
+[node name="PathTile4" parent="." unique_id=695428455 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15.5)
+
+[node name="PathTile5" parent="." unique_id=1347291092 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18)
+
+[node name="PathTile6" parent="." unique_id=1553205104 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.5)
+
+[node name="PathTile7" parent="." unique_id=2105568197 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -23)
+
+[node name="PathTile8" parent="." unique_id=651338430 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -25.5)
+
+[node name="PathTile9" parent="." unique_id=532045428 instance=ExtResource("9")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28)
+
+[node name="CanopyTree1" parent="." unique_id=119293751 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -44)
+
+[node name="CanopyTree2" parent="." unique_id=79645206 instance=ExtResource("4")]
+transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 8, 0, -41.86)
+
+[node name="CanopyTree3" parent="." unique_id=346548749 instance=ExtResource("5")]
+transform = Transform3D(0.49999997, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.49999997, 13.86, 0, -36)
+
+[node name="CanopyTree4" parent="." unique_id=1898326121 instance=ExtResource("6")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 16, 0, -28)
+
+[node name="CanopyTree5" parent="." unique_id=1114359881 instance=ExtResource("7")]
+transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, 13.86, 0, -20)
+
+[node name="CanopyTree6" parent="." unique_id=2075091264 instance=ExtResource("8")]
+transform = Transform3D(-0.8660254, 0, 0.50000006, 0, 1, 0, -0.50000006, 0, -0.8660254, 8, 0, -14.14)
+
+[node name="CanopyTree7" parent="." unique_id=1579491612 instance=ExtResource("3")]
+transform = Transform3D(-0.9936055, 0.062498055, 0.09403312, 0.050364837, 0.9907146, -0.1262849, -0.10105255, -0.12074139, -0.98752713, -1.8307155, 0.12306237, -17.82767)
+
+[node name="CanopyTree8" parent="." unique_id=1930837934 instance=ExtResource("4")]
+transform = Transform3D(-0.8660254, 0, -0.49999997, 0, 1, 0, 0.49999997, 0, -0.8660254, -8, 0, -14.14)
+
+[node name="CanopyTree9" parent="." unique_id=1975599178 instance=ExtResource("5")]
+transform = Transform3D(-0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, -0.4999999, -13.86, 0, -20)
+
+[node name="CanopyTree10" parent="." unique_id=1528036011 instance=ExtResource("6")]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, -16, 0, -28)
+
+[node name="CanopyTree11" parent="." unique_id=1174800442 instance=ExtResource("7")]
+transform = Transform3D(0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, 0.4999999, -13.86, 0, -36)
+
+[node name="CanopyTree12" parent="." unique_id=2011083307 instance=ExtResource("8")]
+transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, -8, 0, -41.86)
+
+[node name="Bush1" parent="." unique_id=1455996193 instance=ExtResource("10")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -20)
+
+[node name="Bush2" parent="." unique_id=1114778207 instance=ExtResource("10")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -25)
+
+[node name="Bush3" parent="." unique_id=1756378025 instance=ExtResource("10")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -35)
+
+[node name="BushFlowers1" parent="." unique_id=768178 instance=ExtResource("11")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -18)
+
+[node name="BushFlowers2" parent="." unique_id=187064732 instance=ExtResource("11")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -32)
+
+[node name="Fern1" parent="." unique_id=1018398646 instance=ExtResource("12")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -16)
+
+[node name="Fern2" parent="." unique_id=129290873 instance=ExtResource("12")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -30)
+
+[node name="Fern3" parent="." unique_id=417473136 instance=ExtResource("12")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -40)
+
+[node name="Flower3Group1" parent="." unique_id=1776921191 instance=ExtResource("13")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
+
+[node name="Flower3Group2" parent="." unique_id=976053877 instance=ExtResource("13")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -22)
+
+[node name="Flower4Group1" parent="." unique_id=1132642364 instance=ExtResource("14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -27)
+
+[node name="Flower4Group2" parent="." unique_id=1699590652 instance=ExtResource("14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -37)
+
+[node name="Mushroom1" parent="." unique_id=1863901432 instance=ExtResource("15")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -24)
+
+[node name="Mushroom2" parent="." unique_id=1683238882 instance=ExtResource("15")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -33)
+
+[node name="Rock1" parent="." unique_id=891847414 instance=ExtResource("16")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -22)
+
+[node name="Rock2" parent="." unique_id=1502664532 instance=ExtResource("16")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -28)
