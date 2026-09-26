@@ -79,6 +79,45 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   the maze walls (dense, sealed, one path through), with ruins as curated
   accents woven in — not a distinct walled-corridor area built with
   ancient-wall assets alongside plain garden trees elsewhere.
+- **"Level design" means real, saved nodes — runtime procedural generation
+  is not an acceptable substitute even for background-density content,**
+  once explicitly rejected. Resolution that satisfies both speed and
+  editability: write the placement logic once, run it, print each
+  instance's transform, convert that into real `.tscn` node blocks, then
+  delete the runtime script. Same generation speed, permanent/editable
+  result.
+- **When given a relative density/scale instruction** ("half the density,
+  10x the area"), compute it explicitly as count/area and show the math —
+  don't eyeball a new spacing value and hope.
+- **Before bulk-replacing a line range in a scene file** (e.g. via `sed`),
+  verify the *exact* boundaries first. Assumed a block was "just the
+  generated trees" and it also contained 14 hand-placed nodes (gate,
+  ruins, undergrowth) sitting in the same range — nearly lost them.
+  Recovered via `git show <last-commit>:<path>`. Check git diff after any
+  large mechanical file surgery, not just headless load success.
+- **A structure needs forest/walls on *every* side to read as enclosed**,
+  not just the side facing the path — the other sides being open ground is
+  exactly as bad as no forest at all, even if the "maze" side is dense.
+
+## Session log
+
+Newest first. Session ID links follow the
+`https://claude.ai/code/session_...` format.
+
+- **2026-09-26** — `session_01EY1wXvCYc4QNCvTMF7y3d9`. Full first working
+  day: player/camera/movement systems (Input Map, sphere-cast camera
+  collision), first house (placeholder box, then a real Quaternius
+  building with measured collision + material fixes), asset gallery tool
+  for browsing Quaternius packs in-engine, imported Nature/Medieval
+  Village/Downtown City packs. Area 2 (garden/forest maze) went through
+  several full rebuilds based on playtesting: too sparse → corridor
+  labyrinth built way oversized (~160m, wrong approach entirely) →
+  corrected to a compact forest-is-the-maze design → too sparse again →
+  runtime-procedural mass forest (rejected, wanted real level design) →
+  baked into real nodes, tuned down twice, finally extended to surround
+  the house on every side but the front path (789 trees, all real nodes).
+  Set up `README.md`/`PROJECT_VISION.md`/`CLAUDE_NOTES.md`. Committed and
+  pushed (`1b20c29`).
 
 ## Conventions
 
