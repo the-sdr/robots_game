@@ -18,6 +18,7 @@ import re
 import numpy as np
 
 import level_common as lc
+from level_generate_forest import route, reach_functions
 
 BUILD_DIR = os.path.join(lc.ROOT, "level_design", "build")
 PLACEMENTS = os.path.join(BUILD_DIR, "placements.json")   # exact transforms from the last build
@@ -28,6 +29,10 @@ BACKGROUND_SPACING = 4.5
 BACKGROUND_SEED = 20260927
 BACKGROUND_MODELS = [("CommonTree_1", 3), ("CommonTree_3", 3), ("CommonTree_5", 3),
                      ("DeadTree_1", 2), ("TwistedTree_2", 1), ("TwistedTree_4", 1)]
+# Trees further than this from anywhere the player can reach are drawn in
+# batches (MultiMesh, no shadows) with collision kept; nearer trees stay
+# individual objects so they keep shadows and can be interacted with later.
+BATCH_REACH = 3.0
 GROUND_RADIUS = {"wall": 1.0, "building": 0.0, "bush": 0.5, "rock": 1.0, "prop": 0.3,
                  "stone": 0.0, "collectible": 0.0}
 
@@ -85,7 +90,9 @@ def main():
     grid = lc.terrain_grid(sheet)
     exact = exact_transforms()
     placements, objects, used_exact = {}, [], 0
-    trees = 0
+    trees = batched = 0
+    _, segments, dead_ends, _, _ = route(sheet)
+    _, _, reach_distance = reach_functions(sheet, segments, dead_ends)
 
     for x, z, toks in sheet.cells():
         for tok in toks:
@@ -113,9 +120,14 @@ def main():
             if kind == "stone":
                 basis = tilt_basis(basis, normal_at(grid, px, pz))
                 ground = lc.height_at(grid, px, pz) - 0.03 + (lc.cell_hash(x, z) % 5) * 0.004
-            objects.append({"code": code, "asset": asset, "kind": kind,
-                            "path": assets[asset]["path"] if asset in assets else "",
-                            "basis": [float(b) for b in basis], "origin": [px, ground + yoff, pz]})
+            obj = {"code": code, "asset": asset, "kind": kind,
+                   "path": assets[asset]["path"] if asset in assets else "",
+                   "basis": [float(b) for b in basis], "origin": [px, ground + yoff, pz]}
+            if kind == "tree":
+                obj["trunk"] = list(lc.TRUNKS[asset])
+                obj["batch"] = reach_distance(px, pz) > BATCH_REACH
+                batched += obj["batch"]
+            objects.append(obj)
 
     # Background forest: seen, never reached. Not on the sheet (it has no design meaning).
     rng = random.Random(BACKGROUND_SEED)
@@ -158,8 +170,8 @@ def main():
     kinds = {}
     for o in objects:
         kinds[o["kind"]] = kinds.get(o["kind"], 0) + 1
-    print("objects: %s | kept exact positions for %d | background trees %d | terrain %dx%d, %.1f..%.1f m" % (
-        kinds, used_exact, len(background), grid["nx"], grid["nz"], grid["heights"].min(), grid["heights"].max()))
+    print("objects: %s (trees batched %d, individual %d) | kept exact positions for %d | background trees %d | terrain %dx%d, %.1f..%.1f m" % (
+        kinds, batched, trees - batched, used_exact, len(background), grid["nx"], grid["nz"], grid["heights"].min(), grid["heights"].max()))
 
 
 if __name__ == "__main__":

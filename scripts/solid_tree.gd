@@ -12,6 +12,8 @@ const TRUNKS := {
 	"TwistedTree_4": {"radius": 1.15, "centre": Vector2(0.02, 0.10)},
 }
 
+const LOD_BIAS := 0.4   # < 1 = switch to the model's simpler versions sooner (matches level_bake.gd)
+
 @export var model_path: String = ""
 ## 0 = use the measured trunk for this model (see TRUNKS).
 @export var trunk_radius: float = 0.0
@@ -20,7 +22,10 @@ const TRUNKS := {
 func _ready() -> void:
 	if model_path != "":
 		var scene: PackedScene = load(model_path)
-		add_child(scene.instantiate())
+		var model: Node = scene.instantiate()
+		add_child(model)
+		for mesh_instance in model.find_children("*", "GeometryInstance3D"):
+			(mesh_instance as GeometryInstance3D).lod_bias = LOD_BIAS
 
 	var radius: float = trunk_radius
 	var centre := Vector2.ZERO

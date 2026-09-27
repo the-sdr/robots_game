@@ -79,6 +79,27 @@ def route(sheet):
     return pts, segments, dead_ends, pts[start], ex
 
 
+def reach_functions(sheet, segments, dead_ends):
+    """Distance helpers shared with level_build.py."""
+    def corridor_distance(x, z):
+        return min(lc.point_segment_distance(x, z, a[0], a[1], b[0], b[1]) for a, b in segments)
+
+    def in_open_area(x, z):
+        return z < FOREST_NORTH_EDGE
+
+    def reach_distance(x, z):
+        """Distance to ground the player can reach (path, clearings, house strip, hill/city)."""
+        d = corridor_distance(x, z) - CORRIDOR_HALF_WIDTH
+        for de in dead_ends:
+            d = min(d, math.dist((x, z), de) - DEAD_END_CLEARING)
+        d = min(d, lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX) - HOUSE_STRIP)
+        if not in_open_area(x, z):
+            d = min(d, z - FOREST_NORTH_EDGE)
+        return d
+
+    return corridor_distance, in_open_area, reach_distance
+
+
 def main():
     sheet = lc.Sheet()
     assets = lc.load_assets()
@@ -103,26 +124,12 @@ def main():
             elif kind not in ("collectible",):
                 props.append((x, z))
 
-    def corridor_distance(x, z):
-        return min(lc.point_segment_distance(x, z, a[0], a[1], b[0], b[1]) for a, b in segments)
-
-    def in_open_area(x, z):
-        return z < FOREST_NORTH_EDGE
+    corridor_distance, in_open_area, reach_distance = reach_functions(sheet, segments, dead_ends)
 
     def in_open_border(x, z):
         return in_open_area(x, z) and (x < sheet.x_min + OPEN_BORDER_COLUMNS or
                                        x > sheet.x_max - OPEN_BORDER_COLUMNS or
                                        z < sheet.z_min + OPEN_BORDER_ROWS)
-
-    def reach_distance(x, z):
-        """Distance to ground the player can reach (path, clearings, house strip, hill/city)."""
-        d = corridor_distance(x, z) - CORRIDOR_HALF_WIDTH
-        for de in dead_ends:
-            d = min(d, math.dist((x, z), de) - DEAD_END_CLEARING)
-        d = min(d, lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX) - HOUSE_STRIP)
-        if not in_open_area(x, z):
-            d = min(d, z - FOREST_NORTH_EDGE)
-        return d
 
     placed = {}
     skipped = 0

@@ -15,6 +15,9 @@ const GROUND_COLOR := Color(0.3, 0.55, 0.3)
 const WALL_SIZE := Vector3(2.0, 3.12, 0.41)
 const WALL_CENTRE := Vector3(0, 1.56, -0.11)
 const BACKGROUND_CHUNK := 32.0
+const INTERIOR_CHUNK := 16.0       # smaller chunks so distance-LOD and culling work per area
+const TREE_LOD_BIAS := 0.4         # < 1 = switch to the model's simpler versions sooner
+const TRUNK_HEIGHT := 2.5          # matches solid_tree.gd
 const COLLECTIBLES := {
 	"CP1": {"name": "Servo motor", "color": Color(1.0, 0.6, 0.15)},
 	"CP2": {"name": "Optic lens", "color": Color(0.3, 0.8, 1.0)},
@@ -35,7 +38,12 @@ func _initialize() -> void:
 	var props := _group("Props")
 	var collectibles := _group("Collectibles")
 	var counts := {}
+	var interior := []
 	for o in data["objects"]:
+		if o["kind"] == "tree" and o.get("batch", false):
+			interior.append(o)
+			counts["tree (batched)"] = counts.get("tree (batched)", 0) + 1
+			continue
 		var xf := _transform(o)
 		var kind: String = o["kind"]
 		counts[kind] = counts.get(kind, 0) + 1
@@ -66,7 +74,8 @@ func _initialize() -> void:
 				part.set("color", info["color"])
 			_:
 				_instance(o["path"], props, node_name, xf)
-	_build_background(data["background"])
+	_build_batched(interior, "InteriorForest", INTERIOR_CHUNK, true)
+	_build_batched(data["background"], "BackgroundForest", BACKGROUND_CHUNK, false)
 
 	var packed := PackedScene.new()
 	var err := packed.pack(_root)
@@ -157,6 +166,7 @@ func _build_terrain(t: Dictionary) -> void:
 	st.generate_normals()
 	var material := StandardMaterial3D.new()
 	material.vertex_color_use_as_albedo = true
+	material.vertex_color_is_srgb = true     # colours above are ordinary sRGB, like a material's albedo
 	material.roughness = 0.95
 	st.set_material(material)
 	var mesh: Mesh = _save_external(st.commit(), OUT_DIR + "terrain_mesh.res")
@@ -192,10 +202,15 @@ func _save_external(res: Resource, path: String) -> Resource:
 		return res
 	return ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REPLACE)
 
-func _build_background(items: Array) -> void:
-	var group := _group("BackgroundForest")
+# Draws many copies of each model per chunk in one MultiMesh (no shadows).
+# With collision, each chunk also gets one StaticBody3D holding a trunk
+# capsule per tree, matching solid_tree.gd.
+func _build_batched(items: Array, group_name: String, chunk_size: float, collision: bool) -> void:
+	var group := _group(group_name)
 	var meshes := {}     # asset path -> [mesh, local transform of the mesh inside the model]
 	var chunks := {}     # "cx,cz,path" -> Array[Transform3D]
+	var bodies := {}     # "cx,cz" -> StaticBody3D
+	var capsules := {}   # radius -> CapsuleShape3D (shared)
 	for o in items:
 		var path: String = o["path"]
 		if not meshes.has(path):
@@ -206,10 +221,29 @@ func _build_background(items: Array) -> void:
 			meshes[path] = [mesh, model.transform.affine_inverse() * mi.global_transform if mi.is_inside_tree() else mi.transform]
 			model.free()
 		var xf := _transform(o)
-		var key := "%d,%d,%s" % [floori(xf.origin.x / BACKGROUND_CHUNK), floori(xf.origin.z / BACKGROUND_CHUNK), path]
+		var cell := "%d,%d" % [floori(xf.origin.x / chunk_size), floori(xf.origin.z / chunk_size)]
+		var key := "%s,%s" % [cell, path]
 		if not chunks.has(key):
 			chunks[key] = []
 		chunks[key].append(xf * meshes[path][1])
+		if collision:
+			if not bodies.has(cell):
+				var body := StaticBody3D.new()
+				body.name = "Collision_%s" % cell.replace(",", "_")
+				group.add_child(body)
+				body.owner = _root
+				bodies[cell] = body
+			var radius: float = o["trunk"][0]
+			if not capsules.has(radius):
+				var cap := CapsuleShape3D.new()
+				cap.radius = radius
+				cap.height = maxf(TRUNK_HEIGHT, radius * 2.0)
+				capsules[radius] = cap
+			var col := CollisionShape3D.new()
+			col.shape = capsules[radius]
+			col.transform = xf * Transform3D(Basis(), Vector3(o["trunk"][1], capsules[radius].height * 0.5, o["trunk"][2]))
+			bodies[cell].add_child(col)
+			col.owner = _root
 	for key in chunks:
 		var path: String = key.get_slice(",", 2)
 		var mm := MultiMesh.new()
@@ -222,5 +256,6 @@ func _build_background(items: Array) -> void:
 		mmi.name = "Chunk_%s_%s_%s" % [key.get_slice(",", 0), key.get_slice(",", 1), path.get_file().get_basename()]
 		mmi.multimesh = mm
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.lod_bias = TREE_LOD_BIAS
 		group.add_child(mmi)
 		mmi.owner = _root
