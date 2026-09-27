@@ -85,6 +85,8 @@ func undock() -> void:
 
 func _update_look() -> void:
 	var f := stored / capacity
+	var pulse: float = 1.0 + 0.18 * sin(Time.get_ticks_msec() / 1000.0 * 7.0) if docked_player != null else 1.0
+	core.scale = Vector3.ONE * pulse
 	var colour := Color(0.2, 1.0, 0.9).lerp(Color(1.0, 0.35, 0.15), 1.0 - f)
 	_core_material.emission = colour
 	_core_material.emission_energy_multiplier = 1.0 + 3.0 * f

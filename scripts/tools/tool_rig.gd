@@ -18,9 +18,15 @@ var _head: Node3D
 var _cooldown_left := 0.0
 var _swing_tween: Tween
 var _hit_shape := SphereShape3D.new()
+var _flash: OmniLight3D
 
 func _ready() -> void:
 	_hit_shape.radius = HIT_RADIUS
+	_flash = OmniLight3D.new()
+	_flash.light_energy = 0.0
+	_flash.omni_range = 3.0
+	_flash.position = Vector3(0, -0.3, -0.5)
+	add_child(_flash)
 	Game.inventory_changed.connect(refresh)
 	Game.loaded.connect(refresh)
 	Game.new_game_started.connect(refresh)
@@ -77,7 +83,13 @@ func use() -> bool:
 		Energy.spend(cost * DRY_SWING_COST_FRACTION)
 		return false
 	Energy.spend(cost)
-	return target.apply(def["effect"], def["power"], player.global_position)
+	var applied: bool = target.apply(def["effect"], def["power"], player.global_position)
+	if applied:
+		_flash.light_color = def.get("colour", Color.WHITE)
+		_flash.light_energy = 4.0
+		var tween := create_tween()
+		tween.tween_property(_flash, "light_energy", 0.0, 0.18)
+	return applied
 
 func _find_target(reach: float) -> Breakable:
 	var forward: Vector3 = -visual.global_transform.basis.z

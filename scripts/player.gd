@@ -28,6 +28,13 @@ const DOUBLE_TAP_TIME = 0.3
 @onready var interact_probe: Area3D = $InteractProbe
 @onready var headlight: SpotLight3D = $Visual/Head/Headlight
 @onready var tool_rig: Node3D = $Visual/ArmRight/ToolRig
+@onready var wheels: Array[Node] = [$Visual/TreadLeft/WheelFront, $Visual/TreadLeft/WheelBack, $Visual/TreadRight/WheelFront, $Visual/TreadRight/WheelBack]
+@onready var chest_panel: MeshInstance3D = $Visual/ChestPanel
+@onready var lenses: Array[Node] = [$Visual/Head/LensLeft, $Visual/Head/LensRight]
+
+const WHEEL_RADIUS := 0.12
+var _chest_material: StandardMaterial3D
+var _lens_material: StandardMaterial3D
 
 var target_zoom := ZOOM_DEFAULT
 var _camera_probe_shape: SphereShape3D
@@ -43,6 +50,22 @@ var _focus: Interactable = null
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Own copies of the shared materials so this robot can light up on its own.
+	_chest_material = StandardMaterial3D.new()
+	_chest_material.albedo_color = Color(0.1, 0.11, 0.12)
+	_chest_material.emission_enabled = true
+	chest_panel.material_override = _chest_material
+	_lens_material = (lenses[0] as MeshInstance3D).mesh.material.duplicate()
+	for lens in lenses:
+		(lens as MeshInstance3D).material_override = _lens_material
+	Energy.changed.connect(_on_energy_changed)
+	_on_energy_changed(Energy.current, Energy.MAX)
+
+func _on_energy_changed(current: float, maximum: float) -> void:
+	var f := current / maximum
+	var colour := Color(1.0, 0.25, 0.15).lerp(Color(1.0, 0.8, 0.2), clampf(f * 2.0, 0.0, 1.0)).lerp(Color(0.3, 1.0, 0.6), clampf(f * 2.0 - 1.0, 0.0, 1.0))
+	_chest_material.emission = colour
+	_chest_material.emission_energy_multiplier = 0.4 + 1.6 * f
 	_camera_probe_shape = SphereShape3D.new()
 	_camera_probe_shape.radius = CAMERA_PROBE_RADIUS
 
@@ -131,10 +154,17 @@ func _update_focus() -> void:
 		if _find_hud():
 			_hud.set_prompt(_focus)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	# Headlights come on as the sun goes down (and off when the battery is dead).
 	var dark: float = 1.0 - smoothstep(-0.05, 0.12, Clock.sun_direction().y)
 	headlight.light_energy = 0.0 if shut_down else 3.0 * dark
+	_lens_material.emission_energy_multiplier = 0.0 if shut_down else 1.2 + 2.5 * dark
+	# Tread wheels turn with the ground speed (the tread bodies are boxes; the wheels sell it).
+	var ground_speed := Vector2(velocity.x, velocity.z).length()
+	if ground_speed > 0.05:
+		var forward_sign: float = signf(-visual.global_transform.basis.z.dot(Vector3(velocity.x, 0, velocity.z)))
+		for wheel in wheels:
+			(wheel as Node3D).rotate_x(-forward_sign * ground_speed / WHEEL_RADIUS * delta)
 
 func _physics_process(delta: float) -> void:
 	_update_focus()
