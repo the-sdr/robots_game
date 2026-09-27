@@ -35,6 +35,9 @@ func _start_new_game() -> void:
 func _on_flag_changed(flag: String, value: bool) -> void:
 	if flag == "house_door_broken" and value:
 		Story.play("door")
+	if flag == "unlocked:tower_door" and value:
+		Story.play("relay")
+		Game.set_flag("slice_complete", true)
 
 func home_charger() -> Node3D:
 	for c in get_tree().get_nodes_in_group("charger"):

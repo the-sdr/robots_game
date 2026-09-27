@@ -1,0 +1,122 @@
+[gd_scene load_steps=14 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_concrete"]
+albedo_color = Color(0.52, 0.5, 0.47, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_steel"]
+albedo_color = Color(0.35, 0.37, 0.4, 1)
+metallic = 0.8
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="Mat_beacon"]
+albedo_color = Color(1, 0.2, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.15, 0.05, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="BoxMesh" id="Mesh_side_wall"]
+material = SubResource("Mat_concrete")
+size = Vector3(0.6, 4.2, 7.6)
+
+[sub_resource type="BoxMesh" id="Mesh_back_wall"]
+material = SubResource("Mat_concrete")
+size = Vector3(7.8, 4.2, 0.6)
+
+[sub_resource type="BoxMesh" id="Mesh_front_piece"]
+material = SubResource("Mat_concrete")
+size = Vector3(2.4, 4.2, 0.6)
+
+[sub_resource type="BoxMesh" id="Mesh_roof"]
+material = SubResource("Mat_concrete")
+size = Vector3(7.8, 0.4, 7.6)
+
+[sub_resource type="CylinderMesh" id="Mesh_shaft"]
+material = SubResource("Mat_steel")
+top_radius = 0.9
+bottom_radius = 1.5
+height = 30.0
+radial_segments = 10
+
+[sub_resource type="SphereMesh" id="Mesh_beacon"]
+material = SubResource("Mat_beacon")
+radius = 0.6
+height = 1.2
+radial_segments = 10
+rings = 6
+
+[sub_resource type="BoxShape3D" id="Shape_side"]
+size = Vector3(0.6, 4.2, 7.6)
+
+[sub_resource type="BoxShape3D" id="Shape_back"]
+size = Vector3(7.8, 4.2, 0.6)
+
+[sub_resource type="BoxShape3D" id="Shape_front"]
+size = Vector3(2.4, 4.2, 0.6)
+
+[sub_resource type="BoxShape3D" id="Shape_roof"]
+size = Vector3(7.8, 0.4, 7.6)
+
+[node name="RelayTower" type="StaticBody3D"]
+
+[node name="WallWest" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 2.1, -3.5)
+mesh = SubResource("Mesh_side_wall")
+
+[node name="WallEast" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6, 2.1, -3.5)
+mesh = SubResource("Mesh_side_wall")
+
+[node name="WallBack" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, -7.0)
+mesh = SubResource("Mesh_back_wall")
+
+[node name="FrontLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7, 2.1, 0)
+mesh = SubResource("Mesh_front_piece")
+
+[node name="FrontRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 2.1, 0)
+mesh = SubResource("Mesh_front_piece")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -3.5)
+mesh = SubResource("Mesh_roof")
+
+[node name="Shaft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 19.4, -4.5)
+mesh = SubResource("Mesh_shaft")
+
+[node name="Beacon" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 35.0, -4.5)
+mesh = SubResource("Mesh_beacon")
+
+[node name="BeaconLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 35.0, -4.5)
+light_color = Color(1, 0.3, 0.2, 1)
+light_energy = 2.0
+omni_range = 12.0
+
+[node name="ColWest" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 2.1, -3.5)
+shape = SubResource("Shape_side")
+
+[node name="ColEast" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6, 2.1, -3.5)
+shape = SubResource("Shape_side")
+
+[node name="ColBack" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, -7.0)
+shape = SubResource("Shape_back")
+
+[node name="ColFrontLeft" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7, 2.1, 0)
+shape = SubResource("Shape_front")
+
+[node name="ColFrontRight" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 2.1, 0)
+shape = SubResource("Shape_front")
+
+[node name="ColRoof" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -3.5)
+shape = SubResource("Shape_roof")

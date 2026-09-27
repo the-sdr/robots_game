@@ -245,11 +245,7 @@ def main():
     shift = d.get("city_shift_z", 0)
     for (code, cx, cz), (px_, pz, basis) in old.items():
         if code in ("SC1", "SC2", "SC3"):
-            asset = lc.CODES[code][0]
-            o = add("building", asset, px_, pz + shift, basis=basis)
-            o["code"] = code
-            lo, hi = assets[asset]["min"], assets[asset]["max"]
-            blockers.append(("box", (px_ + lo[0], pz + shift + lo[2], px_ + hi[0], pz + shift + hi[2])))
+            continue                                                  # the city is the Hub now (hub_design.json)
         elif code == "WUB" and abs(px_) < 3 and -10 < pz < -8:            # the two gate walls
             o = add("wall", "Wall_UnevenBrick_Straight", px_, pz, basis=basis)
             o["code"] = "WUB"

@@ -23,6 +23,8 @@ const ITEMS := {
 	"actuator_arm": {"name": "Actuator arm", "description": "A piston that still pushes when asked.", "colour": Color(0.9, 0.55, 0.25)},
 	"scrap_metal": {"name": "Scrap metal", "description": "Bent plates and brackets.", "colour": Color(0.6, 0.62, 0.65)},
 	"blade_strip": {"name": "Blade strip", "description": "An edge that was part of something bigger.", "colour": Color(0.8, 0.9, 1.0)},
+	"gate_key": {"name": "Gate key", "description": "Brass, heavy, a number stamped on it: 7.", "colour": Color(0.95, 0.8, 0.3)},
+	"relay_card": {"name": "Relay access card", "description": "A card with a chip. The relay tower's door reads these.", "colour": Color(0.4, 0.9, 1.0)},
 }
 
 const TOOLS := {

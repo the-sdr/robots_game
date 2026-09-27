@@ -257,6 +257,56 @@ func _initialize() -> void:
 	player.set_physics_process(true)
 	Game.save(player, "HouseCharger")
 
+	print("== the Hub: rubble, key, gate, card, tower door")
+	player.set_physics_process(false)
+	var hub: Node = world.get_node("GeneratedHub")
+	var rubble: StaticBody3D = hub.get_node("Props/Gate_east_rubble")
+	player.global_position = Vector3(11.2, 0.3, -114.0)
+	player.get_node("Visual").global_rotation.y = -PI * 0.5      # forward = east
+	for i in 3:
+		await physics_frame
+	var hits := 0
+	while is_instance_valid(rubble) and not rubble.is_queued_for_deletion() and hits < 8:
+		rig.use()
+		hits += 1
+		for i in 40:
+			await process_frame
+	check(hits == 4, "rubble breaks on the fourth smash (%d)" % hits)
+	check(Game.count("scrap_metal") >= 3, "rubble dropped scrap (%d)" % Game.count("scrap_metal"))
+	check(await drive_to(player, Vector2(24.0, -114.0), 400), "drove into the east yard")
+	for i in 4:
+		await physics_frame
+	check(Game.count("gate_key") == 1, "found the gate key")
+	var west_gate: StaticBody3D = hub.get_node("Props/Gate_west_gate")
+	player.global_position = Vector3(-11.0, 0.3, -124.0)
+	for i in 30:
+		await physics_frame
+	player._update_focus()                  # normally runs in the player's (disabled) physics step
+	var focus: Interactable = player.get("_focus")
+	check(focus != null and focus.get_parent() == west_gate, "west gate prompt found")
+	if focus != null:
+		focus.interact(player)
+	check(Game.get_flag("unlocked:west_gate"), "gate key opens the west gate")
+	for i in 90:
+		await physics_frame
+	check(await drive_to(player, Vector2(-24.0, -124.0), 400), "drove into the west yard")
+	for i in 4:
+		await physics_frame
+	check(Game.count("relay_card") == 1, "found the relay access card")
+	player.global_position = Vector3(0.0, 0.3, -128.0)
+	for i in 30:
+		await physics_frame
+	player._update_focus()
+	focus = player.get("_focus")
+	check(focus != null and focus.get_parent().name == "Gate_tower_door", "tower door prompt found")
+	if focus != null:
+		focus.interact(player)
+	check(Game.get_flag("unlocked:tower_door") and Game.get_flag("slice_complete") and Game.beat_seen("relay"), "the card opens the tower: slice complete")
+	for i in 90:
+		await physics_frame
+	check(await drive_to(player, Vector2(0.0, -134.0), 300), "drove into the tower")
+	player.set_physics_process(true)
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

@@ -30,7 +30,13 @@ const BEATS := {
 	"crest": {"title": "The city", "text":
 		"There it is. Nothing moves. The relay tower still stands at its centre. Report in anyway. That is the order."},
 	"hub": {"title": "Delphi", "text":
-		"The city's gate is shut, and its locks are bigger than your smasher. Every district has its own way in. Find them."},
+		"The gate district. Every street is walled, every yard is locked, and the relay tower stands at the end of the avenue. Every part of this city has its own way in."},
+	"east_yard": {"title": "The east yard", "text":
+		"Somebody kept keys here, on hooks, labelled. Most hooks are empty. One is not."},
+	"west_yard": {"title": "The west yard", "text":
+		"A parked machine, a tarp, a box of cards for doors that no longer exist. One card is for a door that does."},
+	"relay": {"title": "The relay", "text":
+		"The card reads. The door slides. Inside, something has been waiting to be asked a question. Your standing order is complete, and the city has just begun. [End of the vertical slice: the tower is the first dungeon.]"},
 	"brambles": {"title": "Thorns", "text":
 		"The stream leaves the forest under a wall of thorn. Something sharp and spinning would clear it."},
 	"spring": {"title": "The spring", "text":

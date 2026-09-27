@@ -123,9 +123,9 @@ class Design:
                     d = np.minimum(d, np.hypot(X - (ax + tt * dx), Z - (az + tt * dz)))
                 w = np.clip((d - f["half_width"]) / f["falloff"], 0, 1)
                 h -= f["depth"] * (1 - w * w * (3 - 2 * w))
-            elif f["kind"] == "flat":
+            elif f["kind"] == "flat":                # level ground; "blend" metres of ramp beyond the radius
                 d = np.hypot(X - f["pos"][0], Z - f["pos"][1])
-                flat = np.maximum(flat, 1 - np.clip((d - f["radius"]) / 6.0, 0, 1))
+                flat = np.maximum(flat, 1 - np.clip((d - f["radius"]) / f.get("blend", 6.0), 0, 1))
         return h * (1 - flat)
 
 

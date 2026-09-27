@@ -11,9 +11,11 @@ extends SceneTree
 # 3. Drives hill crest -> city -> back up, so nobody can get trapped below.
 # Headless = no window, no GPU; it proves logic and collision, never looks.
 
-const ROUTES := "res://level_design/build/routes.json"
 const SPEED := 3.0          # scripts/player.gd SPEED
 
+var ROUTES := "res://level_design/build/routes.json"
+var district := ""          # "" = the forest; "hub" = ++ hub: routes from hub_routes.json, gates instead of brambles
+var start_pos := Vector3(0, 0.3, -8.6)
 var p: CharacterBody3D
 
 func drive_to(target: Vector2, max_frames: int) -> bool:
@@ -28,9 +30,9 @@ func drive_to(target: Vector2, max_frames: int) -> bool:
 		await physics_frame
 	return false
 
-## Drives one route from the house door; true if the last point was reached.
+## Drives one route from the start; true if the last point was reached.
 func drive_route(points: Array) -> bool:
-	p.global_position = Vector3(0, 0.3, -8.6)
+	p.global_position = start_pos
 	p.velocity = Vector3.ZERO
 	await physics_frame
 	var stuck := 0
@@ -44,6 +46,10 @@ func drive_route(points: Array) -> bool:
 	return stuck == 0 or end.distance_to(goal) < 2.5
 
 func _initialize() -> void:
+	var user_args := OS.get_cmdline_user_args()
+	if user_args.size() > 0:
+		district = user_args[0]
+		ROUTES = "res://level_design/build/%s_routes.json" % district
 	var world: Node = load("res://scenes/world.tscn").instantiate()
 	root.add_child(world)
 	for i in 5:
@@ -54,7 +60,11 @@ func _initialize() -> void:
 
 	var routes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROUTES))
 	var failures := 0
-	var props: Node = world.get_node("GeneratedLevel/Props")
+	var props: Node = world.get_node("GeneratedLevel/Props") if district == "" else world.get_node("Generated%s/Props" % district.capitalize())
+	if routes.has("_start"):
+		var sp: Array = routes["_start"]["pos"]
+		start_pos = Vector3(sp[0], 0.3, sp[1])
+		routes.erase("_start")
 	for name in routes:
 		var points: Array = routes[name]["points"]
 		var behind: Variant = routes[name]["behind"]
@@ -67,20 +77,31 @@ func _initialize() -> void:
 				print("  REACHED TOO EARLY  %-12s (blocker %s does not hold)" % [name, behind])
 				continue
 			var blocker: Node = props.get_node_or_null("Brambles_%s" % behind)
-			if blocker == null or not blocker.has_method("accepts") or not blocker.accepts("cut"):
+			if blocker == null:
+				blocker = props.get_node_or_null("Gate_%s" % behind)
+			if blocker == null or not (blocker.has_method("accepts") or blocker.has_method("unlock")):
 				failures += 1
-				print("  BLOCKER MISSING or not cuttable: Brambles_%s" % behind)
+				print("  BLOCKER MISSING or not clearable: %s" % behind)
 				continue
-			blocker.queue_free()
-			await physics_frame
-			await physics_frame
+			if blocker.has_method("unlock"):
+				root.get_node("Game").add_item(blocker.key_item)     # the key the design says opens it
+				blocker.unlock()                                       # rises and frees itself
+				for i in 90:
+					await physics_frame
+			else:
+				blocker.queue_free()
+				await physics_frame
+				await physics_frame
 		if not await drive_route(points):
 			failures += 1
 			var end := Vector2(p.global_position.x, p.global_position.z)
 			print("  STUCK  %-12s end (%.1f, %.1f)%s" % [name, end.x, end.y, " after clearing %s" % behind if behind != null else ""])
-	var left := world.get_node("GeneratedLevel/Collectibles").get_children().filter(func(n): return not n.is_queued_for_deletion()).size()
+	var left := props.get_parent().get_node("Collectibles").get_children().filter(func(n): return not n.is_queued_for_deletion()).size()
 	print("routes: %d of %d reached | collectibles left: %d" % [routes.size() - failures, routes.size(), left])
 	ok = ok and failures == 0 and left == 0
+	if district != "":
+		print("RESULT: %s" % ("OK" if ok else "PROBLEMS FOUND"))
+		quit(0 if ok else 1)
 
 	var bad := []
 	for t in world.get_node("GeneratedLevel/Trees").get_children():

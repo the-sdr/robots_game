@@ -1029,6 +1029,17 @@
      -5
     ],
     "radius": 9
+   },
+   {
+    "kind": "flat",
+    "name": "hub pad",
+    "pos": [
+     0,
+     -121
+    ],
+    "radius": 19,
+    "note": "Level ground for the Hub district (hub_design.json); the long blend keeps the hill's north face under 30 degrees",
+    "blend": 14
    }
   ]
  },
@@ -1050,8 +1061,7 @@
  ],
  "keep_from_old_level": [
   "house vines",
-  "gate walls and their vines",
-  "city buildings (moved 28 m north)"
+  "gate walls and their vines"
  ],
  "open_north": {
   "x_min": -36,

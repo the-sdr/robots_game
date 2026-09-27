@@ -175,6 +175,38 @@
     "spread_below_3m": 2.60718941688538,
     "spread_below_house_roof": 3.64400553703308
   },
+  "DeadTree_2": {
+    "max": [
+      4.39727401733398,
+      11.1526775360107,
+      3.85566020011902
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -2.3323438167572,
+      -0.335554599761963,
+      -2.52287602424622
+    ],
+    "path": "res://assets/quaternius_nature/DeadTree_2.gltf",
+    "spread_below_3m": 4.82873439788818,
+    "spread_below_house_roof": 5.04020214080811
+  },
+  "Entrance_Concrete_2x2": {
+    "max": [
+      1.00000023841858,
+      1.00674855709076,
+      1.00160372257233
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.00000023841858,
+      0.0,
+      -1.00170505046844
+    ],
+    "path": "res://assets/quaternius_city/Entrance_Concrete_2x2.gltf",
+    "spread_below_3m": 1.41541993618011,
+    "spread_below_house_roof": 1.41541993618011
+  },
   "Fern_1": {
     "max": [
       1.44569158554077,
@@ -303,6 +335,22 @@
     "spread_below_3m": 0.92171585559845,
     "spread_below_house_roof": 0.92171585559845
   },
+  "Metal_Column_Center": {
+    "max": [
+      0.24888014793396,
+      2.99999976158142,
+      0.249110341072083
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.248880177736282,
+      0.0,
+      -0.249110370874405
+    ],
+    "path": "res://assets/quaternius_city/Metal_Column_Center.gltf",
+    "spread_below_3m": 0.352132529020309,
+    "spread_below_house_roof": 0.352132529020309
+  },
   "Mushroom_Common": {
     "max": [
       0.230325043201447,
@@ -415,6 +463,102 @@
     "spread_below_3m": 0.622787833213806,
     "spread_below_house_roof": 0.622787833213806
   },
+  "Prop_ACUnit": {
+    "max": [
+      0.482650488615036,
+      0.59973806142807,
+      0.328508377075195
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.410518079996109,
+      -0.000261962413787842,
+      -0.0185628123581409
+    ],
+    "path": "res://assets/quaternius_city/Prop_ACUnit.gltf",
+    "spread_below_3m": 0.563226401805878,
+    "spread_below_house_roof": 0.563226401805878
+  },
+  "Prop_Bollard": {
+    "max": [
+      0.108133763074875,
+      0.891776144504547,
+      0.113698549568653
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.108133763074875,
+      0.0,
+      -0.113698549568653
+    ],
+    "path": "res://assets/quaternius_city/Prop_Bollard.gltf",
+    "spread_below_3m": 0.113699406385422,
+    "spread_below_house_roof": 0.113699406385422
+  },
+  "Prop_Crate": {
+    "max": [
+      0.541791141033173,
+      1.06294226646423,
+      0.541791260242462
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.541791260242462,
+      0.00336152315139771,
+      -0.541791141033173
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_Crate.gltf",
+    "spread_below_3m": 0.766208529472351,
+    "spread_below_house_roof": 0.766208529472351
+  },
+  "Prop_MetalFence_Ornament": {
+    "max": [
+      0.978998243808746,
+      2.85238122940063,
+      0.078028991818428
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.973313748836517,
+      -0.000000119209289550781,
+      -0.078028991818428
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_MetalFence_Ornament.gltf",
+    "spread_below_3m": 0.978998243808746,
+    "spread_below_house_roof": 0.978998243808746
+  },
+  "Prop_MetalFence_Simple": {
+    "max": [
+      0.978998184204102,
+      2.86835050582886,
+      0.0780289992690086
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.970105648040771,
+      -0.000000119209289550781,
+      -0.0780289843678474
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_MetalFence_Simple.gltf",
+    "spread_below_3m": 0.978998184204102,
+    "spread_below_house_roof": 0.978998184204102
+  },
+  "Prop_Planter_Single": {
+    "max": [
+      1.0,
+      0.600000023841858,
+      1.0
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.0,
+      0.0,
+      -1.0
+    ],
+    "path": "res://assets/quaternius_city/Prop_Planter_Single.gltf",
+    "spread_below_3m": 1.31244301795959,
+    "spread_below_house_roof": 1.31244301795959
+  },
   "Prop_Vine1": {
     "max": [
       0.752619683742523,
@@ -446,6 +590,38 @@
     "path": "res://assets/quaternius_medieval/Prop_Vine2.gltf",
     "spread_below_3m": 0.892072260379791,
     "spread_below_house_roof": 0.892072260379791
+  },
+  "Prop_Wagon": {
+    "max": [
+      0.972049236297607,
+      1.5323269367218,
+      0.873584270477295
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.979359149932861,
+      0.00312984362244606,
+      -3.15043210983276
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_Wagon.gltf",
+    "spread_below_3m": 3.23413300514221,
+    "spread_below_house_roof": 3.23413300514221
+  },
+  "Prop_WoodenFence_Single": {
+    "max": [
+      1.03264904022217,
+      0.809856534004211,
+      0.0599100366234779
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.0314507484436,
+      -0.0282525196671486,
+      -0.0599099695682526
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_WoodenFence_Single.gltf",
+    "spread_below_3m": 1.03412115573883,
+    "spread_below_house_roof": 1.03412115573883
   },
   "RockPath_Round_Small_1": {
     "max": [
@@ -559,6 +735,38 @@
     "spread_below_3m": 2.61285614967346,
     "spread_below_house_roof": 2.61285614967346
   },
+  "Roof_Tower_RoundTiles": {
+    "max": [
+      2.82526063919067,
+      6.78881549835205,
+      2.71354985237122
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -2.82526063919067,
+      -0.571958363056183,
+      -2.71354985237122
+    ],
+    "path": "res://assets/quaternius_medieval/Roof_Tower_RoundTiles.gltf",
+    "spread_below_3m": 3.81193542480469,
+    "spread_below_house_roof": 3.81193542480469
+  },
+  "Stairs_Entrance_Concrete": {
+    "max": [
+      1.00000023841858,
+      1.00674855709076,
+      1.99078392982483
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.00000023841858,
+      0.0,
+      0.00000000558793544769287
+    ],
+    "path": "res://assets/quaternius_city/Stairs_Entrance_Concrete.gltf",
+    "spread_below_3m": 2.22782874107361,
+    "spread_below_house_roof": 2.22782874107361
+  },
   "Stairs_Exterior_Straight": {
     "max": [
       1.00000023841858,
@@ -577,7 +785,7 @@
   },
   "TwistedTree_2": {
     "max": [
-      3.94290161132813,
+      3.94290161132812,
       18.7477283477783,
       3.66187000274658
     ],
@@ -638,6 +846,22 @@
     "path": "res://assets/quaternius_medieval/Wall_Arch.gltf",
     "spread_below_3m": 1.00204873085022,
     "spread_below_house_roof": 1.00204885005951
+  },
+  "Wall_Plaster_Straight": {
+    "max": [
+      1.0,
+      3.12268877029419,
+      0.0924467146396637
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.00000011920929,
+      -0.00209587812423706,
+      -0.314035326242447
+    ],
+    "path": "res://assets/quaternius_medieval/Wall_Plaster_Straight.gltf",
+    "spread_below_3m": 1.04814994335175,
+    "spread_below_house_roof": 1.04814994335175
   },
   "Wall_UnevenBrick_Door_Round": {
     "max": [

@@ -2,6 +2,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/level/generated_level.tscn" id="gen"]
 
+[ext_resource type="PackedScene" path="res://scenes/level_hub/generated_hub.tscn" id="gen_hub"]
+
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
 
 [ext_resource type="PackedScene" uid="uid://cufb1p8kwmkno" path="res://assets/quaternius_buildings/Finished Textured Buildings/FBX/1Story.fbx" id="2"]
@@ -266,8 +268,34 @@ beat = "east_pocket"
 [node name="Shape" type="CollisionShape3D" parent="StoryTriggers/EastPocket"]
 shape = SubResource("SphereShape3D_trigger3")
 
+[node name="Hub" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -99)
+script = ExtResource("37")
+beat = "hub"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Hub"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="EastYard" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 1, -114)
+script = ExtResource("37")
+beat = "east_yard"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/EastYard"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="WestYard" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 1, -124)
+script = ExtResource("37")
+beat = "west_yard"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/WestYard"]
+shape = SubResource("SphereShape3D_trigger3")
+
 [node name="HUD" parent="." instance=ExtResource("31")]
 
 [node name="CoordOverlay" parent="." instance=ExtResource("30")]
 
 [node name="GeneratedLevel" parent="." instance=ExtResource("gen")]
+
+[node name="GeneratedHub" parent="." instance=ExtResource("gen_hub")]
