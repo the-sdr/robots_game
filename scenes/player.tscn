@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/tools/tool_rig.gd" id="2"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_metal"]
 albedo_color = Color(0.66, 0.68, 0.7, 1)
@@ -271,6 +272,9 @@ mesh = SubResource("Mesh_finger")
 [node name="FingerB" type="MeshInstance3D" parent="Visual/ArmRight"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, -0.2, -0.26)
 mesh = SubResource("Mesh_finger")
+
+[node name="ToolRig" type="Node3D" parent="Visual/ArmRight"]
+script = ExtResource("2")
 
 [node name="Collar" type="MeshInstance3D" parent="Visual"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.87, 0)

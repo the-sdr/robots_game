@@ -150,6 +150,84 @@ func _initialize() -> void:
 		await process_frame
 	check(player.headlight.light_energy < 0.1, "headlights off at noon")
 
+	print("== tools and breakables")
+	Game.new_game()
+	Game.add_tool("smasher")
+	Game.add_tool("cutter")
+	Game.data["equipped_tool"] = "smasher"
+	Game.inventory_changed.emit()
+	var rig: Node3D = player.get_node("Visual/ArmRight/ToolRig")
+	await process_frame
+	check(rig.tool_id == "smasher" and rig.get_node_or_null("Head") != null, "smasher head built on the arm")
+	var breakable_script: Script = load("res://scripts/interact/breakable.gd")
+	var crate: StaticBody3D = breakable_script.new()
+	crate.name = "TestCrate"
+	crate.set("effects", PackedStringArray(["smash"]))
+	crate.set("health", 60.0)
+	crate.set("drops", {"scrap_metal": 2})
+	var col := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.8, 0.8, 0.8)
+	col.shape = box
+	col.position.y = 0.4
+	crate.add_child(col)
+	world.add_child(crate)
+	player.global_position = Vector3(0.0, 0.1, -5.0)
+	crate.global_position = Vector3(0.0, 0.0, -6.3)        # 1.3 m north of the robot
+	player.get_node("Visual").global_rotation.y = 0.0     # Visual -Z = north
+	for i in 3:
+		await physics_frame
+	Energy.current = 50.0
+	check(rig.use(), "smasher hits the crate")
+	check(absf(crate.health - 26.0) < 0.01, "crate took 34 damage (%.0f left)" % crate.health)
+	check(absf(Energy.current - 47.0) < 0.01, "smash cost 3 energy")
+	check(not rig.use(), "second swing blocked by cooldown")
+	for i in 40:
+		await process_frame
+	rig.cycle()
+	check(rig.tool_id == "cutter", "Q cycles to the cutter")
+	await process_frame
+	check(not rig.use(), "cutter does nothing to a smash-only crate")
+	check(absf(crate.health - 26.0) < 0.01, "crate unharmed by the wrong tool")
+	for i in 30:
+		await process_frame
+	rig.cycle()
+	await process_frame
+	var crate_flag: String = crate.break_flag
+	rig.use()
+	await process_frame
+	check(not is_instance_valid(crate) or crate.is_queued_for_deletion(), "crate broke")
+	check(Game.count("scrap_metal") == 2, "crate dropped scrap")
+	check(Game.get_flag(crate_flag), "break flag set")
+	Energy.current = 1.0
+	for i in 40:
+		await process_frame
+	check(not rig.use(), "no swing without energy")
+	Energy.current = 50.0
+
+	print("== pickups")
+	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
+	var pickup_path := String(pickup.get_path())
+	var pickup_item: String = pickup.item_id
+	player.global_position = pickup.global_position + Vector3(0, 0.2, 0)
+	for i in 5:
+		await physics_frame
+	check(Game.count(pickup_item) == 1, "touching a part puts it in the inventory (%s)" % pickup_item)
+	Game.save(player, "HouseCharger")
+
+	print("== a reloaded world remembers what is gone")
+	world.free()
+	Game.load_save()
+	Game.pending_load = true
+	world = load("res://scenes/world.tscn").instantiate()
+	root.add_child(world)
+	for i in 5:
+		await physics_frame
+	player = world.get_node("Player")
+	charger = world.get_node("HouseCharger")
+	check(world.get_node_or_null(pickup_path.trim_prefix("/root/" + world.name + "/")) == null, "collected part is gone after load")
+	Game.set_flag("door_broken")
+
 	print("== shutdown and reboot")
 	Clock.time = 0.6
 	var day_before: int = Clock.day
@@ -159,7 +237,7 @@ func _initialize() -> void:
 	check(Clock.day == day_before + 1 and absf(Clock.time - 0.30) < 0.01, "rebooted next morning")
 	check(Energy.current > 0.0 and not player.shut_down, "rebooted with emergency energy (%.0f)" % Energy.current)
 	check(player.global_position.distance_to(charger.global_position) < 2.5, "rebooted beside the last charger")
-	check(Game.count("optic_lens") == 2, "inventory kept through the shutdown")
+	check(Game.count(pickup_item) == 1, "inventory kept through the shutdown")
 
 	world.free()
 	Game.delete_save()

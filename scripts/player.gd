@@ -27,6 +27,7 @@ const DOUBLE_TAP_TIME = 0.3
 @onready var body_collision: CollisionShape3D = $CollisionShape3D
 @onready var interact_probe: Area3D = $InteractProbe
 @onready var headlight: SpotLight3D = $Visual/Head/Headlight
+@onready var tool_rig: Node3D = $Visual/ArmRight/ToolRig
 
 var target_zoom := ZOOM_DEFAULT
 var _camera_probe_shape: SphereShape3D
@@ -56,6 +57,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_hud.toggle_inventory()
 	if event.is_action_pressed("interact") and not shut_down and _focus != null:
 		_focus.interact(self)
+	if event.is_action_pressed("use_tool") and not shut_down:
+		tool_rig.use()
+	if event.is_action_pressed("cycle_tool") and not shut_down:
+		tool_rig.cycle()
 	if event.is_action_pressed("zoom_in"):
 		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 	if event.is_action_pressed("zoom_out"):

@@ -9,7 +9,7 @@ signal depleted
 
 const MAX := 100.0
 const IDLE_DRAIN := 0.08      # per second, just being switched on
-const DRIVE_DRAIN := 0.62     # per second while the treads move (~160 s of driving on a full battery)
+const DRIVE_DRAIN := 0.9      # per second while driving: a full battery is ~110 s, ~330 m at 3 m/s (door to hill crest is 111 m)
 const LOW_WARNING := 20.0
 
 var current: float = MAX
