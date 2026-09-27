@@ -10,6 +10,7 @@ const OUT_DIR := "res://scenes/level/"
 const TREE_SCENE := "res://scenes/props/solid_tree.tscn"
 const ROCK_SCENE := "res://scenes/props/solid_rock.tscn"
 const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
+const GIANT_SCENE := "res://scenes/props/fallen_giant.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
 # Hand-tunable (painterly sliders); created once, then reused so edits survive rebuilds.
@@ -31,6 +32,8 @@ const COLLECTIBLES := {
 	"CP2": {"name": "Optic lens", "color": Color(0.3, 0.8, 1.0)},
 	"CP3": {"name": "Power cell", "color": Color(0.5, 1.0, 0.4)},
 	"CP4": {"name": "Circuit board", "color": Color(0.9, 0.4, 1.0)},
+	"CP5": {"name": "Gear train", "color": Color(0.95, 0.85, 0.3)},
+	"CP6": {"name": "Antenna coil", "color": Color(1.0, 0.45, 0.55)},
 }
 
 var _root: Node3D
@@ -59,6 +62,15 @@ func _initialize() -> void:
 			"rock":
 				var rock := _instance(ROCK_SCENE, props, node_name, xf)
 				rock.set("model_path", o["path"])
+				if o.has("collision_radius"):
+					rock.set("collision_radius", o["collision_radius"])
+			"giant":
+				_instance(GIANT_SCENE, props, "FallenGiant", xf)
+			"bramble":
+				# Impassable for now; a crafted cutter should clear it later.
+				var body := _static_body(props, "Brambles_%d" % counts[kind], xf)
+				var size := Vector3(o["size"][0], o["size"][1], o["size"][2])
+				_box_collision(body, size, Vector3(0, size.y * 0.5, 0))
 			"bush":
 				var bush := _instance(o["path"], props, node_name, xf)
 				bush.set_script(load(BUSH_SCRIPT))
@@ -78,7 +90,12 @@ func _initialize() -> void:
 				part.set("color", info["color"])
 			_:
 				_instance(o["path"], props, node_name, xf)
-	_build_background(data["background"])
+	var near: Array = data.get("interior", []).filter(func(i): return i.get("lod", 1) <= 1)
+	var far: Array = data.get("interior", []).filter(func(i): return i.get("lod", 1) > 1)
+	_build_merged(near, "InteriorForestNear", 16.0, 1, true)
+	_build_merged(far, "InteriorForestFar", 24.0, 2, true)
+	_build_merged(data.get("undergrowth", []), "Undergrowth", 16.0, 0, false)
+	_build_merged(data["background"], "BackgroundForest", BACKGROUND_CHUNK, BACKGROUND_LOD, false)
 
 	var packed := PackedScene.new()
 	var err := packed.pack(_root)
@@ -210,40 +227,48 @@ func _save_external(res: Resource, path: String) -> Resource:
 		return res
 	return ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REPLACE)
 
-# Background trees are merged into one ordinary mesh per chunk (one surface
-# per material). MultiMesh can't be used here: in a headless bake Godot's
-# stand-in renderer keeps no MultiMesh data, so the saved batches were empty.
-# Merged meshes use a simpler detail level of each model (BACKGROUND_LOD) and
-# carry each tree's leaf tint in the vertex colour.
 const BACKGROUND_LOD := 2      # 0 = full detail; each level roughly halves the triangles
+const TRUNK_HEIGHT := 2.5      # matches solid_tree.gd
 
-func _build_background(items: Array) -> void:
-	var group := _group("BackgroundForest")
-	var models := {}    # asset path -> Array of {material, positions, normals, uvs, indices, leaf}
-	var chunks := {}    # "cx,cz" -> Array of [Transform3D, Color, path]
+# Many copies of models merged into one ordinary mesh per chunk (one surface
+# per material), optionally with a trunk capsule per tree for collision.
+# Leaf surfaces use the batched tinted material with each item's tint in the
+# vertex colour. (Never MultiMesh: a headless bake saves those empty.)
+func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int, collision: bool) -> void:
+	if items.is_empty():
+		return
+	var group := _group(group_name)
+	var folder := OUT_DIR + group_name.to_snake_case() + "/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
+	var models := {}    # "path|lod" -> surfaces
+	var chunks := {}    # "cx,cz" -> Array of item dicts with a Transform3D
+	var capsules := {}
 	for o in items:
-		var path: String = o["path"]
-		if not models.has(path):
-			models[path] = _model_surfaces(path, BACKGROUND_LOD)
+		var key := "%s|%d" % [o["path"], lod]
+		if not models.has(key):
+			models[key] = _model_surfaces(o["path"], lod)
 		var xf := _transform(o)
-		var key := "%d,%d" % [floori(xf.origin.x / BACKGROUND_CHUNK), floori(xf.origin.z / BACKGROUND_CHUNK)]
-		if not chunks.has(key):
-			chunks[key] = []
-		var tint: Array = o.get("tint", [1.0, 1.0, 1.0])
-		chunks[key].append([xf, Color(tint[0], tint[1], tint[2]), path])
+		var cell := "%d,%d" % [floori(xf.origin.x / chunk_size), floori(xf.origin.z / chunk_size)]
+		if not chunks.has(cell):
+			chunks[cell] = []
+		chunks[cell].append({"xf": xf, "key": key, "o": o})
 	var triangles := 0
-	for key in chunks:
-		var by_material := {}   # material -> [positions, normals, uvs, colors, indices]
-		for entry in chunks[key]:
-			var xf: Transform3D = entry[0]
+	for cell in chunks:
+		var by_material := {}
+		var body: StaticBody3D = null
+		for entry in chunks[cell]:
+			var xf: Transform3D = entry["xf"]
+			var o: Dictionary = entry["o"]
+			var tint_arr: Array = o.get("tint", [0.36, 0.55, 0.22])
+			var tint := Color(tint_arr[0], tint_arr[1], tint_arr[2])
 			var normal_basis: Basis = xf.basis.inverse().transposed()
-			for surf in models[entry[2]]:
+			for surf in models[entry["key"]]:
 				var mat: Material = surf["material"]
 				if not by_material.has(mat):
 					by_material[mat] = [PackedVector3Array(), PackedVector3Array(), PackedVector2Array(), PackedColorArray(), PackedInt32Array()]
 				var acc: Array = by_material[mat]
 				var base: int = acc[0].size()
-				var colour: Color = entry[1] if surf["leaf"] else Color.WHITE
+				var colour: Color = tint if surf["leaf"] else Color.WHITE
 				var positions: PackedVector3Array = surf["positions"]
 				var normals: PackedVector3Array = surf["normals"]
 				for i in positions.size():
@@ -253,6 +278,23 @@ func _build_background(items: Array) -> void:
 				acc[2].append_array(surf["uvs"])
 				for index in surf["indices"]:
 					acc[4].append(base + index)
+			if collision and o.has("trunk"):
+				if body == null:
+					body = StaticBody3D.new()
+					body.name = "Collision_%s" % cell.replace(",", "_").replace("-", "m")
+					group.add_child(body)
+					body.owner = _root
+				var radius: float = o["trunk"][0]
+				if not capsules.has(radius):
+					var cap := CapsuleShape3D.new()
+					cap.radius = radius
+					cap.height = maxf(TRUNK_HEIGHT, radius * 2.0)
+					capsules[radius] = cap
+				var col := CollisionShape3D.new()
+				col.shape = capsules[radius]
+				col.transform = xf * Transform3D(Basis(), Vector3(o["trunk"][1], capsules[radius].height * 0.5, o["trunk"][2]))
+				body.add_child(col)
+				col.owner = _root
 		var mesh := ArrayMesh.new()
 		for mat in by_material:
 			var acc: Array = by_material[mat]
@@ -266,14 +308,13 @@ func _build_background(items: Array) -> void:
 			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 			mesh.surface_set_material(mesh.get_surface_count() - 1, mat)
 			triangles += acc[4].size() / 3
-		var file := OUT_DIR + "background/chunk_%s.res" % key.replace(",", "_")
 		var mi := MeshInstance3D.new()
-		mi.name = "Chunk_%s" % key.replace(",", "_")
-		mi.mesh = _save_external(mesh, file)
+		mi.name = "Chunk_%s" % cell.replace(",", "_").replace("-", "m")
+		mi.mesh = _save_external(mesh, folder + "chunk_%s.res" % cell.replace(",", "_"))
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		group.add_child(mi)
 		mi.owner = _root
-	print("background: %d chunks, %d triangles" % [chunks.size(), triangles])
+	print("%s: %d items in %d chunks, %d triangles%s" % [group_name, items.size(), chunks.size(), triangles, ", with trunk collision" if collision else ""])
 
 # One model's surfaces at a given detail level, compacted to the vertices that
 # level uses, in model space. Leaf surfaces get the batched tinted material.

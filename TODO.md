@@ -2,33 +2,21 @@
 
 Written 2026-09-27 before a reboot. Newest priorities first.
 
-## 1. Graphics stability (in progress)
-- [x] Forward+ reverted to **Mobile**; graphics API now **Vulkan** (Godot default; log confirms it's used).
-- [x] Windows event log: no driver crash logged. Godot log (13:56): D3D12 "device removed" then crash.
-- [x] Every load since the performance pass (baked 13:45) hung right after GPU start, on D3D12 and Vulkan.
-      → Performance pass **parked on branch `wip/perf-pass`**; `main` has the last working level
-      plus FPS/F4 logging, Mobile, terrain colour fix.
-- [ ] Owner tests: does the game load now?
-      - Yes → reintroduce the pass one piece at a time (shadow settings, LOD bias, batching), owner tests each.
-      - No → the level itself is too heavy for this laptop even as before → reduce trees/background.
-- [ ] Optional: clear the editor's "reopen scenes" list (in `.godot/editor/`) so the editor opens empty.
+## 1. Performance (next) — forest runs 13–21 FPS, target 25 on the owner's laptop
+- [x] Owner F4 round after the rebuild: perf_3–perf_7 (table in `CLAUDE_NOTES.md` → Performance).
+- [ ] Suggestions awaiting the owner's go-ahead (details in `CLAUDE_NOTES.md`):
+      1. 3D render scale ~0.75–0.8, 2. simpler trees sooner (LOD bias / interior LOD 2),
+      3. sun shadows 30 m, 4. only if needed: thinner pine leaf cards / sparser pines.
+- [ ] Then the owner re-measures perf_4 (pines, 10, −23, E) and perf_5 (stream by the Giant, −8, −44, W).
 
-## 2. Commit
-- [ ] Once loading works: commit `main` (FPS/F4 logging, Mobile, terrain colour fix, notes, TODO) and push.
+## 1b. Cloud handover
+- [x] `CLAUDE.md` (rules + workflow), test scripts in `tools/`, `tools/cloud_setup.sh`, all committed.
+- [ ] First cloud session: `bash tools/cloud_setup.sh`, then `python3 tools/forest_verify.py`.
 
-## 2b. Done since (uncommitted until tested)
-- [x] Textured painterly terrain: 4 Poly Haven layers, shader in `shaders/terrain_painterly.gdshader`,
-      tunable material `materials/terrain_painterly.tres`. perf_1 (hill, SW): 66.8 ms / 15 FPS, 16.3M tris.
-- [x] Tree variety: 12 models (added CommonTree_2/4, Pine_1/2/5, TwistedTree_5), weighted mix
-      (twisted ~9 %), per-tree leaf colours (mostly greens, autumn accents, evergreen pines).
-- [x] **Bug fixed:** background forest was never drawn (MultiMesh saves empty in headless bakes).
-      Now merged chunk meshes, 785k triangles.
-- [ ] Owner tests: loads? looks? F4 at the perf_1 spot (hill crest, looking SW).
-
-## 3. Measure performance (owner, F4)
-- [ ] Hill crest (0, −57) looking **south** over the forest (before: ~80–88 ms, ≈11 FPS).
-- [ ] Hill crest looking **north** at the city (before: ~40 ms, ≈25 FPS).
-- [ ] A spot on the maze path. Then tell Claude "logged".
+## 2. Known placeholders
+- Fallen Giant (primitive machine), Ruin Fragment (medieval kit pieces), brambles
+  (bushes + invisible box), collectibles (spinning gears, no inventory).
+- Brambles: future gameplay — craft a cutter to open the stream's east end.
 
 ## 4. Textures
 - [ ] Owner is collecting more Poly Haven sets in `C:\projects\Global_assets\polyhaven`.

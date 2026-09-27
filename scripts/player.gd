@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-const SPEED = 5.0
+const SPEED = 3.0   # exploration pace (owner, 2026-09-27)
 const JUMP_VELOCITY = 4.5
 const GRAVITY = 9.8
 const TURN_SPEED = 10.0

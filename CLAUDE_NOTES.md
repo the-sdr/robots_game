@@ -21,8 +21,8 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   calls, triangles), F7 god mode — double-tap Space to fly (no collision),
   hold Space up / Shift down. Owner measures performance with F4 in their
   own playtests; Claude reads the file (no windowed runs by Claude).
-- **Performance pass is PARKED on branch `wip/perf-pass`** (its batching
-  must be redone as merged chunk meshes — MultiMesh saves empty headless) (batched
+- **Branch `wip/perf-pass` is superseded** (its MultiMesh batching saved empty;
+  the forest rebuild does merged chunks instead) (batched
   interior trees, LOD bias 0.4, 2-cascade 50 m shadows). After it was baked
   the owner's Intel UHD laptop hung on every load (whole screen black,
   D3D12 "device removed" 0x887a0005 in the Godot log, also hung on Vulkan).
@@ -42,22 +42,72 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   never forgotten and never depends on the source mesh's own geometry.
   Tree trunk radii are a measured per-model table (`TRUNKS` in
   `solid_tree.gd`, mirrored in `tools/level_common.py`).
-- **Level pipeline — the spreadsheet is the source of truth.**
-  `level_design/level_map.xlsx` (1 m cells, north up, headers = world X/Z)
-  → `tools/level_generate_forest.py` (only when the path changes: writes
-  the sealed checkerboard forest + dead-end collectibles into the sheet)
-  → `tools/level_build.py` (sheet → `level_design/build/level.json`)
-  → `tools/level_bake.gd` (Godot, headless → `scenes/level/generated_level.tscn`
-  + terrain/background `.res`) → `tools/level_verify.py` (flood-fill seal
-  check). `world.tscn` only holds fixed things (house, player, charger,
-  environment) and instances the generated scene. **Never hand-edit
-  `generated_level.tscn`** — it is overwritten on every bake; edit the sheet.
-  `level_design/build/placements.json` keeps exact transforms of objects
-  placed before, so rebuilds don't snap them to cell centres.
+- **Level pipeline — `level_design/forest_design.json` is the source of truth**
+  (areas, paths, nodes, landmarks, blockers, terrain features, per-area tree
+  mix / leaf palette / ground / undergrowth). Steps:
+  `python tools/forest_map.py` (review map, owner approves) →
+  `python tools/forest_build.py` (→ `level_design/build/level.json`) →
+  `python tools/forest_verify.py` (seal, reachability, "only ways north"
+  gate test, brambles block) → headless `tools/level_bake.gd` (→
+  `scenes/level/generated_level.tscn` + chunk meshes) → headless drive tests
+  to every design node. `python tools/forest_map.py --built` draws what was
+  actually placed — use it as the shared reference in playtests.
+  `world.tscn` only holds fixed things (house, player, charger, environment).
+  **Never hand-edit `generated_level.tscn` or the chunk folders.** The old
+  spreadsheet pipeline is retired in `tools/legacy_sheet/`.
+- **Performance setup**: trees within 3 m of a path are individual
+  `solid_tree` nodes (shadows, future interaction); all other trees are
+  merged into chunk meshes (`InteriorForestNear` LOD 1 / `Far` LOD 2) with a
+  trunk capsule each for collision; undergrowth and background are merged
+  chunks too. Sun shadows: 2 cascades, 50 m. Robot speed 3 m/s.
 - **`house_setup.gd`-style fixup scripts**: attached to imported building
   models to override materials (imported FBX materials can silently fail)
   and force double-sided rendering — a repeatable pattern for any future
   imported structure with the same issue.
+
+## Performance (owner's Intel UHD laptop, Mobile renderer, target 25 FPS)
+
+Owner F4 captures after the forest rebuild (2026-09-27, `playtest/perf.md`):
+
+| F4 | Where (camera) | ms | FPS | triangles | draws |
+|---|---|---|---|---|---|
+| perf_3 | garden gate (0, −11), N up the path | 48.5 | 21 | 5.3M | 858 |
+| perf_4 | pine path (10, −23), E into the pines | 69.0 | 14 | 5.3M | 916 |
+| perf_5 | stream bed by the Giant (−8, −44), W along the stream | 76.7 | 13 | 4.8M | 619 |
+| perf_6 | near the Dry Clearing (21, −51), N | 47.1 | 21 | 4.2M | 748 |
+| perf_7 | hill crest (0, −85), NW to the city | 19.6 | 51 | 1.7M | 116 |
+
+Reading: triangles alone don't explain it — perf_3 and perf_4 draw the same
+5.3M, but the pine view is 40 % slower, and the stream view is slowest with
+fewer triangles. Both are full of overlapping alpha-cutout leaf cards (pine
+needles; canopies stacked down a long corridor) → per-pixel overdraw, which
+integrated GPUs handle worst.
+
+**Suggestions (NOT done yet — owner to approve, then re-measure perf_4/perf_5):**
+1. Render 3D at ~75–80 % resolution and upscale (`rendering/scaling_3d/scale`)
+   — roughly halves per-pixel cost, the overdraw problem; painterly look hides
+   the softness. Probably the biggest single win; one project setting.
+2. Simpler trees sooner: LOD bias ~0.5 on individual trees (`solid_tree.gd`),
+   near-interior chunks at LOD 2 (`forest_build.py`, `o["lod"]`). ~30–40 % fewer
+   triangles.
+3. Shorter sun shadows: `directional_shadow_max_distance` 50 → 30 m
+   (`scenes/world.tscn`) — shadow casters are drawn twice.
+4. Only if still short: thin the pines' leaf cards, or slightly sparser pines
+   along paths.
+
+## Working from the cloud (Claude Code on the web)
+- Setup once: `bash tools/cloud_setup.sh`. Loop: cloud builds/verifies/pushes →
+  owner pulls, playtests locally, sends F4/F3 results (or pushes
+  `playtest/*.md`, now tracked) → cloud reads them.
+- Local-only (not reachable from the cloud): the Godot program on the laptop,
+  Godot's run logs (`%APPDATA%\Godotpp_userdata\Robots_game_godotfile\logs\`
+  — a local session has standing read-only access), `C:\projects\Global_assets`
+  (downloaded asset zips — must be committed into the project to be usable),
+  Claude's local memory (its rules are copied into `CLAUDE.md`).
+- **Chunk meshes are committed** (~90 MB in `scenes/level/*/`) so every
+  checkout has a working level even where Godot can't run. They're
+  deterministic, so an alternative is to git-ignore them and bake after each
+  pull; revisit if the repository grows too fast.
 
 ## Lessons learned / do not repeat
 
@@ -173,10 +223,23 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   trees are now merged into ordinary chunk meshes (LOD 2), which headless
   saves correctly. Check saved scenes for real data, not just "bake OK".
 
+- **2D map checks approximate shapes — always also drive the real physics.**
+  The seal check modelled ruin pieces as small circles and passed, but the
+  actual box collision blocked two paths; only the headless drive test to
+  every node caught it. Also check slopes both ways: a 52° drop into the
+  city would have let the player slide down and never climb back.
+
 ## Session log
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-09-27 (later)** — Forest rebuilt from a design file: 72 × 90 m,
+  seven areas (garden, old wood, pines, stream bed, dry clearing, ruin grove,
+  thinning edge), the Fallen Giant (placeholder machine blocking the way
+  north), Ruin Fragment, brambles at the stream's east end, 6 collectibles,
+  textured painterly terrain, per-tree leaf colours, 2,273 trees (620
+  individual). Laptop GPU hangs traced to empty MultiMesh batches. Robot 3 m/s.
 
 - **2026-09-27** — Johnny Five–style modular player robot; F2 coordinate
   overlay, F3 position saves, F7 god mode/fly. Fixed trees through the
