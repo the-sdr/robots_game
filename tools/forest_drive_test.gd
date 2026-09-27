@@ -28,6 +28,21 @@ func drive_to(target: Vector2, max_frames: int) -> bool:
 		await physics_frame
 	return false
 
+## Drives one route from the house door; true if the last point was reached.
+func drive_route(points: Array) -> bool:
+	p.global_position = Vector3(0, 0.3, -8.6)
+	p.velocity = Vector3.ZERO
+	await physics_frame
+	var stuck := 0
+	for q in points:
+		if not await drive_to(Vector2(q[0], q[1]), 200):
+			stuck += 1
+			if stuck > 2:
+				break
+	var end := Vector2(p.global_position.x, p.global_position.z)
+	var goal := Vector2(points[-1][0], points[-1][1])
+	return stuck == 0 or end.distance_to(goal) < 2.5
+
 func _initialize() -> void:
 	var world: Node = load("res://scenes/world.tscn").instantiate()
 	root.add_child(world)
@@ -39,22 +54,30 @@ func _initialize() -> void:
 
 	var routes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROUTES))
 	var failures := 0
+	var props: Node = world.get_node("GeneratedLevel/Props")
 	for name in routes:
-		p.global_position = Vector3(0, 0.3, -8.6)
-		p.velocity = Vector3.ZERO
-		await physics_frame
-		var stuck := []
-		for q in routes[name]:
-			if not await drive_to(Vector2(q[0], q[1]), 200):
-				stuck.append(Vector2(q[0], q[1]))
-				if stuck.size() > 2:
-					break
-		var end := Vector2(p.global_position.x, p.global_position.z)
-		var goal := Vector2(routes[name][-1][0], routes[name][-1][1])
-		var reached := stuck.is_empty() or end.distance_to(goal) < 2.5
-		if not reached:
+		var points: Array = routes[name]["points"]
+		var behind: Variant = routes[name]["behind"]
+		# A place behind a blocker: the blocker must stop the robot first, then
+		# clearing it (what the cutter does) must open the way.
+		if behind != null:
+			var reached_early := await drive_route(points)
+			if reached_early:
+				failures += 1
+				print("  REACHED TOO EARLY  %-12s (blocker %s does not hold)" % [name, behind])
+				continue
+			var blocker: Node = props.get_node_or_null("Brambles_%s" % behind)
+			if blocker == null or not blocker.has_method("accepts") or not blocker.accepts("cut"):
+				failures += 1
+				print("  BLOCKER MISSING or not cuttable: Brambles_%s" % behind)
+				continue
+			blocker.queue_free()
+			await physics_frame
+			await physics_frame
+		if not await drive_route(points):
 			failures += 1
-			print("  STUCK  %-12s end (%.1f, %.1f) near %s" % [name, end.x, end.y, stuck[0]])
+			var end := Vector2(p.global_position.x, p.global_position.z)
+			print("  STUCK  %-12s end (%.1f, %.1f)%s" % [name, end.x, end.y, " after clearing %s" % behind if behind != null else ""])
 	var left := world.get_node("GeneratedLevel/Collectibles").get_children().filter(func(n): return not n.is_queued_for_deletion()).size()
 	print("routes: %d of %d reached | collectibles left: %d" % [routes.size() - failures, routes.size(), left])
 	ok = ok and failures == 0 and left == 0

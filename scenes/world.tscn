@@ -258,6 +258,14 @@ beat = "brambles"
 [node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Brambles"]
 shape = SubResource("SphereShape3D_trigger5")
 
+[node name="EastPocket" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, -46)
+script = ExtResource("37")
+beat = "east_pocket"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/EastPocket"]
+shape = SubResource("SphereShape3D_trigger3")
+
 [node name="HUD" parent="." instance=ExtResource("31")]
 
 [node name="CoordOverlay" parent="." instance=ExtResource("30")]

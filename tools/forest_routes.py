@@ -6,6 +6,7 @@ Usage (from the project root):
 
 Each route follows the design's own path curves (shortest way through the path
 graph), sampled every few metres, so the robot drives exactly what was designed.
+A route to a node with "behind" names the blocker that must be cleared first.
 """
 import heapq
 import json
@@ -50,7 +51,7 @@ def main():
         return [[round(x, 2), round(z, 2)] for x, z in pts]
 
     targets = [n for n, v in design.nodes.items() if v["kind"] not in ("blocker", "start")]
-    routes = {t: route(t) for t in targets}
+    routes = {t: {"points": route(t), "behind": design.nodes[t].get("behind")} for t in targets}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(routes, open(OUT, "w"))
     print("wrote %s: %d routes" % (OUT, len(routes)))

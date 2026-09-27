@@ -38,7 +38,7 @@ BACKGROUND_DEPTH = 55.0
 BACKGROUND_SPACING = 4.5
 SEED = 20260927
 GROUND_RADIUS = {"wall": 1.0, "building": 0.0, "bush": 0.5, "rock": 1.0, "prop": 0.3,
-                 "stone": 0.0, "collectible": 0.0}
+                 "stone": 0.0, "collectible": 0.0, "charger": 0.9}
 
 # Leaf palettes (sRGB) per area mood.
 PALETTES = {
@@ -306,19 +306,32 @@ def main():
         z = pz2 + piece["offset"][1] - off[1]
         add("prop", piece["asset"], x, z, piece["heading"], y_offset=piece.get("raise", 3.0), radius=1.0)
 
-    # Brambles blocking the stream's east end
+    # Brambles blocking the stream's east end: a Breakable the cutter clears. Its
+    # bushes are its own children (they vanish with it), not merged undergrowth.
+    behind_boxes = {}
     for b in d.get("blockers", []):
         (x0, z0), (x1, z1) = b["from"], b["to"]
-        objects.append({"code": "BRAMBLE", "asset": "brambles", "kind": "bramble", "path": "",
-                        "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                        "origin": [(x0 + x1) / 2, ground((x0 + x1) / 2, (z0 + z1) / 2, 2.0), (z0 + z1) / 2],
-                        "size": [x1 - x0, 2.6, z1 - z0], "note": b["note"]})
-        blockers.append(("box", (x0, z0, x1, z1)))
+        oy = ground((x0 + x1) / 2, (z0 + z1) / 2, 2.0)
+        bushes = []
         for k in range(14):                                   # dense dark thorny bushes as the visual
             x, z = rng.uniform(x0 + 0.4, x1 - 0.4), rng.uniform(z0 + 0.4, z1 - 0.4)
-            undergrowth.append({"asset": "Bush_Common", "path": assets["Bush_Common"]["path"],
-                                "basis": [v * rng.uniform(1.1, 1.6) for v in lc.heading_to_basis(rng.uniform(0, 360))],
-                                "origin": [x, ground(x, z, 0.5) - 0.1, z], "tint": [0.20, 0.24, 0.12]})
+            bushes.append({"asset": "Bush_Common", "path": assets["Bush_Common"]["path"],
+                           "basis": [v * rng.uniform(1.1, 1.6) for v in lc.heading_to_basis(rng.uniform(0, 360))],
+                           "origin": [x - (x0 + x1) / 2, ground(x, z, 0.5) - 0.1 - oy, z - (z0 + z1) / 2], "tint": [0.20, 0.24, 0.12]})
+        objects.append({"code": "BRAMBLE", "asset": "brambles", "kind": "bramble", "path": "", "id": b["id"],
+                        "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                        "origin": [(x0 + x1) / 2, oy, (z0 + z1) / 2],
+                        "size": [x1 - x0, 2.6, z1 - z0], "note": b["note"], "bushes": bushes})
+        blockers.append(("box", (x0, z0, x1, z1)))
+        behind_boxes[b["id"]] = [x0, z0, x1, z1]
+
+    # Solar charging stations (fixed scenes; trees keep clear of them)
+    for c in d.get("chargers", []):
+        x, z = c["pos"]
+        o = add("charger", "charger", x, z, c.get("heading", 0), radius=0.9)
+        o.update({"code": "CHG", "path": "res://scenes/props/charging_station.tscn", "name": c["name"], "id": c["id"],
+                  "capacity": c.get("capacity", 100), "panel_rate": c.get("panel_rate", 0.45), "stored": c.get("stored", 50)})
+        blockers.append(("circle", (x, z, 0.9)))
 
     # Collectibles at dead ends
     names = [n for n, v in d["nodes"].items() if v["kind"] == "dead_end" and v.get("reward") == "collectible"]
@@ -503,7 +516,7 @@ def main():
 
     level = {"terrain": {k: grid[k] for k in ("x0", "z0", "nx", "nz")},
              "objects": objects, "interior": interior, "undergrowth": undergrowth, "background": background,
-             "blockers": blockers, "giant": {"mid": list(f.giant_mid), "axis": list(f.giant_axis)},
+             "blockers": blockers, "behind_boxes": behind_boxes, "giant": {"mid": list(f.giant_mid), "axis": list(f.giant_axis)},
              "giant_segments": f.giant_segments(full=True)}
     level["terrain"]["heights"] = [round(float(v), 3) for v in grid["heights"].flatten()]
     level["terrain"]["layers"] = [round(float(v), 2) for v in f.ground_layers(grid).reshape(-1)]

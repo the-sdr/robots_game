@@ -12,6 +12,7 @@ const ROCK_SCENE := "res://scenes/props/solid_rock.tscn"
 const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
 const GIANT_SCENE := "res://scenes/props/fallen_giant.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
+const BREAKABLE_SCRIPT := "res://scripts/interact/breakable.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
 # Hand-tunable (painterly sliders); created once, then reused so edits survive rebuilds.
 const TERRAIN_MATERIAL := "res://materials/terrain_painterly.tres"
@@ -67,10 +68,29 @@ func _initialize() -> void:
 			"giant":
 				_instance(GIANT_SCENE, props, "FallenGiant", xf)
 			"bramble":
-				# Impassable for now; a crafted cutter should clear it later.
-				var body := _static_body(props, "Brambles_%d" % counts[kind], xf)
+				# A Breakable the cutter clears; its bushes go with it.
+				var body := _static_body(props, "Brambles_%s" % o["id"], xf)
+				body.set_script(load(BREAKABLE_SCRIPT))
+				body.set("effects", PackedStringArray(["cut"]))
+				body.set("health", 80.0)
+				body.set("break_flag", "cleared:%s" % o["id"])
+				body.set("display_name", "the brambles")
+				body.set("hit_notice", "Thorns. Something sharp and spinning would clear them.")
+				body.set("debris_colour", Color(0.25, 0.3, 0.14))
+				body.set("debris_count", 50)
 				var size := Vector3(o["size"][0], o["size"][1], o["size"][2])
 				_box_collision(body, size, Vector3(0, size.y * 0.5, 0))
+				var b := 0
+				for bush in o.get("bushes", []):
+					b += 1
+					var node := _instance(bush["path"], body, "Bush_%d" % b, _transform(bush))
+					node.set_script(load(BUSH_SCRIPT))
+					node.set("leaf_tint", Color(bush["tint"][0], bush["tint"][1], bush["tint"][2]))
+			"charger":
+				var charger := _instance(o["path"], props, o["name"], xf)
+				charger.set("capacity", float(o["capacity"]))
+				charger.set("panel_rate", float(o["panel_rate"]))
+				charger.set("stored", float(o["stored"]))
 			"bush":
 				var bush := _instance(o["path"], props, node_name, xf)
 				bush.set_script(load(BUSH_SCRIPT))

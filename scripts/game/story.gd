@@ -43,6 +43,10 @@ const BEATS := {
 		"Behind the house, a frame with no glass. The plants inside outgrew it and kept going."},
 	"ruin_far": {"title": "The hatch", "text":
 		"Beyond the ruin, a sealed hatch in the ground. Warm to the touch. Not today."},
+	"giant_close": {"title": "The eye", "text":
+		"Its eye is the size of you. Behind the glass something is still faintly lit, counting down or counting up. It does not look at you."},
+	"east_pocket": {"title": "The stream station", "text":
+		"Somebody dragged a charger out here and hid it behind thorns. Full sun, running water, no visitors. A good place to stop being afraid."},
 	"shutdown": {"title": "Power lost", "text":
 		"Systems shutting down. The last copy of you waits at the charger."},
 }
