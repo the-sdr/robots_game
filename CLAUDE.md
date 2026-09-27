@@ -63,7 +63,7 @@ python tools/forest_build.py          # design -> level_design/build/level.json
 python tools/forest_verify.py --map   # sealed? all places reachable? only ways north via ruin/clearing? brambles hold?
 godot --headless --path . -s tools/level_bake.gd        # level.json -> scenes/level/ (generated scene + chunk meshes)
 python tools/forest_routes.py         # drive routes to every design node
-godot --headless --path . -s tools/forest_drive_test.gd  # real physics: all routes, collectibles, house, hill<->city
+godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd  # real physics: all routes, collectibles, house, hill<->city
 python tools/forest_map.py --built    # as-built map for the owner
 ```
 - `scenes/world.tscn` holds only fixed things (house, player, charger,
@@ -85,6 +85,8 @@ python tools/forest_map.py --built    # as-built map for the owner
   Use merged chunk meshes (see `_build_merged` in `tools/level_bake.gd`).
 - GDScript: explicit types for anything from Variant-returning built-ins
   (`lerp`, `clamp`, `Array.filter`…) — inferred `:=` fails as an error.
+- `--fixed-fps 60` on the drive test: without it headless Godot still paces
+  physics to the wall clock (7 min for 20 routes); with it, ~10 s, same result.
 - Headless proves logic and collision, never looks or frame rate. The owner
   measures with F4 and reports; read `playtest/perf.md`.
 

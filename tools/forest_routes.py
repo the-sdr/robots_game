@@ -2,7 +2,7 @@
 
 Usage (from the project root):
     python tools/forest_routes.py            -> level_design/build/routes.json
-    <godot> --headless --path . -s tools/forest_drive_test.gd
+    <godot> --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd
 
 Each route follows the design's own path curves (shortest way through the path
 graph), sampled every few metres, so the robot drives exactly what was designed.

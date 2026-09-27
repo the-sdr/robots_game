@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Headless physics test of the built level (run tools/forest_routes.py first):
-#   <godot> --headless --path . -s tools/forest_drive_test.gd
+#   <godot> --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd
+# (--fixed-fps drops the wall-clock pacing: ~10 s instead of ~7 min.)
 # 1. Drives the real robot body from the house door along every route in
 #    level_design/build/routes.json (the design's own path curves) at
 #    player speed, on the real terrain and collision. Reports any route that

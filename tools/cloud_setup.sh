@@ -16,6 +16,7 @@ GODOT_BIN="${GODOT_DIR}/Godot_v${GODOT_VERSION}-stable_linux.x86_64"
 URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
 
 cd "$(dirname "$0")/.."
+export PATH="${HOME}/.local/bin:${PATH}"   # where this script installs godot
 
 echo "== Python packages (numpy, Pillow, openpyxl)"
 python3 -m pip install --quiet --user numpy pillow openpyxl
@@ -29,7 +30,6 @@ else
         (cd "${GODOT_DIR}" && unzip -o -q /tmp/godot.zip)
         chmod +x "${GODOT_BIN}"
         ln -sf "${GODOT_BIN}" "${HOME}/.local/bin/godot"
-        export PATH="${HOME}/.local/bin:${PATH}"
         echo "   installed: $(godot --version)"
     else
         echo "!! Could not download Godot (network blocked?). Python tools still work;"
@@ -41,5 +41,9 @@ fi
 echo "== Godot import pass (first run builds the .godot cache; takes a few minutes)"
 godot --headless --editor --path . --quit >/dev/null 2>&1 || true
 
-echo "== Ready. Quick check:"
+echo "== Level build + verify (level.json is not committed; regenerated from the design)"
+python3 tools/forest_build.py >/dev/null
 python3 tools/forest_verify.py | tail -3
+python3 tools/forest_routes.py | tail -1
+echo "== Ready. New shells need:  export PATH=\"\$HOME/.local/bin:\$PATH\""
+echo "   Drive test:  godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd"
