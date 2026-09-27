@@ -15,9 +15,18 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   check raw keys. This was a deliberate early investment specifically so
   gamepad/mobile-gesture support later only needs new event bindings on the
   same action names, not script changes.
-- **Debug keys** (all Input Map actions): F2 coordinate overlay, F3 save
-  position to `playtest/saves.md` (save_1, save_2, ...), F7 god mode —
-  double-tap Space to fly (no collision), hold Space up / Shift down.
+- **Debug keys** (all Input Map actions): F2 coordinate overlay (with FPS),
+  F3 save position to `playtest/saves.md` (save_1, ...), F4 5-second
+  performance log to `playtest/perf.md` (perf_1, ...: frame times, draw
+  calls, triangles), F7 god mode — double-tap Space to fly (no collision),
+  hold Space up / Shift down. Owner measures performance with F4 in their
+  own playtests; Claude reads the file (no windowed runs by Claude).
+- **Performance pass is PARKED on branch `wip/perf-pass`** (batched
+  interior trees, LOD bias 0.4, 2-cascade 50 m shadows). After it was baked
+  the owner's Intel UHD laptop hung on every load (whole screen black,
+  D3D12 "device removed" 0x887a0005 in the Godot log, also hung on Vulkan).
+  `main` runs the pre-pass level. Reintroduce its pieces one at a time,
+  with the owner testing each.
 - **Camera**: third-person, `CameraRig` (yaw) → `CameraArm` (pitch) →
   `Camera3D`, with distance computed each frame via a **sphere shape-cast**
   (not a raycast — see Lessons) against real collision, smoothed with
@@ -133,6 +142,27 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   that copy, or the data gets embedded (6.7 MB scene instead of 0.4 MB).
 - **Blending sparse height anchors (harmonic fill) spikes at lone
   anchors** — use several anchors to shape a feature, plus a light blur.
+
+- **Never run the game (a visible Godot window) without explicit
+  permission first, and never create screenshots without saying so.**
+  On 2026-09-27 Claude launched the game windowed ~9 times for
+  screenshots/frame timing without asking; it took over the owner's
+  machine (window, mouse capture, GPU) while they were working. Work only
+  inside the project folder unless something else is explicitly agreed
+  (Claude's session scratch folder is approved). Headless Godot runs are
+  fine without asking, but say each time that one is running (resource draw).
+  (Technique, only with permission: a non-headless run that saves
+  `get_viewport().get_texture().get_image()` to PNG gives real screenshots
+  and frame times.)
+- **Vertex colours need `vertex_color_is_srgb = true`** when they're
+  ordinary picked colours; otherwise they're read as linear and wash out
+  (the terrain rendered pale teal instead of green).
+- **Dev machine GPU is Intel UHD (integrated).** Measured 2026-09-27: hill
+  view looking over the forest ~80–88 ms/frame (~12 FPS), city view ~40 ms,
+  same on Forward+ and Mobile — the cost is tree geometry, not the renderer.
+  Forward+ was tried the same day and reverted: the owner got a black
+  window and major slowdowns playing on it. **Renderer is Mobile.** Don't
+  switch renderers again without the owner agreeing to test it.
 
 ## Session log
 
