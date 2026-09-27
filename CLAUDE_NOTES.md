@@ -95,6 +95,32 @@ integrated GPUs handle worst.
 4. Only if still short: thin the pines' leaf cards, or slightly sparser pines
    along paths.
 
+## Sprint 1 — vertical slice (decided with the owner, 2026-09-27)
+
+Goal: ~20 minutes of complete play, wake to the Hub. Systems built broad and
+independent so they land in any order. Owner decisions:
+- Opening menu (Continue / New Game / Quit). One autosave, written at every dock.
+- Getting out of the house is an activity: find smasher parts, attach the
+  smasher, break the door.
+- Energy loop is core. 8-minute day. Chargers have capacity and refill from
+  sunlight with real solar-panel physics (sun angle); upgrades later. Reaching
+  the Hub in one go is not guaranteed; going back to a charger is the game.
+  Zero energy: shutdown, reboot at the last charger next morning, inventory kept.
+- Tools: dozens eventually (smash, cut, hover/fly, lasers, matter generation),
+  so the framework is data-driven; the slice builds Smasher and Cutter.
+- Inventory + crafting: simple, Subnautica-inspired; **no benches, craft
+  anywhere** (the robot self-crafts).
+- Area 3 is **the Hub**: parts unlock to reach further dungeons; one unlock +
+  dungeon ≈ one sprint. At least 20 interesting areas in the long run.
+- Combat: robot vs robot later (Stick of Truth / Clair Obscur as references).
+  The zombie is an Easter egg (annoy it → shrunk for two days). Not in the slice.
+- Narrative: placeholder text now, Greek mythology as the touchstone. The owner
+  wants a diegetic reason robot consciousness can be copied at a charger (the
+  save). Story decision pending.
+- Assets: the sandbox reaches only GitHub; new packs come via the owner's push.
+- Performance: i3 target is a goal, not a hard limit (a Surface Pro may arrive).
+- The Fallen Giant has no good assets yet; keep it as a placeholder story object.
+
 ## Working from the cloud (Claude Code on the web)
 - Setup once: `bash tools/cloud_setup.sh`. Loop: cloud builds/verifies/pushes →
   owner pulls, playtests locally, sends F4/F3 results (or pushes
