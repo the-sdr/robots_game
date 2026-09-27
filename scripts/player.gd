@@ -25,12 +25,19 @@ const DOUBLE_TAP_TIME = 0.3
 @onready var camera_arm: Node3D = $CameraRig/CameraArm
 @onready var camera: Camera3D = $CameraRig/CameraArm/Camera3D
 @onready var body_collision: CollisionShape3D = $CollisionShape3D
+@onready var interact_probe: Area3D = $InteractProbe
 
 var target_zoom := ZOOM_DEFAULT
 var _camera_probe_shape: SphereShape3D
 var god_mode := false
 var flying := false
 var _last_jump_press_time := -1.0
+## Set by a charger while docked: no driving, energy flows in.
+var docked := false
+## Set by the world while the battery is dead: nothing responds.
+var shut_down := false
+var _hud: CanvasLayer
+var _focus: Interactable = null
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -40,8 +47,14 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_rotate_camera(-event.relative.x * MOUSE_SENSITIVITY, -event.relative.y * MOUSE_SENSITIVITY)
-	if event.is_action_pressed("ui_cancel"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if event.is_action_pressed("pause"):
+		if _find_hud():
+			_hud.toggle_pause()
+	if event.is_action_pressed("inventory") and not shut_down:
+		if _find_hud():
+			_hud.toggle_inventory()
+	if event.is_action_pressed("interact") and not shut_down and _focus != null:
+		_focus.interact(self)
 	if event.is_action_pressed("zoom_in"):
 		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 	if event.is_action_pressed("zoom_out"):
@@ -90,7 +103,38 @@ func _update_camera_distance(delta: float) -> void:
 	var new_distance: float = lerp(camera.position.z, safe_distance, smoothing)
 	camera.position = Vector3(0, 0, new_distance)
 
+func _find_hud() -> bool:
+	if _hud == null:
+		_hud = get_tree().get_first_node_in_group("hud") as CanvasLayer
+	return _hud != null
+
+## Nearest enabled Interactable inside the probe, or null.
+func _update_focus() -> void:
+	var best: Interactable = null
+	var best_d := INF
+	for area in interact_probe.get_overlapping_areas():
+		var candidate := area as Interactable
+		if candidate == null or not candidate.enabled:
+			continue
+		var d := global_position.distance_squared_to(candidate.focus_position())
+		if d < best_d:
+			best_d = d
+			best = candidate
+	if best != _focus:
+		_focus = best
+		if _find_hud():
+			_hud.set_prompt(_focus)
+
 func _physics_process(delta: float) -> void:
+	_update_focus()
+	if shut_down or docked:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if not is_on_floor():
+			velocity.y -= GRAVITY * delta
+		move_and_slide()
+		_update_camera_distance(delta)
+		return
 	if flying:
 		var vertical: float = Input.get_action_strength("jump") - Input.get_action_strength("fly_down")
 		velocity.y = vertical * FLY_VERTICAL_SPEED
@@ -126,3 +170,5 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_camera_distance(delta)
+	if not god_mode:
+		Energy.drain((Energy.DRIVE_DRAIN if move_dir.length() > 0.1 else Energy.IDLE_DRAIN) * delta)

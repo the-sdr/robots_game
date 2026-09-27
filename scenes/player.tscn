@@ -136,6 +136,9 @@ size = Vector3(0.1, 0.015, 0.08)
 radius = 0.38
 height = 1.2
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_probe"]
+radius = 1.8
+
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1")
 
@@ -310,6 +313,13 @@ mesh = SubResource("Mesh_brow")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("CapsuleShape3D_body")
+
+[node name="InteractProbe" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+monitorable = false
+
+[node name="ProbeShape" type="CollisionShape3D" parent="InteractProbe"]
+shape = SubResource("SphereShape3D_probe")
 
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
