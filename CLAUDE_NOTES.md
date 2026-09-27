@@ -21,7 +21,8 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   calls, triangles), F7 god mode — double-tap Space to fly (no collision),
   hold Space up / Shift down. Owner measures performance with F4 in their
   own playtests; Claude reads the file (no windowed runs by Claude).
-- **Performance pass is PARKED on branch `wip/perf-pass`** (batched
+- **Performance pass is PARKED on branch `wip/perf-pass`** (its batching
+  must be redone as merged chunk meshes — MultiMesh saves empty headless) (batched
   interior trees, LOD bias 0.4, 2-cascade 50 m shadows). After it was baked
   the owner's Intel UHD laptop hung on every load (whole screen black,
   D3D12 "device removed" 0x887a0005 in the Godot log, also hung on Vulkan).
@@ -163,6 +164,14 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   Forward+ was tried the same day and reverted: the owner got a black
   window and major slowdowns playing on it. **Renderer is Mobile.** Don't
   switch renderers again without the owner agreeing to test it.
+
+- **Never use MultiMesh in a headless bake.** Godot's headless stand-in
+  renderer keeps no MultiMesh data, so the saved batches are silently
+  empty (`instance_count` set, no `buffer`). The background forest was
+  invisible from day one and the parked perf pass's batched interior trees
+  were empty too — a plausible cause of the owner's GPU hangs. Background
+  trees are now merged into ordinary chunk meshes (LOD 2), which headless
+  saves correctly. Check saved scenes for real data, not just "bake OK".
 
 ## Session log
 

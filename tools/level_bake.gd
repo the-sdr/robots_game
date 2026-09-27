@@ -11,10 +11,21 @@ const TREE_SCENE := "res://scenes/props/solid_tree.tscn"
 const ROCK_SCENE := "res://scenes/props/solid_rock.tscn"
 const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
-const GROUND_COLOR := Color(0.3, 0.55, 0.3)
+const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
+# Hand-tunable (painterly sliders); created once, then reused so edits survive rebuilds.
+const TERRAIN_MATERIAL := "res://materials/terrain_painterly.tres"
+const GROUND_TEXTURES := "res://assets/textures/ground/"
+const GROUND_LAYERS := {"forest": "forest_ground_06", "dirt": "dirt_floor",
+	"mud": "brown_mud_leaves_01", "moss": "rocky_mossy_terrain_02"}
 const WALL_SIZE := Vector3(2.0, 3.12, 0.41)
 const WALL_CENTRE := Vector3(0, 1.56, -0.11)
 const BACKGROUND_CHUNK := 32.0
+# Batched (MultiMesh) versions of the tinted leaf materials, by the pack's material name.
+const BATCHED_LEAF_MATERIALS := {
+	"Leaves_NormalTree": "res://materials/leaves_normal_batched.tres",
+	"Leaves_TwistedTree": "res://materials/leaves_twisted_batched.tres",
+	"Leaves_Pine": "res://materials/leaves_pine_batched.tres",
+}
 const COLLECTIBLES := {
 	"CP1": {"name": "Servo motor", "color": Color(1.0, 0.6, 0.15)},
 	"CP2": {"name": "Optic lens", "color": Color(0.3, 0.8, 1.0)},
@@ -44,6 +55,7 @@ func _initialize() -> void:
 			"tree":
 				var tree := _instance(TREE_SCENE, trees, node_name, xf)
 				tree.set("model_path", o["path"])
+				tree.set("leaf_tint", Color(o["tint"][0], o["tint"][1], o["tint"][2]))
 			"rock":
 				var rock := _instance(ROCK_SCENE, props, node_name, xf)
 				rock.set("model_path", o["path"])
@@ -134,15 +146,13 @@ func _build_terrain(t: Dictionary) -> void:
 	var h := PackedFloat32Array(t["heights"])
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var layers := PackedFloat32Array(t["layers"])
 	for iz in nz:
 		for ix in nx:
 			var y: float = h[iz * nx + ix]
-			var dx: float = h[iz * nx + mini(ix + 1, nx - 1)] - h[iz * nx + maxi(ix - 1, 0)]
-			var dz: float = h[mini(iz + 1, nz - 1) * nx + ix] - h[maxi(iz - 1, 0) * nx + ix]
-			var slope: float = clampf(Vector2(dx, dz).length() * 0.5, 0.0, 1.0)
-			# Subtle shading: higher ground a touch lighter, slopes a touch darker.
-			var k: float = 0.9 + clampf(y, -1.0, 6.0) * 0.025 - slope * 0.15
-			st.set_color(Color(GROUND_COLOR.r * k, GROUND_COLOR.g * k, GROUND_COLOR.b * k))
+			var i := (iz * nx + ix) * 3
+			# Ground-layer weights for the terrain shader: R dirt, G mud, B moss.
+			st.set_color(Color(layers[i], layers[i + 1], layers[i + 2], 1.0))
 			st.set_uv(Vector2(x0 + ix, z0 + iz) * 0.25)
 			st.add_vertex(Vector3(x0 + ix, y, z0 + iz))
 	for iz in nz - 1:
@@ -155,9 +165,17 @@ func _build_terrain(t: Dictionary) -> void:
 			st.add_index(a + nx + 1)
 			st.add_index(a + nx)
 	st.generate_normals()
-	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.roughness = 0.95
+	var material: ShaderMaterial
+	if ResourceLoader.exists(TERRAIN_MATERIAL):
+		material = load(TERRAIN_MATERIAL)
+	else:
+		material = ShaderMaterial.new()
+		material.shader = load(TERRAIN_SHADER)
+		for layer in GROUND_LAYERS:
+			material.set_shader_parameter(layer + "_albedo", load(GROUND_TEXTURES + GROUND_LAYERS[layer] + "_albedo_height.png"))
+			material.set_shader_parameter(layer + "_normal", load(GROUND_TEXTURES + GROUND_LAYERS[layer] + "_normal.png"))
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(TERRAIN_MATERIAL.get_base_dir()))
+		material = _save_external(material, TERRAIN_MATERIAL)
 	st.set_material(material)
 	var mesh: Mesh = _save_external(st.commit(), OUT_DIR + "terrain_mesh.res")
 
@@ -192,35 +210,110 @@ func _save_external(res: Resource, path: String) -> Resource:
 		return res
 	return ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REPLACE)
 
+# Background trees are merged into one ordinary mesh per chunk (one surface
+# per material). MultiMesh can't be used here: in a headless bake Godot's
+# stand-in renderer keeps no MultiMesh data, so the saved batches were empty.
+# Merged meshes use a simpler detail level of each model (BACKGROUND_LOD) and
+# carry each tree's leaf tint in the vertex colour.
+const BACKGROUND_LOD := 2      # 0 = full detail; each level roughly halves the triangles
+
 func _build_background(items: Array) -> void:
 	var group := _group("BackgroundForest")
-	var meshes := {}     # asset path -> [mesh, local transform of the mesh inside the model]
-	var chunks := {}     # "cx,cz,path" -> Array[Transform3D]
+	var models := {}    # asset path -> Array of {material, positions, normals, uvs, indices, leaf}
+	var chunks := {}    # "cx,cz" -> Array of [Transform3D, Color, path]
 	for o in items:
 		var path: String = o["path"]
-		if not meshes.has(path):
-			var model: Node3D = load(path).instantiate()
-			var mi: MeshInstance3D = model.find_children("*", "MeshInstance3D", true, false)[0]
-			var file := OUT_DIR + "background/%s.res" % path.get_file().get_basename()
-			var mesh: Mesh = _save_external(mi.mesh.duplicate(), file)
-			meshes[path] = [mesh, model.transform.affine_inverse() * mi.global_transform if mi.is_inside_tree() else mi.transform]
-			model.free()
+		if not models.has(path):
+			models[path] = _model_surfaces(path, BACKGROUND_LOD)
 		var xf := _transform(o)
-		var key := "%d,%d,%s" % [floori(xf.origin.x / BACKGROUND_CHUNK), floori(xf.origin.z / BACKGROUND_CHUNK), path]
+		var key := "%d,%d" % [floori(xf.origin.x / BACKGROUND_CHUNK), floori(xf.origin.z / BACKGROUND_CHUNK)]
 		if not chunks.has(key):
 			chunks[key] = []
-		chunks[key].append(xf * meshes[path][1])
+		var tint: Array = o.get("tint", [1.0, 1.0, 1.0])
+		chunks[key].append([xf, Color(tint[0], tint[1], tint[2]), path])
+	var triangles := 0
 	for key in chunks:
-		var path: String = key.get_slice(",", 2)
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = meshes[path][0]
-		mm.instance_count = chunks[key].size()
-		for i in chunks[key].size():
-			mm.set_instance_transform(i, chunks[key][i])
-		var mmi := MultiMeshInstance3D.new()
-		mmi.name = "Chunk_%s_%s_%s" % [key.get_slice(",", 0), key.get_slice(",", 1), path.get_file().get_basename()]
-		mmi.multimesh = mm
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		group.add_child(mmi)
-		mmi.owner = _root
+		var by_material := {}   # material -> [positions, normals, uvs, colors, indices]
+		for entry in chunks[key]:
+			var xf: Transform3D = entry[0]
+			var normal_basis: Basis = xf.basis.inverse().transposed()
+			for surf in models[entry[2]]:
+				var mat: Material = surf["material"]
+				if not by_material.has(mat):
+					by_material[mat] = [PackedVector3Array(), PackedVector3Array(), PackedVector2Array(), PackedColorArray(), PackedInt32Array()]
+				var acc: Array = by_material[mat]
+				var base: int = acc[0].size()
+				var colour: Color = entry[1] if surf["leaf"] else Color.WHITE
+				var positions: PackedVector3Array = surf["positions"]
+				var normals: PackedVector3Array = surf["normals"]
+				for i in positions.size():
+					acc[0].append(xf * positions[i])
+					acc[1].append((normal_basis * normals[i]).normalized())
+					acc[3].append(colour)
+				acc[2].append_array(surf["uvs"])
+				for index in surf["indices"]:
+					acc[4].append(base + index)
+		var mesh := ArrayMesh.new()
+		for mat in by_material:
+			var acc: Array = by_material[mat]
+			var arrays := []
+			arrays.resize(Mesh.ARRAY_MAX)
+			arrays[Mesh.ARRAY_VERTEX] = acc[0]
+			arrays[Mesh.ARRAY_NORMAL] = acc[1]
+			arrays[Mesh.ARRAY_TEX_UV] = acc[2]
+			arrays[Mesh.ARRAY_COLOR] = acc[3]
+			arrays[Mesh.ARRAY_INDEX] = acc[4]
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			mesh.surface_set_material(mesh.get_surface_count() - 1, mat)
+			triangles += acc[4].size() / 3
+		var file := OUT_DIR + "background/chunk_%s.res" % key.replace(",", "_")
+		var mi := MeshInstance3D.new()
+		mi.name = "Chunk_%s" % key.replace(",", "_")
+		mi.mesh = _save_external(mesh, file)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		group.add_child(mi)
+		mi.owner = _root
+	print("background: %d chunks, %d triangles" % [chunks.size(), triangles])
+
+# One model's surfaces at a given detail level, compacted to the vertices that
+# level uses, in model space. Leaf surfaces get the batched tinted material.
+func _model_surfaces(path: String, lod: int) -> Array:
+	var model: Node3D = load(path).instantiate()
+	var mi: MeshInstance3D = model.find_children("*", "MeshInstance3D", true, false)[0]
+	var local: Transform3D = mi.transform
+	var parent := mi.get_parent()
+	while parent != model and parent is Node3D:
+		local = (parent as Node3D).transform * local
+		parent = parent.get_parent()
+	var out := []
+	for s in mi.mesh.get_surface_count():
+		var arrays := mi.mesh.surface_get_arrays(s)
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var surf: Dictionary = RenderingServer.mesh_get_surface(mi.mesh.get_rid(), s)
+		var lods: Array = surf.get("lods", [])
+		if lod > 0 and lods.size() > 0:
+			var data: PackedByteArray = lods[mini(lod, lods.size()) - 1]["index_data"]
+			var wide: bool = arrays[Mesh.ARRAY_VERTEX].size() > 65535
+			indices = PackedInt32Array()
+			var step := 4 if wide else 2
+			for i in range(0, data.size(), step):
+				indices.append(data.decode_u32(i) if wide else data.decode_u16(i))
+		var remap := {}
+		var positions := PackedVector3Array()
+		var normals := PackedVector3Array()
+		var uvs := PackedVector2Array()
+		var compact := PackedInt32Array()
+		for index in indices:
+			if not remap.has(index):
+				remap[index] = positions.size()
+				positions.append(local * arrays[Mesh.ARRAY_VERTEX][index])
+				normals.append((local.basis * arrays[Mesh.ARRAY_NORMAL][index]).normalized())
+				uvs.append(arrays[Mesh.ARRAY_TEX_UV][index])
+			compact.append(remap[index])
+		var mat: Material = mi.mesh.surface_get_material(s)
+		var leaf := mat != null and BATCHED_LEAF_MATERIALS.has(mat.resource_name)
+		if leaf:
+			mat = load(BATCHED_LEAF_MATERIALS[mat.resource_name])
+		out.append({"material": mat, "positions": positions, "normals": normals, "uvs": uvs, "indices": compact, "leaf": leaf})
+	model.free()
+	return out

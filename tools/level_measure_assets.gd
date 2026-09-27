@@ -4,7 +4,13 @@
 extends SceneTree
 const ASSETS := {
 	"CommonTree_1": "res://assets/quaternius_nature/CommonTree_1.gltf",
+	"CommonTree_2": "res://assets/quaternius_nature/CommonTree_2.gltf",
 	"CommonTree_3": "res://assets/quaternius_nature/CommonTree_3.gltf",
+	"CommonTree_4": "res://assets/quaternius_nature/CommonTree_4.gltf",
+	"Pine_1": "res://assets/quaternius_nature/Pine_1.gltf",
+	"Pine_2": "res://assets/quaternius_nature/Pine_2.gltf",
+	"Pine_5": "res://assets/quaternius_nature/Pine_5.gltf",
+	"TwistedTree_5": "res://assets/quaternius_nature/TwistedTree_5.gltf",
 	"CommonTree_5": "res://assets/quaternius_nature/CommonTree_5.gltf",
 	"DeadTree_1": "res://assets/quaternius_nature/DeadTree_1.gltf",
 	"TwistedTree_2": "res://assets/quaternius_nature/TwistedTree_2.gltf",

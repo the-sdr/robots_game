@@ -18,6 +18,7 @@ import re
 import numpy as np
 
 import level_common as lc
+from level_generate_forest import route, FOREST_NORTH_EDGE
 
 BUILD_DIR = os.path.join(lc.ROOT, "level_design", "build")
 PLACEMENTS = os.path.join(BUILD_DIR, "placements.json")   # exact transforms from the last build
@@ -26,8 +27,9 @@ WORLD = os.path.join(lc.ROOT, "scenes", "world.tscn")
 BACKGROUND_DEPTH = 55.0        # how far the background forest reaches beyond the map edge
 BACKGROUND_SPACING = 4.5
 BACKGROUND_SEED = 20260927
-BACKGROUND_MODELS = [("CommonTree_1", 3), ("CommonTree_3", 3), ("CommonTree_5", 3),
-                     ("DeadTree_1", 2), ("TwistedTree_2", 1), ("TwistedTree_4", 1)]
+BACKGROUND_MODELS = [("CommonTree_1", 3), ("CommonTree_2", 3), ("CommonTree_3", 3), ("CommonTree_4", 3),
+                     ("CommonTree_5", 3), ("Pine_1", 3), ("Pine_2", 3), ("Pine_5", 3), ("DeadTree_1", 1.5),
+                     ("TwistedTree_2", 1), ("TwistedTree_4", 1), ("TwistedTree_5", 1)]
 GROUND_RADIUS = {"wall": 1.0, "building": 0.0, "bush": 0.5, "rock": 1.0, "prop": 0.3,
                  "stone": 0.0, "collectible": 0.0}
 
@@ -78,6 +80,45 @@ def tilt_basis(basis, normal):
     return list((R @ np.array(basis).reshape(3, 3)).flatten())
 
 
+def ground_layers(sheet, grid):
+    """Per-terrain-vertex weights for the painterly terrain shader:
+    (dirt, mud, moss); the rest is forest floor. Rules:
+      path centre -> dirt, path edges and damp dips -> mud,
+      hill / open ground and steep forest slopes -> moss and rock."""
+    nx, nz = grid["nx"], grid["nz"]
+    X, Z = np.meshgrid(grid["x0"] + np.arange(nx), grid["z0"] + np.arange(nz))
+    _, segments, dead_ends, _, _ = route(sheet)
+    d = np.full(X.shape, np.inf)
+    for (ax, az), (bx, bz) in segments:
+        dx, dz = bx - ax, bz - az
+        L = dx * dx + dz * dz or 1e-9
+        t = np.clip(((X - ax) * dx + (Z - az) * dz) / L, 0, 1)
+        d = np.minimum(d, np.hypot(X - (ax + t * dx), Z - (az + t * dz)))
+    for ex, ez in dead_ends:
+        d = np.minimum(d, np.maximum(np.hypot(X - ex, Z - ez) - 1.2, 0))
+    (hx0, hz0), (hx1, hz1) = lc.HOUSE_MIN, lc.HOUSE_MAX
+    house = np.hypot(np.maximum(np.maximum(hx0 - X, X - hx1), 0), np.maximum(np.maximum(hz0 - Z, Z - hz1), 0))
+    h = grid["heights"]
+    gz, gx = np.gradient(h)
+    slope = np.degrees(np.arctan(np.hypot(gx, gz)))
+    p = np.pad(h, 3, mode="edge")                 # local average for damp dips
+    local = sum(p[3 + i:3 + i + nz, 3 + j:3 + j + nx] for i in range(-3, 4) for j in range(-3, 4)) / 49.0
+    dip = np.clip((local - h) * 2.0, 0, 1)
+
+    dirt = 1.0 - lc.smoothstep(0.8, 1.5, d)
+    dirt = np.maximum(dirt, 0.6 * (1.0 - lc.smoothstep(0.5, 1.8, house)))
+    mud = lc.smoothstep(0.7, 1.3, d) * (1.0 - lc.smoothstep(1.6, 2.8, d)) * 0.85
+    mud = np.maximum(mud, dip * 0.7)
+    open_area = lc.smoothstep(FOREST_NORTH_EDGE + 1.0, FOREST_NORTH_EDGE - 2.0, Z)
+    inside = (X >= sheet.x_min) & (X <= sheet.x_max) & (Z >= sheet.z_min) & (Z <= sheet.z_max)
+    moss = np.maximum(open_area * inside, lc.smoothstep(22.0, 35.0, slope) * 0.7)
+    moss *= 1.0 - dirt
+    mud *= 1.0 - dirt
+    total = dirt + mud + moss
+    scale = np.where(total > 1.0, 1.0 / np.maximum(total, 1e-6), 1.0)
+    return np.stack([dirt * scale, mud * scale, moss * scale], axis=-1)
+
+
 def main():
     os.makedirs(BUILD_DIR, exist_ok=True)
     sheet = lc.Sheet()
@@ -113,9 +154,12 @@ def main():
             if kind == "stone":
                 basis = tilt_basis(basis, normal_at(grid, px, pz))
                 ground = lc.height_at(grid, px, pz) - 0.03 + (lc.cell_hash(x, z) % 5) * 0.004
-            objects.append({"code": code, "asset": asset, "kind": kind,
-                            "path": assets[asset]["path"] if asset in assets else "",
-                            "basis": [float(b) for b in basis], "origin": [px, ground + yoff, pz]})
+            obj = {"code": code, "asset": asset, "kind": kind,
+                   "path": assets[asset]["path"] if asset in assets else "",
+                   "basis": [float(b) for b in basis], "origin": [px, ground + yoff, pz]}
+            if kind == "tree":
+                obj["tint"] = lc.leaf_tint(asset, px, pz)
+            objects.append(obj)
 
     # Background forest: seen, never reached. Not on the sheet (it has no design meaning).
     rng = random.Random(BACKGROUND_SEED)
@@ -148,11 +192,13 @@ def main():
             scale = rng.uniform(0.85, 1.25)
             basis = [v * scale for v in lc.heading_to_basis(heading)]
             background.append({"asset": model, "path": assets[model]["path"], "basis": basis,
-                               "origin": [x, lc.min_height_around(grid, x, z, 0.8) - 0.1, z]})
+                               "origin": [x, lc.min_height_around(grid, x, z, 0.8) - 0.1, z],
+                               "tint": lc.leaf_tint(model, x, z)})
 
     level = {"terrain": {k: grid[k] for k in ("x0", "z0", "nx", "nz")},
              "objects": objects, "background": background}
     level["terrain"]["heights"] = [round(float(v), 3) for v in grid["heights"].flatten()]
+    level["terrain"]["layers"] = [round(float(v), 2) for v in ground_layers(sheet, grid).reshape(-1)]
     json.dump(level, open(os.path.join(BUILD_DIR, "level.json"), "w"))
     json.dump(placements, open(PLACEMENTS, "w"))
     kinds = {}

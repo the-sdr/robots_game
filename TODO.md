@@ -16,6 +16,15 @@ Written 2026-09-27 before a reboot. Newest priorities first.
 ## 2. Commit
 - [ ] Once loading works: commit `main` (FPS/F4 logging, Mobile, terrain colour fix, notes, TODO) and push.
 
+## 2b. Done since (uncommitted until tested)
+- [x] Textured painterly terrain: 4 Poly Haven layers, shader in `shaders/terrain_painterly.gdshader`,
+      tunable material `materials/terrain_painterly.tres`. perf_1 (hill, SW): 66.8 ms / 15 FPS, 16.3M tris.
+- [x] Tree variety: 12 models (added CommonTree_2/4, Pine_1/2/5, TwistedTree_5), weighted mix
+      (twisted ~9 %), per-tree leaf colours (mostly greens, autumn accents, evergreen pines).
+- [x] **Bug fixed:** background forest was never drawn (MultiMesh saves empty in headless bakes).
+      Now merged chunk meshes, 785k triangles.
+- [ ] Owner tests: loads? looks? F4 at the perf_1 spot (hill crest, looking SW).
+
 ## 3. Measure performance (owner, F4)
 - [ ] Hill crest (0, −57) looking **south** over the forest (before: ~80–88 ms, ≈11 FPS).
 - [ ] Hill crest looking **north** at the city (before: ~40 ms, ≈25 FPS).

@@ -1,0 +1,36 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/terrain_painterly.gdshader" id="1_i74ur"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/dirt_floor_albedo_height.png" id="2_25aj0"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/dirt_floor_normal.png" id="3_f1uoi"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/forest_ground_06_albedo_height.png" id="4_57jo2"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/forest_ground_06_normal.png" id="5_67agp"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/rocky_mossy_terrain_02_albedo_height.png" id="6_g0fqx"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/rocky_mossy_terrain_02_normal.png" id="7_cd323"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/brown_mud_leaves_01_albedo_height.png" id="8_ixds4"]
+[ext_resource type="Texture2D" path="res://assets/textures/ground/brown_mud_leaves_01_normal.png" id="9_soq3n"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_i74ur")
+shader_parameter/forest_albedo = ExtResource("4_57jo2")
+shader_parameter/forest_normal = ExtResource("5_67agp")
+shader_parameter/dirt_albedo = ExtResource("2_25aj0")
+shader_parameter/dirt_normal = ExtResource("3_f1uoi")
+shader_parameter/mud_albedo = ExtResource("8_ixds4")
+shader_parameter/mud_normal = ExtResource("9_soq3n")
+shader_parameter/moss_albedo = ExtResource("6_g0fqx")
+shader_parameter/moss_normal = ExtResource("7_cd323")
+shader_parameter/tile_size = null
+shader_parameter/blend_sharpness = null
+shader_parameter/forest_tint = null
+shader_parameter/dirt_tint = null
+shader_parameter/mud_tint = null
+shader_parameter/moss_tint = null
+shader_parameter/brightness = null
+shader_parameter/color_bands = null
+shader_parameter/band_softness = null
+shader_parameter/saturation = null
+shader_parameter/detail_softening = null
+shader_parameter/normal_strength = null
+shader_parameter/slope_darkening = null

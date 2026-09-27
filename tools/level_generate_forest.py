@@ -24,7 +24,15 @@ FOREST_NORTH_EDGE = -50        # forest fills z >= this; north of it is the hill
 OPEN_BORDER_COLUMNS = 4        # sealed tree columns either side of the hill / city area
 OPEN_BORDER_ROWS = 4           # sealed tree rows along the north edge
 HOUSE_STRIP = 1.2              # walkable gap left between trunks and the house walls
-MODELS = ["CommonTree_1", "CommonTree_3", "CommonTree_5", "DeadTree_1", "TwistedTree_2", "TwistedTree_4"]
+# Relative weights for the forest mix. Twisted giants are the heaviest models
+# (9-10k triangles) and dominate the skyline, so they're kept to ~10 %.
+MODEL_WEIGHTS = {
+    "CommonTree_1": 3, "CommonTree_2": 3, "CommonTree_3": 3, "CommonTree_4": 3, "CommonTree_5": 3,
+    "Pine_1": 3, "Pine_2": 3, "Pine_5": 3,
+    "DeadTree_1": 1.5,
+    "TwistedTree_2": 1, "TwistedTree_4": 1, "TwistedTree_5": 1,
+}
+MODELS = list(MODEL_WEIGHTS)
 CODE_OF = {v: k for k, v in lc.TREE_CODES.items()}
 
 
@@ -139,7 +147,8 @@ def main():
                 continue
             house_d = lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX)
             corr_d = corridor_distance(x, z)
-            choices = sorted(MODELS, key=lambda m: lc.cell_hash(x, z, MODELS.index(m)))
+            # Weighted random order per cell (stable): first model that fits wins.
+            choices = sorted(MODELS, key=lambda m: -math.log((lc.cell_hash(x, z, MODELS.index(m)) % 100000 + 1) / 100001.0) / MODEL_WEIGHTS[m])
             chosen = None
             for m in choices:
                 r = lc.TRUNKS[m][0]

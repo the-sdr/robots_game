@@ -17,8 +17,11 @@ ASSETS_JSON = os.path.join(ROOT, "level_design", "build", "assets.json")
 
 # code -> (asset name, kind). kind decides how the Godot baker instances it.
 CODES = {
-    "TC1": ("CommonTree_1", "tree"), "TC3": ("CommonTree_3", "tree"), "TC5": ("CommonTree_5", "tree"),
+    "TC1": ("CommonTree_1", "tree"), "TC2": ("CommonTree_2", "tree"), "TC3": ("CommonTree_3", "tree"),
+    "TC4": ("CommonTree_4", "tree"), "TC5": ("CommonTree_5", "tree"),
+    "TP1": ("Pine_1", "tree"), "TP2": ("Pine_2", "tree"), "TP5": ("Pine_5", "tree"),
     "TD1": ("DeadTree_1", "tree"), "TT2": ("TwistedTree_2", "tree"), "TT4": ("TwistedTree_4", "tree"),
+    "TT5": ("TwistedTree_5", "tree"),
     "RM1": ("Rock_Medium_1", "rock"),
     "BCO": ("Bush_Common", "bush"), "BCF": ("Bush_Common_Flowers", "bush"),
     "BFE": ("Fern_1", "prop"), "BFL": ("Flower_3_Group", "prop"),
@@ -32,15 +35,40 @@ CODES = {
 }
 # Fixed in world.tscn or pure markers: never built from the sheet.
 IGNORED = {"SHO", "SCH", "SPN", "X", "P"}
-TREE_CODES = {"TC1": "CommonTree_1", "TC3": "CommonTree_3", "TC5": "CommonTree_5",
-              "TD1": "DeadTree_1", "TT2": "TwistedTree_2", "TT4": "TwistedTree_4"}
+TREE_CODES = {code: asset for code, (asset, kind) in CODES.items() if kind == "tree"}
 
 # Must match scripts/solid_tree.gd TRUNKS (radius, local centre offset x, z).
+# Pines have thin trunks (0.2-0.36 m) but branches down to the ground, so
+# their collision covers the lowest branches (0.5 m) - that also keeps the
+# checkerboard forest sealed (needs > 0.33 m).
 TRUNKS = {
-    "CommonTree_1": (0.55, 0.02, 0.11), "CommonTree_3": (0.55, 0.01, 0.11),
+    "CommonTree_1": (0.55, 0.02, 0.11), "CommonTree_2": (0.52, -0.01, 0.04),
+    "CommonTree_3": (0.55, 0.01, 0.11), "CommonTree_4": (0.55, -0.04, 0.10),
     "CommonTree_5": (0.50, 0.07, 0.10), "DeadTree_1": (0.52, 0.13, 0.0),
+    "Pine_1": (0.50, 0.03, -0.02), "Pine_2": (0.50, 0.03, -0.02), "Pine_5": (0.50, 0.02, -0.09),
     "TwistedTree_2": (1.12, 0.06, -0.01), "TwistedTree_4": (1.15, 0.02, 0.10),
+    "TwistedTree_5": (1.32, -0.49, -0.19),
 }
+
+# Leaf colours (sRGB). Each tree gets one, chosen per cell so it's stable
+# across rebuilds: mostly greens, some autumn accents; pines stay evergreen.
+BROADLEAF_GREENS = [(0.45, 0.62, 0.24), (0.34, 0.52, 0.20), (0.24, 0.42, 0.17),
+                    (0.50, 0.56, 0.22), (0.40, 0.58, 0.30)]
+AUTUMN = [(0.80, 0.56, 0.18), (0.74, 0.36, 0.14), (0.66, 0.20, 0.14)]
+PINE_GREENS = [(0.18, 0.36, 0.20), (0.22, 0.40, 0.22), (0.16, 0.32, 0.24), (0.26, 0.42, 0.18)]
+
+
+def leaf_tint(asset, x, z):
+    """Stable per-tree leaf colour; autumn share is higher for twisted trees."""
+    h = cell_hash(int(round(x * 10)), int(round(z * 10)), 7)
+    if asset.startswith("Pine"):
+        base = PINE_GREENS[h % len(PINE_GREENS)]
+    else:
+        autumn_share = 30 if asset.startswith("Twisted") else 14
+        palette = AUTUMN if (h >> 4) % 100 < autumn_share else BROADLEAF_GREENS
+        base = palette[(h >> 8) % len(palette)]
+    k = 0.92 + ((h >> 12) % 17) / 100.0          # +-8 % brightness
+    return [round(min(c * k, 1.0), 3) for c in base]
 ROBOT_RADIUS = 0.38
 WALL_SIZE = (2.0, 3.12, 0.41)          # measured Wall_UnevenBrick_Straight
 WALL_CENTRE_Z = -0.11                  # local z of the wall's centre
