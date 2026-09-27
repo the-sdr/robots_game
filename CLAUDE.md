@@ -38,7 +38,9 @@ Also read before substantial work:
    attribution line the environment provides.
 
 ## The owner's machine and targets
-- Windows laptop, **Intel UHD integrated graphics**. Target **25 FPS** there.
+- Lenovo Windows laptop with an **Intel i3 CPU** and **Intel UHD integrated
+  graphics**: CPU-bound as much as GPU-bound. Watch draw calls, node counts
+  and per-frame script cost, not only triangles. Target **25 FPS** there.
 - Godot 4.7.2 at `C:\Godot_v4.7.2-stable_win64.exe\` (local sessions only).
 - In the cloud: run `bash tools/cloud_setup.sh` once (Python packages + Linux
   Godot for headless baking/tests). If Godot can't be downloaded, the Python
