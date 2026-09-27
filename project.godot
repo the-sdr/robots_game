@@ -21,6 +21,7 @@ Catalog="*res://scripts/game/catalog.gd"
 Clock="*res://scripts/game/clock.gd"
 Energy="*res://scripts/game/energy.gd"
 Game="*res://scripts/game/game.gd"
+Story="*res://scripts/game/story.gd"
 
 [display]
 

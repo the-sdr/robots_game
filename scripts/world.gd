@@ -21,12 +21,20 @@ func _ready() -> void:
 		hud.show_notice("Consciousness restored at %s" % _charger_label(Game.data["last_charger"]))
 	else:
 		_start_new_game()
+	for c in get_tree().get_nodes_in_group("charger"):
+		c.docked.connect(func(_player: Node3D) -> void: Story.play("copy"))
+	Game.flag_changed.connect(_on_flag_changed)
 
 func _start_new_game() -> void:
 	var home := home_charger()
 	if home != null:
 		_place_beside(home)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	get_tree().create_timer(1.2).timeout.connect(func() -> void: Story.play("wake"))
+
+func _on_flag_changed(flag: String, value: bool) -> void:
+	if flag == "house_door_broken" and value:
+		Story.play("door")
 
 func home_charger() -> Node3D:
 	for c in get_tree().get_nodes_in_group("charger"):

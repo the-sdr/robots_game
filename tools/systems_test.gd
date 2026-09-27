@@ -13,6 +13,18 @@ var Clock: Node
 var Energy: Node
 var Catalog: Node
 
+func drive_to(p: CharacterBody3D, target: Vector2, max_frames: int) -> bool:
+	for i in max_frames:
+		var d := Vector2(target.x - p.global_position.x, target.y - p.global_position.z)
+		if d.length() < 0.6:
+			return true
+		var dir := d.normalized()
+		var vy: float = p.velocity.y - 9.8 / 60.0 if not p.is_on_floor() else -0.5
+		p.velocity = Vector3(dir.x * 3.0, vy, dir.y * 3.0)
+		p.move_and_slide()
+		await physics_frame
+	return false
+
 func check(condition: bool, what: String) -> void:
 	if condition:
 		print("  ok   ", what)
@@ -26,6 +38,7 @@ func _initialize() -> void:
 	Energy = root.get_node("Energy")
 	Catalog = root.get_node("Catalog")
 	await process_frame      # _initialize runs before the root joins the tree
+	create_timer(240.0).timeout.connect(func() -> void: print("RESULT: WATCHDOG TIMEOUT (a check hung or a script error aborted the run)"); quit(2))
 	print("== catalog")
 	for rid in Catalog.RECIPES:
 		var r: Dictionary = Catalog.RECIPES[rid]
@@ -205,6 +218,45 @@ func _initialize() -> void:
 	check(not rig.use(), "no swing without energy")
 	Energy.current = 50.0
 
+	print("== the house: sealed door, parts, smasher, way out")
+	Game.new_game()
+	Game.data["tools"] = []
+	Game.data["equipped_tool"] = ""
+	Game.inventory_changed.emit()
+	await process_frame
+	player.set_physics_process(false)
+	var door: StaticBody3D = world.get_node("HouseDoor")
+	check(door != null and is_instance_valid(door), "door present on a new game")
+	player.global_position = Vector3(0.0, 0.1, -6.0)
+	var blocked := await drive_to(player, Vector2(0.0, -9.5), 240)
+	check(not blocked and player.global_position.z > -7.6, "door blocks the way out (z %.2f)" % player.global_position.z)
+	for part in ["HammerHead", "ActuatorArm"]:
+		var node: Node3D = world.get_node_or_null(part)
+		if node == null:
+			continue
+		player.global_position = node.global_position + Vector3(0, 0.3, 0)
+		for i in 4:
+			await physics_frame
+	check(Game.count("hammer_head") == 1 and Game.count("actuator_arm") == 1, "both smasher parts found in the house")
+	check(Game.craft("smasher"), "smasher built from them (anywhere)")
+	await process_frame
+	player.global_position = Vector3(0.0, 0.1, -6.4)
+	player.get_node("Visual").global_rotation.y = 0.0    # Visual -Z = north; the door wall is the north wall (z -7.74)
+	for i in 3:
+		await physics_frame
+	var swings := 0
+	while is_instance_valid(door) and not door.is_queued_for_deletion() and swings < 6:
+		rig.use()
+		swings += 1
+		for i in 40:
+			await process_frame
+	check(swings == 3, "door breaks on the third smash (%d)" % swings)
+	check(Game.get_flag("house_door_broken") and Game.beat_seen("door"), "door flag set and its story beat played")
+	var out := await drive_to(player, Vector2(0.0, -9.5), 240)
+	check(out, "the way out is open")
+	player.set_physics_process(true)
+	Game.save(player, "HouseCharger")
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())
@@ -226,6 +278,8 @@ func _initialize() -> void:
 	player = world.get_node("Player")
 	charger = world.get_node("HouseCharger")
 	check(world.get_node_or_null(pickup_path.trim_prefix("/root/" + world.name + "/")) == null, "collected part is gone after load")
+	check(world.get_node_or_null("HouseDoor") == null, "broken door stays gone after load")
+	check(world.get_node_or_null("HammerHead") == null, "house part stays collected after load")
 	Game.set_flag("door_broken")
 
 	print("== shutdown and reboot")

@@ -20,6 +20,20 @@
 
 [ext_resource type="Script" path="res://scripts/day_night.gd" id="33"]
 
+[ext_resource type="PackedScene" path="res://scenes/props/house_door.tscn" id="34"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/crate.tscn" id="35"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/collectible_part.tscn" id="36"]
+
+[ext_resource type="Script" path="res://scripts/interact/story_trigger.gd" id="37"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_trigger3"]
+radius = 3.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_trigger5"]
+radius = 5.0
+
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_morning"]
 sky_top_color = Color(0.3, 0.55, 0.85, 1)
 sky_horizon_color = Color(0.75, 0.85, 0.92, 1)
@@ -108,6 +122,141 @@ shape = SubResource("BoxShape3D_house_ceiling")
 [node name="HouseCharger" parent="." unique_id=307491544 instance=ExtResource("20")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0, -3.2)
 is_home = true
+
+[node name="HouseDoor" parent="." instance=ExtResource("34")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7.74)
+
+[node name="CrateNorthEast" parent="." instance=ExtResource("35")]
+transform = Transform3D(0.94, 0, -0.34, 0, 1, 0, 0.34, 0, 0.94, 1.95, 0, -3.0)
+
+[node name="CrateSouthWest" parent="." instance=ExtResource("35")]
+transform = Transform3D(0.99, 0, 0.14, 0, 1, 0, -0.14, 0, 0.99, -1.95, 0, -6.4)
+
+[node name="ActuatorArm" parent="." instance=ExtResource("36")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.95, 0.55, -3.0)
+part_name = "Actuator arm"
+item_id = "actuator_arm"
+color = Color(0.9, 0.55, 0.25, 1)
+
+[node name="HammerHead" parent="." instance=ExtResource("36")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.95, -0.3, -7.25)
+part_name = "Hammer head"
+item_id = "hammer_head"
+color = Color(0.75, 0.75, 0.8, 1)
+
+[node name="StoryTriggers" type="Node3D" parent="."]
+
+[node name="Gate" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -12)
+script = ExtResource("37")
+beat = "gate"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Gate"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Fork" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -24)
+script = ExtResource("37")
+beat = "fork"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Fork"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Giant" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, -45)
+script = ExtResource("37")
+beat = "giant"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Giant"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="UnderGiant" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, -51)
+script = ExtResource("37")
+beat = "under_giant"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/UnderGiant"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Ruin" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, -58)
+script = ExtResource("37")
+beat = "ruin"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Ruin"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="Clearing" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1, -56)
+script = ExtResource("37")
+beat = "clearing"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Clearing"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="Exit" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -78)
+script = ExtResource("37")
+beat = "exit"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Exit"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Crest" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -86)
+script = ExtResource("37")
+beat = "crest"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Crest"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="Spring" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 1, -33)
+script = ExtResource("37")
+beat = "spring"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Spring"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="HollowTree" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1, -20)
+script = ExtResource("37")
+beat = "hollow_tree"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/HollowTree"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="PineEnd" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 1, -16)
+script = ExtResource("37")
+beat = "pine_end"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/PineEnd"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="GardenNook" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 1, 4)
+script = ExtResource("37")
+beat = "garden_nook"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/GardenNook"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="RuinFar" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 1, -69)
+script = ExtResource("37")
+beat = "ruin_far"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/RuinFar"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Brambles" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1, -45)
+script = ExtResource("37")
+beat = "brambles"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Brambles"]
+shape = SubResource("SphereShape3D_trigger5")
 
 [node name="HUD" parent="." instance=ExtResource("31")]
 
