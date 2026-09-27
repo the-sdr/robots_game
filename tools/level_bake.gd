@@ -17,6 +17,7 @@ const TREE_SCENE := "res://scenes/props/solid_tree.tscn"
 const ROCK_SCENE := "res://scenes/props/solid_rock.tscn"
 const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
 const GIANT_SCENE := "res://scenes/props/fallen_giant.tscn"
+const CRATE_SCENE := "res://scenes/props/crate.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
 const BREAKABLE_SCRIPT := "res://scripts/interact/breakable.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
@@ -127,9 +128,7 @@ func _initialize() -> void:
 				part.set("part_name", info["name"])
 				part.set("color", info["color"])
 			"crate":
-				var body := _static_body(props, node_name, xf)
-				_instance(o["path"], body, "Model", Transform3D())
-				_box_collision(body, Vector3(1.08, 1.06, 1.08), Vector3(0, 0.53, 0))
+				_instance(CRATE_SCENE, props, node_name, xf)       # a smashable crate (drops scrap)
 			"scene":
 				_instance(o["path"], props, String(o["id"]).to_pascal_case(), xf)
 			"gate_rubble":

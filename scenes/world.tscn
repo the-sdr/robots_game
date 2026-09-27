@@ -30,6 +30,11 @@
 
 [ext_resource type="Script" path="res://scripts/interact/story_trigger.gd" id="37"]
 
+[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Floor_WoodDark.gltf" id="38"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_floor"]
+size = Vector3(5.4, 0.06, 5.4)
+
 [sub_resource type="SphereShape3D" id="SphereShape3D_trigger3"]
 radius = 3.0
 
@@ -124,6 +129,39 @@ shape = SubResource("BoxShape3D_house_ceiling")
 [node name="HouseCharger" parent="." unique_id=307491544 instance=ExtResource("20")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0, -3.2)
 is_home = true
+
+[node name="HouseFloor" type="StaticBody3D" parent="."]
+
+[node name="Collision" type="CollisionShape3D" parent="HouseFloor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -5.03)
+shape = SubResource("BoxShape3D_house_floor")
+
+[node name="Tile_0_0" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, -1.8, 0.05, -6.83)
+
+[node name="Tile_0_1" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, -1.8, 0.05, -5.03)
+
+[node name="Tile_0_2" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, -1.8, 0.05, -3.23)
+
+[node name="Tile_1_0" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 0.0, 0.05, -6.83)
+
+[node name="Tile_1_1" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 0.0, 0.05, -5.03)
+
+[node name="Tile_1_2" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 0.0, 0.05, -3.23)
+
+[node name="Tile_2_0" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -6.83)
+
+[node name="Tile_2_1" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -5.03)
+
+[node name="Tile_2_2" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -3.23)
 
 [node name="HouseDoor" parent="." instance=ExtResource("34")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7.74)

@@ -5,6 +5,7 @@ extends Node3D
 # reboots at the charger it last docked with, next morning.
 
 const REBOOT_ENERGY := 30.0
+const WAKE_ENERGY := 28.0        # a new game starts nearly flat: dock first, then smash
 const SHUTDOWN_SECONDS := 2.5
 
 @onready var player: CharacterBody3D = $Player
@@ -29,6 +30,8 @@ func _start_new_game() -> void:
 	var home := home_charger()
 	if home != null:
 		_place_beside(home)
+	Energy.current = WAKE_ENERGY
+	Energy.changed.emit(Energy.current, Energy.MAX)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	get_tree().create_timer(1.2).timeout.connect(func() -> void: Story.play("wake"))
 

@@ -113,10 +113,13 @@ func _find_target(reach: float) -> Breakable:
 func _swing(seconds: float) -> void:
 	if _swing_tween != null and _swing_tween.is_valid():
 		_swing_tween.kill()
-	_swing_tween = create_tween()
-	_swing_tween.tween_property(arm, "rotation:x", -1.7, seconds * 0.3).set_ease(Tween.EASE_OUT)
-	_swing_tween.tween_property(arm, "rotation:x", 0.35, seconds * 0.25).set_ease(Tween.EASE_IN)
-	_swing_tween.tween_property(arm, "rotation:x", 0.0, seconds * 0.45)
+	_swing_tween = create_tween().set_parallel(true)
+	_swing_tween.tween_property(arm, "rotation:x", -2.2, seconds * 0.3).set_ease(Tween.EASE_OUT)
+	_swing_tween.tween_property(visual, "rotation:x", -0.12, seconds * 0.3).set_ease(Tween.EASE_OUT)   # wind up, lean back
+	_swing_tween.chain().tween_property(arm, "rotation:x", 0.5, seconds * 0.2).set_ease(Tween.EASE_IN)
+	_swing_tween.tween_property(visual, "rotation:x", 0.22, seconds * 0.2).set_ease(Tween.EASE_IN)     # lunge into the blow
+	_swing_tween.chain().tween_property(arm, "rotation:x", 0.0, seconds * 0.5)
+	_swing_tween.tween_property(visual, "rotation:x", 0.0, seconds * 0.5)
 
 # Placeholder heads from primitives, coloured from the catalog, so a new tool
 # shows up the moment it is defined. Real art can replace these per tool.

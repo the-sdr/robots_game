@@ -30,8 +30,8 @@ OLD_PLACEMENTS = os.path.join(BUILD_DIR, "placements.json")
 
 TERRAIN = {"x0": -110, "x1": 110, "z0": -200, "z1": 80}
 DENSE_BAND = 6.0          # full-density trees within this distance of reachable ground
-INDIVIDUAL_REACH = 3.0    # trees nearer than this to reachable ground stay individual nodes
-SHOULDER = 0.3            # extra clearance between a trunk and the path edge
+INDIVIDUAL_REACH = 1.5    # trees nearer than this to reachable ground stay individual nodes (draw calls!)
+SHOULDER = 0.1            # extra clearance between a trunk and the path edge (small: trees crowd the path)
 DEAD_END_CLEARING = 2.0
 JUNCTION_WIDEN = 1.2
 BACKGROUND_DEPTH = 55.0
@@ -182,6 +182,10 @@ class Forest:
         slope = np.degrees(np.arctan(np.hypot(gx, gz)))
 
         dirt = 1.0 - lc.smoothstep(-0.3, 0.4, path_edge)
+        # A trodden path, not a carved road: the dirt shows in patches, forest floor between.
+        patches = 0.55 + 0.45 * np.sin(0.9 * X + 0.4 * Z) * np.cos(0.5 * X - 1.1 * Z + 0.7)
+        patches = np.clip(patches * (0.8 + 0.4 * np.sin(2.3 * X + 1.7 * Z)), 0.25, 1.0)
+        dirt = dirt * patches
         mud = 1.0 - lc.smoothstep(0.0, 1.5, stream_edge)
         mud = np.maximum(mud, lc.smoothstep(-0.6, 0.0, path_edge) * (1 - lc.smoothstep(0.3, 1.2, path_edge)) * 0.6)
         moss = lc.smoothstep(24.0, 36.0, slope) * 0.7
@@ -469,7 +473,8 @@ def main():
                 if f.area_at(x, z) != aid:
                     continue
                 c = f.corridor_clearance(x, z)
-                if not (0.25 < c < 3.5) and not (aid == "clearing" and c < 0 and math.dist((x, z), d["nodes"]["clearing"]["pos"]) < 7):
+                on_path_grass = asset.startswith("Grass") and -0.9 < c <= 0.25 and rng.random() < 0.45
+                if not (0.25 < c < 3.5) and not on_path_grass and not (aid == "clearing" and c < 0 and math.dist((x, z), d["nodes"]["clearing"]["pos"]) < 7):
                     continue
                 if aid == "clearing" and c < 0:
                     if any(curve_dist(x, z, p["curve"]) < p["width"] / 2 + 0.2 for p in f.design.paths.values()):

@@ -1,13 +1,25 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
-[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Prop_Crate.gltf" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/breakable.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Prop_Crate.gltf" id="2"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_crate"]
 size = Vector3(1.08, 1.06, 1.08)
 
 [node name="Crate" type="StaticBody3D"]
+script = ExtResource("1")
+effects = PackedStringArray("smash")
+health = 45.0
+drops = {
+"scrap_metal": 1
+}
+debris_colour = Color(0.5, 0.36, 0.2, 1)
+debris_count = 24
+chunk_count = 7
+hit_notice = "A wooden crate. It would give way to something heavy."
+display_name = "the crate"
 
-[node name="Model" parent="." instance=ExtResource("1")]
+[node name="Model" parent="." instance=ExtResource("2")]
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.53, 0)
