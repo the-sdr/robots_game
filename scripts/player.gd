@@ -26,6 +26,7 @@ const DOUBLE_TAP_TIME = 0.3
 @onready var camera: Camera3D = $CameraRig/CameraArm/Camera3D
 @onready var body_collision: CollisionShape3D = $CollisionShape3D
 @onready var interact_probe: Area3D = $InteractProbe
+@onready var headlight: SpotLight3D = $Visual/Head/Headlight
 
 var target_zoom := ZOOM_DEFAULT
 var _camera_probe_shape: SphereShape3D
@@ -124,6 +125,11 @@ func _update_focus() -> void:
 		_focus = best
 		if _find_hud():
 			_hud.set_prompt(_focus)
+
+func _process(_delta: float) -> void:
+	# Headlights come on as the sun goes down (and off when the battery is dead).
+	var dark: float = 1.0 - smoothstep(-0.05, 0.12, Clock.sun_direction().y)
+	headlight.light_energy = 0.0 if shut_down else 3.0 * dark
 
 func _physics_process(delta: float) -> void:
 	_update_focus()

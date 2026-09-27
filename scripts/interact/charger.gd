@@ -14,6 +14,8 @@ signal stored_changed(stored: float, capacity: float)
 @export var panel_rate: float = 0.45          # energy per second at full noon sun
 @export var transfer_rate: float = 9.0        # energy per second into the robot
 @export var stored: float = 60.0
+## Which way the solar panel faces (local space). Tilting it towards the noon sun (south, +Z) beats flat.
+@export var panel_normal: Vector3 = Vector3(0.0, 1.0, 0.0)
 ## Wake-up charger: the robot boots here when the battery dies.
 @export var is_home: bool = false
 
@@ -33,7 +35,7 @@ func _ready() -> void:
 	_update_look()
 
 func _process(delta: float) -> void:
-	var gained := Clock.sunlight() * panel_rate * delta
+	var gained := sun_factor() * panel_rate * delta
 	if gained > 0.0 and stored < capacity:
 		stored = minf(stored + gained, capacity)
 		stored_changed.emit(stored, capacity)
@@ -49,6 +51,17 @@ func _process(delta: float) -> void:
 				get_tree().call_group("hud", "show_notice", "Charger empty. Sunlight refills it.")
 			undock()
 	_update_look()
+	interactable.prompt = "%s   charge %d%%" % ["Undock" if docked_player != null else "Dock", roundi(stored / capacity * 100.0)]
+
+## Solar panel physics: light hitting the panel scales with the cosine of the
+## angle between the panel's normal and the sun (nothing when the sun is below
+## the horizon). A flat panel therefore gets sin(elevation).
+func sun_factor() -> float:
+	var sun := Clock.sun_direction()
+	if sun.y <= 0.0:
+		return 0.0
+	var normal := (global_transform.basis * panel_normal).normalized()
+	return clampf(normal.dot(sun), 0.0, 1.0)
 
 func _on_interacted(player: Node3D) -> void:
 	if docked_player != null:
@@ -59,7 +72,6 @@ func _on_interacted(player: Node3D) -> void:
 func dock(player: Node3D) -> void:
 	docked_player = player
 	player.set("docked", true)
-	interactable.prompt = "Undock"
 	Game.save(player, name)
 	get_tree().call_group("hud", "show_notice", "Docked. Consciousness copied.")
 	docked.emit(player)
@@ -69,7 +81,6 @@ func undock() -> void:
 		return
 	docked_player.set("docked", false)
 	docked_player = null
-	interactable.prompt = "Dock"
 	undocked.emit()
 
 func _update_look() -> void:

@@ -98,7 +98,7 @@ func _initialize() -> void:
 	check(west_edge > -2.59, "charger pad clear of the west wall (edge %.2f)" % west_edge)
 	for i in 30:
 		await physics_frame
-	check(player.get("_focus") != null and player.get("_focus").prompt == "Dock", "charger prompt found by the probe")
+	check(player.get("_focus") != null and player.get("_focus").prompt.begins_with("Dock"), "charger prompt found by the probe")
 	Energy.current = 40.0
 	charger.stored = 50.0
 	player.get("_focus").interact(player)
@@ -124,6 +124,31 @@ func _initialize() -> void:
 	Game.apply_to_world(player)
 	check(player.global_position.distance_to(saved_pos) < 0.01, "player position restored")
 	check(charger.stored < 50.0, "charger level restored")
+
+	print("== day and night")
+	var day_night: Node = world.get_node("DayNight")
+	var sun: DirectionalLight3D = world.get_node("DirectionalLight3D")
+	Clock.time = 0.5
+	day_night.update()
+	check(sun.light_energy > 1.0 and sun.light_color.b > 0.7, "noon: bright white sun (energy %.2f)" % sun.light_energy)
+	check(charger.sun_factor() > 0.95, "tilted panel faces the noon sun (%.2f)" % charger.sun_factor())
+	check(-sun.global_transform.basis.z.y < -0.8, "sun light shines down at noon")
+	Clock.time = 0.27
+	day_night.update()
+	check(sun.light_color.b < 0.6 and sun.light_energy > 0.0, "dawn: warm low sun")
+	Clock.time = 0.0
+	day_night.update()
+	check(sun.light_energy < 0.3 and sun.light_color.b > sun.light_color.r, "midnight: dim blue moon (energy %.2f)" % sun.light_energy)
+	check(charger.sun_factor() == 0.0, "no solar at midnight")
+	var env: Environment = world.get_node("WorldEnvironment").environment
+	check(env.ambient_light_color.r < 0.15, "night ambient is dark")
+	for i in 3:
+		await process_frame
+	check(player.headlight.light_energy > 2.0, "headlights on at night")
+	Clock.time = 0.5
+	for i in 3:
+		await process_frame
+	check(player.headlight.light_energy < 0.1, "headlights off at noon")
 
 	print("== shutdown and reboot")
 	Clock.time = 0.6

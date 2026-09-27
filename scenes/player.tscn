@@ -310,6 +310,14 @@ mesh = SubResource("Mesh_lens")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.1, -0.03)
 mesh = SubResource("Mesh_brow")
 
+[node name="Headlight" type="SpotLight3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.12)
+light_color = Color(0.85, 0.92, 1, 1)
+light_energy = 0.0
+spot_range = 14.0
+spot_angle = 38.0
+spot_angle_attenuation = 0.6
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("CapsuleShape3D_body")

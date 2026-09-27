@@ -8,6 +8,8 @@ const CLUSTER_RADIUS := 9.0
 const TEXTURE_SIZE := 160
 const SEED := 20260926
 
+var _material: StandardMaterial3D
+
 func _ready() -> void:
 	_build_clouds()
 
@@ -36,6 +38,7 @@ func _make_cloud_texture(noise_seed: int) -> ImageTexture:
 
 func _build_clouds() -> void:
 	var material := StandardMaterial3D.new()
+	_material = material
 	material.albedo_texture = _make_cloud_texture(SEED)
 	material.albedo_color = Color(1.0, 0.99, 0.96)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -76,3 +79,8 @@ func _build_clouds() -> void:
 	var multimesh_instance := MultiMeshInstance3D.new()
 	multimesh_instance.multimesh = multimesh
 	add_child(multimesh_instance)
+
+## Day/night tint (the puffs are unshaded, so they would glow white at night).
+func set_brightness(colour: Color) -> void:
+	if _material != null:
+		_material.albedo_color = colour
