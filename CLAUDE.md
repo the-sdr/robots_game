@@ -58,45 +58,82 @@ Also read before substantial work:
   `level_design/maps/forest_map_v3_built.png` (everything actually placed,
   same grid as F2). Review issues at that level of reference.
 
-## Level pipeline (source of truth: `level_design/forest_design.json`)
+## Level pipeline (source of truth: the design files in `level_design/`)
+Forest (Area 2, `forest_design.json`, owns the terrain):
 ```
 python tools/forest_map.py            # review map from the design (owner approves before building)
 python tools/forest_build.py          # design -> level_design/build/level.json
-python tools/forest_verify.py --map   # sealed? all places reachable? only ways north via ruin/clearing? brambles hold?
+python tools/forest_verify.py --map   # sealed? all places reachable? gated places sealed until cleared? only ways north via ruin/clearing?
 godot --headless --path . -s tools/level_bake.gd        # level.json -> scenes/level/ (generated scene + chunk meshes)
-python tools/forest_routes.py         # drive routes to every design node
-godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd  # real physics: all routes, collectibles, house, hill<->city
+python tools/forest_routes.py         # drive routes to every design node (routes.json)
+godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd  # real physics: all routes, blockers hold then clear, collectibles, house, hill<->city
 python tools/forest_map.py --built    # as-built map for the owner
 ```
-- `scenes/world.tscn` holds only fixed things (house, player, charger,
-  environment) and instances `scenes/level/generated_level.tscn`.
-- **Never hand-edit** `generated_level.tscn` or `scenes/level/*/chunk_*.res` —
+Hub (Area 3, `hub_design.json`, a district on the forest terrain; the same for any future district `<name>_design.json`):
+```
+python tools/district_build.py hub    # -> level_design/build/hub.json (buildings, wall runs, gates, chargers, pickups, props)
+python tools/district_verify.py hub --map
+python tools/forest_routes.py --design hub --start hub_entry --out hub_routes.json
+godot --headless --path . -s tools/level_bake.gd ++ hub                              # -> scenes/level_hub/generated_hub.tscn
+godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd ++ hub        # routes; gates hold, then open with their key/tool
+```
+Game systems (no level change needed):
+```
+godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, crafting, save/load, sun, energy, docking, tools, house, hub, reboot
+```
+- `scenes/world.tscn` holds only fixed things (house + door + crates + parts,
+  player, HouseCharger, environment, DayNight, story triggers, HUD) and
+  instances `scenes/level/generated_level.tscn` and `scenes/level_hub/generated_hub.tscn`.
+- **Never hand-edit** `generated_*.tscn` or `scenes/level*/**/chunk_*.res` —
   rebuilt every bake. Change the design file or the tools.
+- Design grammar shared by both: `nodes` (kind, pos, radius, `reward`,
+  `behind: <blocker id>` = sealed until that blocker is cleared), `paths`
+  (named nodes + free points), `blockers` (forest: brambles → Breakable "cut";
+  district: `rubble` → Breakable "smash", `locked` → LockedGate with `key`),
+  `chargers`. The Hub adds `walls.segments` (2 m pieces), `buildings`, `scenes`,
+  `collectibles`, `props`, `solids` (verify-only boxes for hand-made scenes).
 - Tunable by hand (kept across rebuilds): `materials/terrain_painterly.tres`
   (terrain look), `materials/leaves_*.tres` (leaf material).
 - The spreadsheet pipeline is retired (`tools/legacy_sheet/`, don't run it).
 
 ## Verify — "the bake said OK" is not verification
-- Always run `forest_verify.py` **and** the headless drive test after a build.
-  The 2D check approximates shapes; only real physics caught ruin pieces
-  blocking paths.
+- Always run the verifier **and** the headless drive test after a build, and
+  `tools/systems_test.gd` after any script change. The 2D check approximates
+  shapes; only real physics caught ruin pieces blocking paths, and the tests
+  caught every regression in sprint 1.
 - Check slopes both ways (robot climbs ≤ 45°; nothing may trap the player).
+  The hill's north face is 37° after the Hub's flat pad; keep it under 40°.
 - Inspect saved output for real data. **Never use MultiMesh in a headless
   bake** — Godot's headless renderer drops MultiMesh data, so the batches save
   empty (this made the background invisible and likely hung the owner's GPU).
   Use merged chunk meshes (see `_build_merged` in `tools/level_bake.gd`).
 - GDScript: explicit types for anything from Variant-returning built-ins
   (`lerp`, `clamp`, `Array.filter`…) — inferred `:=` fails as an error.
-- `--fixed-fps 60` on the drive test: without it headless Godot still paces
+  `_set`, `_get`, `_ready`… are reserved Object/Node virtuals: never name your
+  own methods that way (a parse error there silently breaks every script that
+  references the autoload).
+- Headless `-s` scripts: the script compiles **before** autoload names exist
+  (fetch them with `root.get_node("Game")`), `_initialize()` runs **before**
+  the root joins the tree (`await process_frame` first), and a new `class_name`
+  needs the editor import pass (`godot --headless --editor --path . --quit`)
+  before other scripts can see it. Put a watchdog timer in long tests: a script
+  error inside a coroutine otherwise hangs the run and its buffered output is
+  lost when it is killed (`stdbuf -oL godot …` keeps it).
+- `--fixed-fps 60` on any physics test: without it headless Godot still paces
   physics to the wall clock (7 min for 20 routes); with it, ~10 s, same result.
 - Headless proves logic and collision, never looks or frame rate. The owner
   measures with F4 and reports; read `playtest/perf.md`.
 
-## Current state (2026-09-27)
-Area 2 forest rebuilt from the approved design: 72 × 90 m, seven areas,
-the Fallen Giant (placeholder machine blocking the way north), Ruin Fragment,
-brambles at the stream's east end, 6 collectibles, textured painterly terrain,
-per-tree leaf colours, 2,273 trees. Owner: "layout is good, forest feels much
-better". **Performance is the open problem** — 13–21 FPS in the forest, 51 on
-the hill; see `CLAUDE_NOTES.md` → *Performance* for measurements and the
-suggested next steps (not yet done).
+## Current state (2026-09-27, end of sprint 1 — awaiting the owner's playtest)
+The vertical slice is built and headlessly verified, not yet played by the
+owner: opening menu → wake at the house charger → find the hammer head and
+actuator arm, build the Smasher (Tab, craft anywhere) → smash the door →
+forest (2,743 trees, 6 parts at dead ends, chargers in the Dry Clearing and
+behind the brambles) → build the Cutter, clear the brambles → hill → **the Hub**
+(walled gate district: rubble → gate key → iron gate → relay card → relay tower
+door; unlocking it ends the slice). Energy drains, chargers fill from the sun
+(8-minute day), docking autosaves ("consciousness copied"), zero energy reboots
+you at the last charger next morning. Story beats are placeholders (Greek myth
+touchstone). **Performance is unmeasured since the perf pass** (render scale
+0.8, 2048 shadows, 30 m, LOD bias) — the owner measures perf_4/perf_5 with F4.
+See `TODO.md` for the playtest checklist and the next sprint.

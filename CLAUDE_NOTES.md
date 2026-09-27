@@ -60,6 +60,31 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   merged into chunk meshes (`InteriorForestNear` LOD 1 / `Far` LOD 2) with a
   trunk capsule each for collision; undergrowth and background are merged
   chunks too. Sun shadows: 2 cascades, 50 m. Robot speed 3 m/s.
+- **Game systems (sprint 1)**, all autoloads in `scripts/game/`:
+  `Catalog` (items, tools, recipes as plain dictionaries — a new tool is a
+  Catalog entry), `Clock` (8-minute day; `sun_direction()` shared by lighting
+  and solar chargers), `Energy` (battery: idle/drive drain, `spend`, `depleted`),
+  `Game` (flags, inventory, tools, crafting, one JSON autosave at
+  `user://save.json`, written when the robot docks), `Story` (beats shown
+  once per save). `scripts/world.gd` starts/loads the game and handles the
+  shutdown → reboot-at-last-charger loop; `scripts/day_night.gd` drives the
+  one directional light as sun/moon plus sky, fog, ambient, cloud tint.
+- **Interaction**: `Interactable` (Area3D + prompt; `Inspectable` plays a
+  beat) found by the player's `InteractProbe`; E uses the nearest. HUD group
+  "hud": `show_notice`, `show_message(title, text)`, `set_prompt`.
+- **Tools**: `scripts/tools/tool_rig.gd` on the right arm builds a placeholder
+  head per tool, swings on click, applies `effect` to the nearest `Breakable`
+  in front (sphere query). `Breakable` (StaticBody3D: effects, health, drops,
+  flag) and `LockedGate` (key item, flag, rises when opened) are the two
+  obstacle components; both stay cleared across saves via flags. Pickups
+  (`collectible_part.gd`) add Catalog items and remember being taken.
+- **Hub pipeline**: `tools/district_build.py` + `district_verify.py` +
+  `forest_routes.py --design hub` + `level_bake.gd ++ hub` + drive test
+  `++ hub`. A district has no terrain: the forest design carries a `flat`
+  feature (`hub pad`, blend 14 m) for it, and the forest's `open_north` tree
+  rows seal it. Walls are 2 m brick pieces along design segments; buildings
+  are the city kit with measured footprints (`level_design/build/assets.json`,
+  `tools/level_measure_assets.gd`).
 - **`house_setup.gd`-style fixup scripts**: attached to imported building
   models to override materials (imported FBX materials can silently fail)
   and force double-sided rendering — a repeatable pattern for any future
@@ -255,10 +280,49 @@ independent so they land in any order. Owner decisions:
   every node caught it. Also check slopes both ways: a 52° drop into the
   city would have let the player slide down and never climb back.
 
+- **Headless `-s` scripts and autoloads (sprint 1):** the main-loop script is
+  compiled before the autoload names are registered, so `Game`/`Clock` are
+  "Identifier not found" there — fetch them with `root.get_node("Game")` (scene
+  scripts loaded later see them normally). `_initialize()` runs before the root
+  joins the tree: `await process_frame` before touching `get_tree()`. A script
+  error inside an awaiting coroutine never reaches `quit()` and the run hangs;
+  `systems_test.gd` has a watchdog timer for that. Godot's stdout is fully
+  buffered when piped, so a killed run loses its output — `stdbuf -oL`.
+- **A new `class_name` is invisible until the editor import pass** has
+  rebuilt `.godot/global_script_class_cache.cfg` (`--headless --editor --quit`).
+- **`_set` is a reserved virtual.** Naming a method `_set(value)` is a parse
+  error that takes the autoload down with it; the only visible symptom was
+  "Identifier not found: Game" elsewhere.
+- **Headless still runs in real time** unless `--fixed-fps` is given (the drive
+  test took 7 minutes for 20 routes; 11 s with `--fixed-fps 60`).
+- **Route drivers need dense points.** The drive test allows 200 frames per
+  point; a 15 m straight leg between two named nodes timed out and read as
+  "stuck" with no collision at all. Routes are now densified to ≤ 3 m steps.
+- **Flattening terrain next to a hill steepens the hill.** The Hub's flat pad
+  with the default 6 m blend made the hill's north face 47°; a 14 m blend
+  brings it to 37°. Always re-run the hill<->city drive check after terrain edits.
+- **Pickups within ~1 m of a route get collected by the drive test** (the
+  hammer head by the door was picked up on the way to the door); place test
+  items on nodes deliberately, and keep story-relevant parts off the driven line.
+- **Coordinates inside the house:** the door wall is the *north* wall
+  (z −7.74); the charger corner (−1.6, −3.2) is the south-west corner. "Into the
+  room" from there is (+X, −Z).
+
 ## Session log
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-09-27 (cloud, sprint 1)** — `session_01XVn1FgoerKkQG5JNTTccvE`.
+  First cloud session: Godot 4.7.2 runs headless here; setup script fixed;
+  `--fixed-fps` for tests. Vision: Area 3 → the Hub. Perf pass 1 (unmeasured).
+  Built the vertical slice broad: menu, save/load, clock + day/night + solar
+  chargers, energy loop with reboot, interaction, HUD, tools (Smasher, Cutter)
+  + Breakables, inventory/crafting anywhere, house sequence (parts → smasher →
+  door), forest content (cuttable brambles, hidden pocket charger, clearing
+  charger, giant inspect), story beats, the Hub district with its own
+  pipeline (rubble → key → gate → card → tower door), look pass. Three headless
+  tests green (22 + 7 routes, systems). Awaiting the owner's playtest.
 
 - **2026-09-27 (later)** — Forest rebuilt from a design file: 72 × 90 m,
   seven areas (garden, old wood, pines, stream bed, dry clearing, ruin grove,
