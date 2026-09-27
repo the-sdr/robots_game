@@ -307,6 +307,32 @@ func _initialize() -> void:
 	check(await drive_to(player, Vector2(0.0, -134.0), 300), "drove into the tower")
 	player.set_physics_process(true)
 
+	print("== menus open and close from the keyboard while paused")
+	var panel: Control = world.get_node("HUD/InventoryPanel")
+	var pause_menu: CanvasLayer = world.get_node("HUD/PauseMenu")
+	for action in ["inventory", "inventory", "pause", "pause", "inventory", "pause"]:
+		var ev := InputEventAction.new()
+		ev.action = action
+		ev.pressed = true
+		Input.parse_input_event(ev)
+		await process_frame
+		await process_frame
+	check(not panel.visible and not pause_menu.visible and not paused, "Tab opens/closes the parts screen, Esc the pause menu, Esc closes the parts screen")
+	var ev2 := InputEventAction.new()
+	ev2.action = "inventory"
+	ev2.pressed = true
+	Input.parse_input_event(ev2)
+	await process_frame
+	await process_frame
+	check(panel.visible and paused, "parts screen open pauses the game")
+	var ev3 := InputEventAction.new()
+	ev3.action = "inventory"
+	ev3.pressed = true
+	Input.parse_input_event(ev3)
+	await process_frame
+	await process_frame
+	check(not panel.visible and not paused, "Tab closes it again while paused")
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

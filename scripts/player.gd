@@ -75,9 +75,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
 		if _find_hud():
 			_hud.toggle_pause()
+			get_viewport().set_input_as_handled()
 	if event.is_action_pressed("inventory") and not shut_down:
 		if _find_hud():
 			_hud.toggle_inventory()
+			get_viewport().set_input_as_handled()
 	if event.is_action_pressed("interact") and not shut_down and _focus != null:
 		_focus.interact(self)
 	if event.is_action_pressed("use_tool") and not shut_down:

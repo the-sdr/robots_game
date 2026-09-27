@@ -14,6 +14,12 @@ func _ready() -> void:
 	menu_button.pressed.connect(_to_menu)
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
 
+# The player is paused while this is open, so Esc is handled here.
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("pause"):
+		toggle()
+		get_viewport().set_input_as_handled()
+
 func toggle() -> void:
 	visible = not visible
 	get_tree().paused = visible
