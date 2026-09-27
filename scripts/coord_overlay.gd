@@ -8,11 +8,13 @@ extends CanvasLayer
 # F3 (action "save_position") appends the current position to SAVE_FILE as
 # save_1, save_2, ... so a playtest spot can be referred to by name in chat.
 # Numbering continues from the highest save already in the file.
+#
+# While the player's god mode (F7) is on, a status line is shown as well.
 
 const DIRECTIONS: Array[String] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 const SAVE_FILE := "res://playtest/saves.md"
 const SAVE_FILE_EXPORTED := "user://saves.md"
-const SAVE_NOTICE_SECONDS := 4.0
+const NOTICE_SECONDS := 4.0
 
 @onready var panel: PanelContainer = $Panel
 @onready var label: Label = $Panel/Label
@@ -20,11 +22,13 @@ const SAVE_NOTICE_SECONDS := 4.0
 var _player: Node3D
 var _player_visual: Node3D
 var _pinned_visible := false
-var _save_notice := ""
-var _save_notice_time_left := 0.0
+var _notice := ""
+var _notice_time_left := 0.0
+var _last_god_mode := false
 
 func _ready() -> void:
 	panel.visible = false
+	add_to_group("hud")   # anything can call_group("hud", "show_notice", text)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_coords"):
@@ -33,14 +37,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_save_position()
 
 func _process(delta: float) -> void:
-	_save_notice_time_left = maxf(_save_notice_time_left - delta, 0.0)
-	panel.visible = _pinned_visible or _save_notice_time_left > 0.0
-	if not panel.visible or not _find_player():
+	_notice_time_left = maxf(_notice_time_left - delta, 0.0)
+	var god_mode: bool = _find_player() and _player.get("god_mode") == true
+	if god_mode != _last_god_mode:
+		_last_god_mode = god_mode
+		show_notice("God mode %s" % ("ON" if god_mode else "OFF"))
+	panel.visible = _pinned_visible or _notice_time_left > 0.0
+	if not panel.visible or _player == null:
 		return
 
 	var lines: Array[String] = []
-	if _save_notice_time_left > 0.0:
-		lines.append("Saved %s" % _save_notice)
+	if _notice_time_left > 0.0:
+		lines.append(_notice)
+	if god_mode:
+		lines.append("GOD  %s" % ("flying" if _player.get("flying") else "2x Space = fly"))
 	lines.append_array(_describe_position())
 	lines.append("N=-Z  E=+X")
 	label.text = "\n".join(lines)
@@ -96,9 +106,12 @@ func _save_position() -> void:
 	file.store_line("- **%s** — %s — %s" % [save_name, timestamp, details])
 	file.close()
 
-	_save_notice = save_name
-	_save_notice_time_left = SAVE_NOTICE_SECONDS
+	show_notice("Saved %s" % save_name)
 	print("Saved %s: %s" % [save_name, details])
+
+func show_notice(text: String) -> void:
+	_notice = text
+	_notice_time_left = NOTICE_SECONDS
 
 func _highest_save_number(text: String) -> int:
 	var regex := RegEx.create_from_string("save_(\\d+)")

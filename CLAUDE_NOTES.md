@@ -15,6 +15,9 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   check raw keys. This was a deliberate early investment specifically so
   gamepad/mobile-gesture support later only needs new event bindings on the
   same action names, not script changes.
+- **Debug keys** (all Input Map actions): F2 coordinate overlay, F3 save
+  position to `playtest/saves.md` (save_1, save_2, ...), F7 god mode —
+  double-tap Space to fly (no collision), hold Space up / Shift down.
 - **Camera**: third-person, `CameraRig` (yaw) → `CameraArm` (pitch) →
   `Camera3D`, with distance computed each frame via a **sphere shape-cast**
   (not a raycast — see Lessons) against real collision, smoothed with
@@ -27,6 +30,20 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   that loads a model by exported path and adds simple capsule/sphere
   collision at runtime. Used for every tree/rock placement so collision is
   never forgotten and never depends on the source mesh's own geometry.
+  Tree trunk radii are a measured per-model table (`TRUNKS` in
+  `solid_tree.gd`, mirrored in `tools/level_common.py`).
+- **Level pipeline — the spreadsheet is the source of truth.**
+  `level_design/level_map.xlsx` (1 m cells, north up, headers = world X/Z)
+  → `tools/level_generate_forest.py` (only when the path changes: writes
+  the sealed checkerboard forest + dead-end collectibles into the sheet)
+  → `tools/level_build.py` (sheet → `level_design/build/level.json`)
+  → `tools/level_bake.gd` (Godot, headless → `scenes/level/generated_level.tscn`
+  + terrain/background `.res`) → `tools/level_verify.py` (flood-fill seal
+  check). `world.tscn` only holds fixed things (house, player, charger,
+  environment) and instances the generated scene. **Never hand-edit
+  `generated_level.tscn`** — it is overwritten on every bake; edit the sheet.
+  `level_design/build/placements.json` keeps exact transforms of objects
+  placed before, so rebuilds don't snap them to cell centres.
 - **`house_setup.gd`-style fixup scripts**: attached to imported building
   models to override materials (imported FBX materials can silently fail)
   and force double-sided rendering — a repeatable pattern for any future
@@ -103,10 +120,32 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   not just the side facing the path — the other sides being open ground is
   exactly as bad as no forest at all, even if the "maze" side is dense.
 
+- **A generic collision size is a guess — measure it against the mesh.**
+  Trees used one 0.35 m capsule; every real trunk was 0.50–1.15 m, so the
+  robot drove into bark and the "maze" only worked because of it. Measure
+  per model at the height the player actually touches.
+- **A 2D "is it sealed?" check isn't enough on its own** — also drive the
+  real CharacterBody into the geometry headlessly (routes to every goal,
+  sideways rams off the path). Teleporting a body *into* a collider makes
+  Jolt push it out through thin floors: keep ground collision thick.
+- **`ResourceSaver` flags don't make a PackedScene reference a resource
+  externally** — reload the saved file (`ResourceLoader.load`) and assign
+  that copy, or the data gets embedded (6.7 MB scene instead of 0.4 MB).
+- **Blending sparse height anchors (harmonic fill) spikes at lone
+  anchors** — use several anchors to shape a feature, plus a light blur.
+
 ## Session log
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-09-27** — Johnny Five–style modular player robot; F2 coordinate
+  overlay, F3 position saves, F7 god mode/fly. Fixed trees through the
+  house walls and trees you could drive through (measured trunk collision).
+  Vision doc handed over to the owner (owner-controlled from here). Built
+  the spreadsheet level pipeline: owner drew the path; generated sealed
+  forest (1,125 trees), terrain with real slopes and a ~5.4 m hill, dead-end
+  collectibles, endless background forest (750 batched trees) and depth fog.
 
 - **2026-09-26** — `session_01EY1wXvCYc4QNCvTMF7y3d9`. Full first working
   day: player/camera/movement systems (Input Map, sphere-cast camera

@@ -1,0 +1,290 @@
+{
+  "Building_Large_2": {
+    "max": [
+      11.3220558166504,
+      28.0000381469727,
+      0.322298049926758
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -9.32205390930176,
+      0.0,
+      -16.3222980499268
+    ],
+    "path": "res://assets/quaternius_city/Building_Large_2.gltf",
+    "spread_below_3m": 19.8124828338623,
+    "spread_below_house_roof": 19.8124828338623
+  },
+  "Building_Medium_2_001": {
+    "max": [
+      7.52780342102051,
+      24.998384475708,
+      0.568021774291992
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -7.52787971496582,
+      -0.0102751478552818,
+      -12.4876594543457
+    ],
+    "path": "res://assets/quaternius_city/Building_Medium_2_001.gltf",
+    "spread_below_3m": 13.8992252349854,
+    "spread_below_house_roof": 13.8992252349854
+  },
+  "Building_Small_1": {
+    "max": [
+      5.23000049591064,
+      17.0140228271484,
+      2.30600833892822
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -7.23000049591064,
+      -0.0119470646604896,
+      -12.2300004959106
+    ],
+    "path": "res://assets/quaternius_city/Building_Small_1.gltf",
+    "spread_below_3m": 14.2072448730469,
+    "spread_below_house_roof": 14.2072448730469
+  },
+  "Bush_Common": {
+    "max": [
+      0.991368591785431,
+      1.34709095954895,
+      0.990751624107361
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.923476159572601,
+      -0.234694704413414,
+      -0.9743891954422
+    ],
+    "path": "res://assets/quaternius_nature/Bush_Common.gltf",
+    "spread_below_3m": 1.06008720397949,
+    "spread_below_house_roof": 1.06008720397949
+  },
+  "Bush_Common_Flowers": {
+    "max": [
+      0.991368591785431,
+      1.34709095954895,
+      0.990751624107361
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.923476159572601,
+      -0.234694704413414,
+      -0.9743891954422
+    ],
+    "path": "res://assets/quaternius_nature/Bush_Common_Flowers.gltf",
+    "spread_below_3m": 1.06008720397949,
+    "spread_below_house_roof": 1.06008720397949
+  },
+  "CommonTree_1": {
+    "max": [
+      2.11696410179138,
+      7.02201366424561,
+      2.35319495201111
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -2.19445872306824,
+      -0.24277201294899,
+      -2.22451901435852
+    ],
+    "path": "res://assets/quaternius_nature/CommonTree_1.gltf",
+    "spread_below_3m": 1.63544714450836,
+    "spread_below_house_roof": 2.52293729782104
+  },
+  "CommonTree_3": {
+    "max": [
+      2.07638096809387,
+      9.18241786956787,
+      2.18011140823364
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.98646521568298,
+      -0.24277201294899,
+      -2.0609655380249
+    ],
+    "path": "res://assets/quaternius_nature/CommonTree_3.gltf",
+    "spread_below_3m": 1.36222422122955,
+    "spread_below_house_roof": 2.24453949928284
+  },
+  "CommonTree_5": {
+    "max": [
+      1.75881087779999,
+      6.76346778869629,
+      2.05720233917236
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.91235458850861,
+      -0.24277201294899,
+      -2.16244792938232
+    ],
+    "path": "res://assets/quaternius_nature/CommonTree_5.gltf",
+    "spread_below_3m": 1.84258687496185,
+    "spread_below_house_roof": 2.1437292098999
+  },
+  "DeadTree_1": {
+    "max": [
+      3.55661249160767,
+      9.1599235534668,
+      2.84516787528992
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -2.59232378005981,
+      -0.335554599761963,
+      -2.90349984169006
+    ],
+    "path": "res://assets/quaternius_nature/DeadTree_1.gltf",
+    "spread_below_3m": 2.60718941688538,
+    "spread_below_house_roof": 3.64400553703308
+  },
+  "Fern_1": {
+    "max": [
+      1.44569158554077,
+      0.762908816337585,
+      1.373783826828
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.38124227523804,
+      -0.0773344337940216,
+      -1.27853608131409
+    ],
+    "path": "res://assets/quaternius_nature/Fern_1.gltf",
+    "spread_below_3m": 1.44974803924561,
+    "spread_below_house_roof": 1.44974803924561
+  },
+  "Flower_3_Group": {
+    "max": [
+      0.87487518787384,
+      2.02025151252747,
+      0.789365291595459
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.613601326942444,
+      -0.0345835909247398,
+      -0.801761746406555
+    ],
+    "path": "res://assets/quaternius_nature/Flower_3_Group.gltf",
+    "spread_below_3m": 0.885175347328186,
+    "spread_below_house_roof": 0.885175347328186
+  },
+  "Prop_Vine1": {
+    "max": [
+      0.752619683742523,
+      0.48202919960022,
+      0.174255549907684
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.783139288425446,
+      -2.12052226066589,
+      -0.0447079688310623
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_Vine1.gltf",
+    "spread_below_3m": 0.783843159675598,
+    "spread_below_house_roof": 0.783843159675598
+  },
+  "Prop_Vine2": {
+    "max": [
+      0.892060935497284,
+      0.48202919960022,
+      0.169136554002762
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -0.494052469730377,
+      -2.12052226066589,
+      -0.0447079688310623
+    ],
+    "path": "res://assets/quaternius_medieval/Prop_Vine2.gltf",
+    "spread_below_3m": 0.892072260379791,
+    "spread_below_house_roof": 0.892072260379791
+  },
+  "RockPath_Round_Wide": {
+    "max": [
+      1.06263875961304,
+      0.103949211537838,
+      1.00310468673706
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.04797554016113,
+      -0.00888261198997498,
+      -1.12593173980713
+    ],
+    "path": "res://assets/quaternius_nature/RockPath_Round_Wide.gltf",
+    "spread_below_3m": 1.35272359848022,
+    "spread_below_house_roof": 1.35272359848022
+  },
+  "Rock_Medium_1": {
+    "max": [
+      1.49786114692688,
+      1.98866534233093,
+      1.83925318717957
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.72728729248047,
+      -0.271131336688995,
+      -1.14988327026367
+    ],
+    "path": "res://assets/quaternius_nature/Rock_Medium_1.gltf",
+    "spread_below_3m": 1.85570180416107,
+    "spread_below_house_roof": 1.85570180416107
+  },
+  "TwistedTree_2": {
+    "max": [
+      3.94290161132813,
+      18.7477283477783,
+      3.66187000274658
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -6.61997032165527,
+      -0.20147468149662,
+      -5.54071807861328
+    ],
+    "path": "res://assets/quaternius_nature/TwistedTree_2.gltf",
+    "spread_below_3m": 1.35132908821106,
+    "spread_below_house_roof": 1.35132908821106
+  },
+  "TwistedTree_4": {
+    "max": [
+      6.05349159240723,
+      18.5367603302002,
+      4.15029144287109
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -4.32732009887695,
+      -0.20147468149662,
+      -7.14279460906982
+    ],
+    "path": "res://assets/quaternius_nature/TwistedTree_4.gltf",
+    "spread_below_3m": 3.80673909187317,
+    "spread_below_house_roof": 5.56997299194336
+  },
+  "Wall_UnevenBrick_Straight": {
+    "max": [
+      1.0,
+      3.12268877029419,
+      0.0924464166164398
+    ],
+    "mesh_instances": 1,
+    "min": [
+      -1.00000011920929,
+      0.0,
+      -0.314035326242447
+    ],
+    "path": "res://assets/quaternius_medieval/Wall_UnevenBrick_Straight.gltf",
+    "spread_below_3m": 1.04814994335175,
+    "spread_below_house_roof": 1.04814994335175
+  }
+}

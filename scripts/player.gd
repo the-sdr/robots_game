@@ -15,14 +15,22 @@ const ZOOM_DEFAULT = 2.0
 const CAMERA_COLLISION_MARGIN = 0.3
 const CAMERA_ZOOM_SMOOTHING = 10.0
 const CAMERA_PROBE_RADIUS = 0.3
+# God mode (F7, debug): double-tap jump to toggle flying; jump = up, fly_down = down.
+const FLY_SPEED = 10.0
+const FLY_VERTICAL_SPEED = 6.0
+const DOUBLE_TAP_TIME = 0.3
 
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
 @onready var camera_arm: Node3D = $CameraRig/CameraArm
 @onready var camera: Camera3D = $CameraRig/CameraArm/Camera3D
+@onready var body_collision: CollisionShape3D = $CollisionShape3D
 
 var target_zoom := ZOOM_DEFAULT
 var _camera_probe_shape: SphereShape3D
+var god_mode := false
+var flying := false
+var _last_jump_press_time := -1.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -38,6 +46,23 @@ func _unhandled_input(event: InputEvent) -> void:
 		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 	if event.is_action_pressed("zoom_out"):
 		target_zoom = clamp(target_zoom + ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
+	if event.is_action_pressed("toggle_god_mode"):
+		god_mode = not god_mode
+		if not god_mode:
+			_set_flying(false)
+	if god_mode and event.is_action_pressed("jump") and not event.is_echo():
+		var now: float = Time.get_ticks_msec() / 1000.0
+		if now - _last_jump_press_time < DOUBLE_TAP_TIME:
+			_set_flying(not flying)
+			_last_jump_press_time = -1.0
+		else:
+			_last_jump_press_time = now
+
+func _set_flying(enabled: bool) -> void:
+	flying = enabled
+	# Flying passes through everything, so the level can be inspected from anywhere.
+	body_collision.disabled = enabled
+	velocity.y = 0.0
 
 func _rotate_camera(yaw_delta: float, pitch_delta: float) -> void:
 	camera_rig.rotate_y(yaw_delta)
@@ -66,11 +91,14 @@ func _update_camera_distance(delta: float) -> void:
 	camera.position = Vector3(0, 0, new_distance)
 
 func _physics_process(delta: float) -> void:
-	if not is_on_floor():
-		velocity.y -= GRAVITY * delta
-
-	if Input.is_action_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
+	if flying:
+		var vertical: float = Input.get_action_strength("jump") - Input.get_action_strength("fly_down")
+		velocity.y = vertical * FLY_VERTICAL_SPEED
+	else:
+		if not is_on_floor():
+			velocity.y -= GRAVITY * delta
+		if Input.is_action_pressed("jump") and is_on_floor():
+			velocity.y = JUMP_VELOCITY
 
 	var look_vec := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 	if look_vec.length() > 0.0:
@@ -87,8 +115,9 @@ func _physics_process(delta: float) -> void:
 
 	var move_dir := (cam_forward * -input_2d.y) + (cam_right * input_2d.x)
 
-	velocity.x = move_dir.x * SPEED
-	velocity.z = move_dir.z * SPEED
+	var speed: float = FLY_SPEED if flying else SPEED
+	velocity.x = move_dir.x * speed
+	velocity.z = move_dir.z * speed
 
 	if move_dir.length() > 0.1:
 		var target_angle := atan2(move_dir.x, move_dir.z) + PI

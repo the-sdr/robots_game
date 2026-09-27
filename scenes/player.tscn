@@ -133,7 +133,7 @@ material = SubResource("Mat_dark")
 size = Vector3(0.1, 0.015, 0.08)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-radius = 0.4
+radius = 0.38
 height = 1.2
 
 [node name="Player" type="CharacterBody3D"]
