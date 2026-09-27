@@ -7,3 +7,5 @@
 - **perf_5** — 2026-09-27 16:34:52 — avg 76.7 ms (13 FPS), worst 80.7 ms, draw calls 619, triangles 4.83M, objects 696, mobile  —  X    -7.5  Y    -2.2  Z   -43.6  Facing  W  257°  Camera  W  257°  Pitch     +0°
 - **perf_6** — 2026-09-27 16:36:02 — avg 47.1 ms (21 FPS), worst 55.6 ms, draw calls 748, triangles 4.20M, objects 828, mobile  —  X   +21.4  Y    +0.2  Z   -51.0  Facing  N  017°  Camera  N  003°  Pitch    -21°
 - **perf_7** — 2026-09-27 16:37:03 — avg 19.6 ms (51 FPS), worst 33.5 ms, draw calls 116, triangles 1.70M, objects 195, mobile  —  X    +0.5  Y    +6.7  Z   -85.0  Facing  N  356°  Camera  NW 311°  Pitch    -22°
+- **perf_8** — 2026-09-27 19:35:24 — avg 21.1 ms (48 FPS), worst 23.4 ms, draw calls 185, triangles 1.60M, objects 346, mobile  —  X    -0.9  Y    +0.1  Z    -4.3  Facing  SW 217°  Camera  SW 217°  Pitch    -20°
+- **perf_9** — 2026-09-27 19:49:16 — avg 37.8 ms (26 FPS), worst 39.2 ms, draw calls 1323, triangles 6.90M, objects 1501, mobile  —  X    -0.2  Y    +0.0  Z    -7.2  Facing  N  002°  Camera  N  003°  Pitch    -18°
