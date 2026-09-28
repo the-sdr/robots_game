@@ -316,6 +316,14 @@ independent so they land in any order. Owner decisions:
   `.pck` with `--main-pack`), but signing/upload is Mac-only: see
   `docs/apple_release.md`. "Beta" apps go to TestFlight, not the App Store.
 
+- **Checking an exported build in the cloud:** `godot --headless --main-pack
+  "<exe or pck>" -s <script>` loads the embedded data, but run it from an empty
+  folder: from the project folder, `res://` falls back to the real files and
+  hides what the export left out. Feature-tag overrides (`config/name.<tag>`)
+  apply only through `ProjectSettings.get_setting_with_override()`; the Windows
+  preset sets the custom tag `robots_beta` so the editor keeps its own name
+  and user folder. See `docs/windows_release.md`.
+
 ## Session log
 
 Newest first. Session ID links follow the

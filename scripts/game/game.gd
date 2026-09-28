@@ -21,6 +21,8 @@ var pending_load := false
 
 func _ready() -> void:
 	_reset_data()
+	# Exported builds carry a per-platform name ("Robots Beta"); make sure the window shows it.
+	DisplayServer.window_set_title(String(ProjectSettings.get_setting_with_override("application/config/name")))
 
 func _reset_data() -> void:
 	data = {

@@ -26,6 +26,10 @@ coordinates and F4 perf logs as before. Checklist:
       Perf pass 1 (render scale 0.8, 2048 shadows, 30 m, LOD bias) is unmeasured.
 - [ ] Anything that looks wrong: say where (coordinates) and what.
 
+## 0a. Windows release (Robots Beta)
+- [ ] Owner: export `Robots Beta.exe` (`docs/windows_release.md`), run it once
+      outside the editor, share with testers.
+
 ## 0b. Apple release (Robots Beta)
 - [ ] Owner: on a Mac, follow `docs/apple_release.md` (TestFlight). Needs an Apple
       developer account, Xcode, certificates, a provisioning profile.
