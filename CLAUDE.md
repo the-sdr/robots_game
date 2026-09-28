@@ -106,7 +106,10 @@ godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, c
   `footprint`) and `solids` (verify-only boxes for their collision). The Hub adds
   `walls.segments` (2 m pieces), `buildings`, `collectibles`, `props`.
 - Generated props: `godot --headless --path . -s tools/crooked_house_build.gd`
-  rebuilds the crooked house shell (`scenes/props/crooked_house/generated_*`).
+  rebuilds the crooked house shell (`scenes/props/crooked_house/generated_*`);
+  `tools/item_models_bake.gd` rebuilds every Catalog item's pickup model
+  (`scenes/props/items/<id>.res`) — run it after adding an item (and give the
+  item a recipe in the tool's `_build`; systems_test fails an item without one).
 - Tunable by hand (kept across rebuilds): `materials/terrain_painterly.tres`
   (terrain look), `materials/leaves_*.tres` (leaf material).
 - The spreadsheet pipeline is retired (`tools/legacy_sheet/`, don't run it).

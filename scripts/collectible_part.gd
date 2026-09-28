@@ -7,6 +7,8 @@ extends Node3D
 const SPIN_SPEED := 1.2
 const BOB_HEIGHT := 0.12
 const BOB_SPEED := 2.0
+## Per-item models built by tools/item_models_bake.gd; the gear is the fallback.
+const MODEL := "res://scenes/props/items/%s.res"
 
 @export var part_name: String = "Robot part"
 @export var item_id: String = ""
@@ -30,15 +32,25 @@ func _ready() -> void:
 	if Game.get_flag(_flag()):
 		queue_free()
 		return
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.metallic = 0.6
-	material.roughness = 0.35
-	material.emission_enabled = true
-	material.emission = color
-	material.emission_energy_multiplier = 0.6
-	for mesh_instance in visual.find_children("*", "MeshInstance3D"):
-		(mesh_instance as MeshInstance3D).material_override = material
+	var model_path := MODEL % item_id
+	if ResourceLoader.exists(model_path):
+		# the item's own model (tools/item_models_bake.gd) replaces the placeholder gear
+		for placeholder in visual.get_children():
+			placeholder.free()
+		var model := MeshInstance3D.new()
+		model.name = "Model"
+		model.mesh = load(model_path)
+		visual.add_child(model)
+	else:
+		var material := StandardMaterial3D.new()
+		material.albedo_color = color
+		material.metallic = 0.6
+		material.roughness = 0.35
+		material.emission_enabled = true
+		material.emission = color
+		material.emission_energy_multiplier = 0.6
+		for mesh_instance in visual.find_children("*", "MeshInstance3D"):
+			(mesh_instance as MeshInstance3D).material_override = material
 	($Glow as OmniLight3D).light_color = color
 	var col: CollisionShape3D = pickup.get_node("CollisionShape3D")
 	if not is_equal_approx((col.shape as SphereShape3D).radius, pickup_radius):

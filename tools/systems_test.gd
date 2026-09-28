@@ -53,6 +53,23 @@ func _initialize() -> void:
 		for field in ["name", "effect", "power", "energy", "range", "cooldown"]:
 			check(t.has(field), "tool %s has %s" % [tid, field])
 
+	print("== part models")
+	var bad_models := []
+	for id in Catalog.ITEMS:
+		var path := "res://scenes/props/items/%s.res" % id
+		var mesh: Mesh = load(path) if ResourceLoader.exists(path) else null
+		var size: Vector3 = mesh.get_aabb().size if mesh != null else Vector3.ZERO
+		if mesh == null or mesh.get_surface_count() == 0 or size.length() < 0.2 or maxf(size.x, maxf(size.y, size.z)) > 0.8:
+			bad_models.append(id)
+	check(bad_models.is_empty(), "every Catalog item has a real model, 0.2-0.8 m (missing or odd: %s)" % [bad_models])
+	var pickup_test: Node3D = load("res://scenes/props/collectible_part.tscn").instantiate()
+	pickup_test.set("item_id", "gear_train")
+	root.add_child(pickup_test)
+	var shown: MeshInstance3D = pickup_test.get_node_or_null("Visual/Model")
+	check(shown != null and shown.mesh.resource_path.ends_with("gear_train.res") and pickup_test.get_node("Visual").get_child_count() == 1,
+		"a pickup shows its item's model instead of the placeholder gear")
+	pickup_test.free()
+
 	print("== settings: difficulty")
 	var settings: Node = root.get_node("Settings")
 	var owner_level: String = settings.difficulty          # put back at the end of this section

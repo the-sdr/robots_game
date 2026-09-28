@@ -90,6 +90,12 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   snaps the Angry Zombie, the shelf's solar cell, the wardrobe-nook sun tracker,
   lights and chimney smoke to those markers. Walls/furniture changed in the
   tool → update the design's `solids` too.
+- **Part models (sprint 2)**: `tools/item_models_bake.gd` builds one small model
+  per Catalog item from Godot primitives (+ real toothed gears), merged per
+  material, glowing accent in the item's Catalog colour, ~0.4-0.5 m across,
+  saved as `scenes/props/items/<id>.res`. `collectible_part.gd` swaps its
+  placeholder gear for the model when the file exists. Export presets use
+  `all_resources`, so these runtime-loaded meshes ship.
 - **The tiny curse**: `Game.curse_tiny()` sets `tiny_until` (day + time, two
   in-game days, saved). `player.gd` shrinks to 0.4 (collision capsule swapped,
   speed ×0.6, jump ×0.6, drain ×0.5, camera closer; `tool_rig` power ×0.5 and a

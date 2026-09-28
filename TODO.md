@@ -19,7 +19,10 @@ headless tests pass; pull the branch to playtest any of them.
       through the mouse hole at the bottom of the wardrobe (south-west corner)
       to the sun tracker. Does the house read as crooked? Anything poking
       through walls or roof? (Say where, F3.) Can the camera escape?
-- [ ] Phase 3: real collectible models.
+- [x] Phase 3: real collectible models. **Playtest:** every pickup is now its
+      own little model (servo, lens, power cell, circuit board, gear train,
+      antenna coil, hammer head, actuator arm, scrap, key, card, solar cell...).
+      Do they read at a glance, day and night? Anything too small or too shiny?
 - [ ] Phase 4: combat, hill sentry, laser.
 - [ ] Phase 5: charger upgrades, solar HUD, segmented charge bar.
 - [ ] Phase 6: opening cutscene.

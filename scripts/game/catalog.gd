@@ -27,6 +27,11 @@ const ITEMS := {
 	"relay_card": {"name": "Relay access card", "description": "A card with a chip. The relay tower's door reads these.", "colour": Color(0.4, 0.9, 1.0)},
 	"solar_cell": {"name": "Solar cell", "description": "A square of dark glass that drinks sunlight. Two would make a charger's panel bigger.", "colour": Color(0.35, 0.55, 1.0)},
 	"sun_tracker": {"name": "Sun tracker", "description": "A little motor with an eye for the sun. On a charger, it turns the panel to follow the sun all day.", "colour": Color(1.0, 0.8, 0.3)},
+	"capacitor": {"name": "Capacitor bank", "description": "Stores a lot of charge and lets it go all at once. The hill sentry won't need it any more.", "colour": Color(1.0, 0.9, 0.3)},
+	"lift_fan": {"name": "Lift fan", "description": "A fan in a ring. Point it down and it pushes you up.", "colour": Color(0.55, 0.9, 1.0)},
+	"gyro": {"name": "Gyro", "description": "Spinning rings that always know which way is up.", "colour": Color(0.9, 0.7, 1.0)},
+	"printer_core": {"name": "Printer core", "description": "The heart of a matter printer. It hums when you hold it.", "colour": Color(0.3, 1.0, 0.85)},
+	"nozzle": {"name": "Print nozzle", "description": "A hot little cone that lays down metal a hair at a time.", "colour": Color(1.0, 0.5, 0.2)},
 }
 
 const TOOLS := {
