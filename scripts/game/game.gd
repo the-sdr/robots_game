@@ -20,9 +20,19 @@ var data: Dictionary = {}
 var pending_load := false
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS    # fullscreen toggle works in menus and while paused
 	_reset_data()
 	# Exported builds carry a per-platform name ("Robots Beta"); make sure the window shows it.
 	DisplayServer.window_set_title(String(ProjectSettings.get_setting_with_override("application/config/name")))
+
+## F11 / Alt+Enter. Godot's own fullscreen (a borderless window covering the
+## screen), not a display-mode switch. `_input`, not `_unhandled_input`, so a
+## focused menu button can't swallow Alt+Enter as "accept".
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("toggle_fullscreen", false, true):
+		var fullscreen := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if fullscreen else DisplayServer.WINDOW_MODE_FULLSCREEN)
+		get_viewport().set_input_as_handled()
 
 func _reset_data() -> void:
 	data = {

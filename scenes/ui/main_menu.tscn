@@ -82,5 +82,6 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(0.5, 0.55, 0.6, 1)
 text = "WASD drive   mouse look   scroll zoom
 E use / dock   Tab parts & builds   Q next tool   click use tool
-Esc pause   F2 coords   F3 save spot   F4 perf log   F7 god mode"
+Esc pause   F2 coords   F3 save spot   F4 perf log   F7 god mode
+F11 fullscreen"
 horizontal_alignment = 2

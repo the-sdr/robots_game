@@ -337,7 +337,18 @@ independent so they land in any order. Owner decisions:
 - **Never commit `.import` files or `project.godot` from the Surface.** The
   ARM64 Windows editor re-imports textures as ETC2/ASTC only and drops the
   desktop `s3tc` format the x64 exe needs; it also reorders `project.godot`.
-  Commit those only from the laptop or the cloud.
+  Commit those only from the laptop or the cloud. A deliberate hand edit to
+  `project.godot` is fine: `git checkout -- project.godot` first, edit, and
+  check `git diff` shows only your lines.
+- **Alt+Enter crashes on the Surface under Vulkan** (exe and native ARM64
+  editor run alike: exception 0x87a in KERNELBASE.dll, empty Godot log).
+  Qualcomm's Vulkan driver handles Alt+Enter itself before Godot sees it, so
+  no game code can stop it. With `--rendering-driver d3d12` it survives
+  (Alt+Enter just does nothing). The game's own toggle is F11 / Alt+Enter
+  (`toggle_fullscreen`, handled in `game.gd`, borderless fullscreen). The
+  owner chose "F11 only" for now; a native ARM64 exe on D3D12 for the Surface
+  is the parked option. Note: `--rendering-driver d3d12` alone also switches
+  the renderer to Forward+; add `--rendering-method mobile` to keep Mobile.
 
 ## Session log
 
