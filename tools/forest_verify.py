@@ -66,11 +66,15 @@ def main():
             dx, dz = b[0], b[6]
             ox_, oz_ = o["origin"][0] + b[2] * lc.WALL_CENTRE_Z, o["origin"][2] + b[8] * lc.WALL_CENTRE_Z
             segment(ox_ - dx, oz_ - dz, ox_ + dx, oz_ + dz, lc.WALL_SIZE[2] / 2)
+    behind_boxes = level.get("behind_boxes", {})
     for kind, data in level["blockers"]:
-        if kind == "box":
+        if kind == "box" and list(data) not in behind_boxes.values():
             box(*data)
         elif kind == "circle" and data[2] > 0:
             circle(*data)
+    for o in level["objects"]:
+        if o["kind"] == "charger":
+            circle(o["origin"][0], o["origin"][2], 0.85)
     for seg in f.giant_segments(full=False):           # raised middle is passable
         segment(*seg)
     (hx0, hz0), (hx1, hz1) = lc.HOUSE_MIN, lc.HOUSE_MAX
@@ -79,23 +83,35 @@ def main():
         segment(a[0], a[1], b[0], b[1], 0.1)
     blocked[0, :] = blocked[-1, :] = blocked[:, 0] = blocked[:, -1] = True
     blocked[(GZ < fb["z_min"]) & ((GX < north["x_min"]) | (GX > north["x_max"]))] = True
+    open_blocked = blocked.copy()                      # every blocker cleared (brambles cut)
+    for bx0, bz0, bx1, bz1 in behind_boxes.values():
+        box(bx0, bz0, bx1, bz1)
 
     def idx(x, z):
         return int(round((z - z0) / CELL)), int(round((x - x0) / CELL))
 
+    def flood(grid, start):
+        seen = np.zeros_like(grid)
+        seen[start] = True
+        frontier = [start]
+        while frontier:
+            nxt = []
+            for i, j in frontier:
+                for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    a, b = i + di, j + dj
+                    if not grid[a, b] and not seen[a, b]:
+                        seen[a, b] = True
+                        nxt.append((a, b))
+            frontier = nxt
+        return seen
+
+    def near(seen, x, z, cells=6):
+        i, j = idx(x, z)
+        return bool(seen[max(0, i - cells):i + cells + 1, max(0, j - cells):j + cells + 1].any())
+
     start = idx(0.0, lc.HOUSE_MIN[1] - 0.6)
-    seen = np.zeros_like(blocked)
-    seen[start] = True
-    frontier = [start]
-    while frontier:
-        nxt = []
-        for i, j in frontier:
-            for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                a, b = i + di, j + dj
-                if not blocked[a, b] and not seen[a, b]:
-                    seen[a, b] = True
-                    nxt.append((a, b))
-        frontier = nxt
+    seen = flood(blocked, start)
+    seen_open = flood(open_blocked, start)
 
     # allowed ground: along any path / clearing / node, the hill+city area, and small nooks
     allowed = np.zeros_like(seen)
@@ -125,7 +141,7 @@ def main():
             allowed |= (GX > data[0] - 3) & (GX < data[2] + 3) & (GZ > data[1] - 3) & (GZ < data[3] + 3)
     hd = np.hypot(np.maximum(np.maximum(hx0 - GX, GX - hx1), 0), np.maximum(np.maximum(hz0 - GZ, GZ - hz1), 0))
     allowed |= hd < 3.0
-    leaks = seen & ~allowed
+    leaks = seen_open & ~allowed              # with every blocker cleared, still nothing leaks
 
     print("trees %d | reachable ground %.0f m2 | leak cells %d" % (trees, seen.sum() * CELL * CELL, leaks.sum()))
     if leaks.any():
@@ -133,39 +149,32 @@ def main():
         pts = sorted({(round(GX[i, j]), round(GZ[i, j])) for i, j in zip(li, lj)})
         print("  leaks near:", pts[:: max(1, len(pts) // 12)])
     ok = not leaks.any()
+    plain = behind = 0
     for name, n in list(f.design.nodes.items()):
         if n["kind"] == "blocker":
             continue
-        i, j = idx(*n["pos"])
-        near = seen[max(0, i - 6):i + 7, max(0, j - 6):j + 7].any()
-        ok &= bool(near)
-        if not near:
+        if n.get("behind"):
+            behind += 1
+            if near(seen, *n["pos"]):
+                ok = False
+                print("  REACHABLE TOO EARLY (behind %s): %s at %s" % (n["behind"], name, n["pos"]))
+            if not near(seen_open, *n["pos"]):
+                ok = False
+                print("  NOT REACHABLE even with %s cleared: %s at %s" % (n["behind"], name, n["pos"]))
+            continue
+        plain += 1
+        if not near(seen, *n["pos"]):
+            ok = False
             print("  NOT REACHABLE: %s at %s" % (name, n["pos"]))
-    bi, bj = idx(35.0, -44.5)
-    beyond = seen[max(0, bi - 4):bi + 5, max(0, bj - 4):bj + 5].any()
-    print("  all %d design places reachable: %s | brambles block the stream's east end: %s" % (
-        sum(1 for n in f.design.nodes.values() if n["kind"] != "blocker"), "yes" if ok else "NO", "yes" if not beyond else "NO"))
-    ok &= not beyond
+    print("  all %d open design places reachable, %d places sealed behind blockers until cleared: %s" % (plain, behind, "yes" if ok else "NO"))
     # Gate test: with the Ruin Grove and the Dry Clearing blocked, the way north must be shut
-    # (proves nothing slips past the Fallen Giant).
-    gated = blocked.copy()
+    # (proves nothing slips past the Fallen Giant), even with every blocker cleared.
+    gated = open_blocked.copy()
     for name in ("ruin", "clearing"):
         n = f.design.nodes[name]
         gated |= np.hypot(GX - n["pos"][0], GZ - n["pos"][1]) < n.get("radius", 4) + 1.0
-    seen2 = np.zeros_like(gated)
-    seen2[start] = True
-    frontier = [start]
-    while frontier:
-        nxt = []
-        for i, j in frontier:
-            for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                a, b = i + di, j + dj
-                if not gated[a, b] and not seen2[a, b]:
-                    seen2[a, b] = True
-                    nxt.append((a, b))
-        frontier = nxt
-    ei, ej = idx(*f.design.nodes["edge_join"]["pos"])
-    sneaky = seen2[max(0, ei - 6):ei + 7, max(0, ej - 6):ej + 7].any()
+    seen2 = flood(gated, start)
+    sneaky = near(seen2, *f.design.nodes["edge_join"]["pos"])
     print("  only ways north are via the Ruin Grove or the Dry Clearing: %s" % ("yes" if not sneaky else "NO - a bypass exists"))
     ok &= not sneaky
     print("RESULT:", "OK - sealed and completable" if ok else "PROBLEMS FOUND")
@@ -174,6 +183,7 @@ def main():
         from PIL import Image
         img = np.zeros(blocked.shape + (3,), dtype=np.uint8)
         img[:] = (40, 70, 40)
+        img[seen_open] = (200, 185, 140)
         img[seen] = (230, 215, 170)
         img[leaks] = (230, 40, 40)
         img[blocked & ~seen] = (25, 45, 25)

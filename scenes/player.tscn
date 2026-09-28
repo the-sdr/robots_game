@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/tools/tool_rig.gd" id="2"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_metal"]
 albedo_color = Color(0.66, 0.68, 0.7, 1)
@@ -136,6 +137,9 @@ size = Vector3(0.1, 0.015, 0.08)
 radius = 0.38
 height = 1.2
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_probe"]
+radius = 1.8
+
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1")
 
@@ -269,6 +273,9 @@ mesh = SubResource("Mesh_finger")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, -0.2, -0.26)
 mesh = SubResource("Mesh_finger")
 
+[node name="ToolRig" type="Node3D" parent="Visual/ArmRight"]
+script = ExtResource("2")
+
 [node name="Collar" type="MeshInstance3D" parent="Visual"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.87, 0)
 mesh = SubResource("Mesh_collar")
@@ -307,9 +314,24 @@ mesh = SubResource("Mesh_lens")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.1, -0.03)
 mesh = SubResource("Mesh_brow")
 
+[node name="Headlight" type="SpotLight3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.12)
+light_color = Color(0.85, 0.92, 1, 1)
+light_energy = 0.0
+spot_range = 14.0
+spot_angle = 38.0
+spot_angle_attenuation = 0.6
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("CapsuleShape3D_body")
+
+[node name="InteractProbe" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+monitorable = false
+
+[node name="ProbeShape" type="CollisionShape3D" parent="InteractProbe"]
+shape = SubResource("SphereShape3D_probe")
 
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

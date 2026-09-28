@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://beif7wrxvh781"
 path.s3tc="res://.godot/imported/T_MetalOrnaments_Roughness.png-0f6501ba7e403aac427e7f51bbcb713b.s3tc.ctex"
+path.etc2="res://.godot/imported/T_MetalOrnaments_Roughness.png-0f6501ba7e403aac427e7f51bbcb713b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/quaternius_medieval/T_MetalOrnaments_Roughness.png"
-dest_files=["res://.godot/imported/T_MetalOrnaments_Roughness.png-0f6501ba7e403aac427e7f51bbcb713b.s3tc.ctex"]
+dest_files=["res://.godot/imported/T_MetalOrnaments_Roughness.png-0f6501ba7e403aac427e7f51bbcb713b.s3tc.ctex", "res://.godot/imported/T_MetalOrnaments_Roughness.png-0f6501ba7e403aac427e7f51bbcb713b.etc2.ctex"]
 
 [params]
 

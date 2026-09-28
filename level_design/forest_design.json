@@ -1,1027 +1,1102 @@
 {
-  "_about": "Area 2 forest design - source of truth for the review map (tools/forest_map.py) and, once approved, the level build. World coordinates in metres: X east (+), Z north (-). House at (0,-5), hill and city to the north.",
-  "version": 3,
-  "forest_bounds": {
-    "x_min": -36,
-    "x_max": 36,
-    "z_min": -78,
-    "z_max": 12
-  },
-  "areas": [
-    {
-      "id": "garden",
-      "name": "Overgrown Garden",
-      "colour": "#b7cf86",
-      "feel": "Light, safe, readable. Lighter common trees, flowers, low walls. Learn the controls.",
-      "polygon": [
-        [
-          -16,
-          12
-        ],
-        [
-          16,
-          12
-        ],
-        [
-          18,
-          -12
-        ],
-        [
-          8,
-          -18
-        ],
-        [
-          -8,
-          -18
-        ],
-        [
-          -18,
-          -10
-        ]
-      ],
-      "trees": {
-        "CommonTree_1": 3,
-        "CommonTree_2": 3,
-        "CommonTree_4": 2,
-        "CommonTree_5": 3,
-        "Pine_5": 0.5
-      },
-      "leaves": "fresh",
-      "autumn_share": 10,
-      "ground": "forest",
-      "density": 1.0,
-      "undergrowth": {
-        "Bush_Common_Flowers": 1.2,
-        "Flower_3_Group": 2.0,
-        "Flower_4_Group": 2.0,
-        "Grass_Common_Tall": 2.0
-      }
-    },
-    {
-      "id": "old_wood",
-      "name": "Old Wood",
-      "colour": "#66703d",
-      "feel": "Twisted giants, roots, mud, darker. First real sense of being in the wild.",
-      "polygon": [
-        [
-          -36,
-          12
-        ],
-        [
-          -16,
-          12
-        ],
-        [
-          -18,
-          -10
-        ],
-        [
-          -8,
-          -18
-        ],
-        [
-          8,
-          -18
-        ],
-        [
-          12,
-          -34
-        ],
-        [
-          12,
-          -44
-        ],
-        [
-          -10,
-          -52
-        ],
-        [
-          -14,
-          -40
-        ],
-        [
-          -36,
-          -40
-        ]
-      ],
-      "trees": {
-        "TwistedTree_2": 2,
-        "TwistedTree_4": 2,
-        "TwistedTree_5": 2,
-        "CommonTree_3": 3,
-        "DeadTree_1": 1.5,
-        "CommonTree_1": 1
-      },
-      "leaves": "deep",
-      "autumn_share": 35,
-      "ground": "mud",
-      "density": 1.0,
-      "undergrowth": {
-        "Fern_1": 2.5,
-        "Mushroom_Common": 1.5,
-        "Mushroom_Laetiporus": 0.8,
-        "Plant_7": 1.0
-      }
-    },
-    {
-      "id": "pines",
-      "name": "Pine Stand",
-      "colour": "#3f5f50",
-      "feel": "Dark evergreens on a rise, straighter samey corridors - gently disorienting. Needle floor.",
-      "polygon": [
-        [
-          16,
-          12
-        ],
-        [
-          36,
-          12
-        ],
-        [
-          36,
-          -44
-        ],
-        [
-          12,
-          -44
-        ],
-        [
-          12,
-          -34
-        ],
-        [
-          8,
-          -18
-        ],
-        [
-          18,
-          -12
-        ]
-      ],
-      "trees": {
-        "Pine_1": 3,
-        "Pine_2": 3,
-        "Pine_5": 2,
-        "CommonTree_4": 0.5
-      },
-      "leaves": "pine",
-      "autumn_share": 0,
-      "ground": "forest",
-      "density": 1.0,
-      "undergrowth": {
-        "Fern_1": 1.0,
-        "Mushroom_Common": 0.5
-      }
-    },
-    {
-      "id": "stream",
-      "name": "Stream Bed",
-      "colour": "#7fa3b5",
-      "feel": "A mostly dry stream channel cutting across the forest - a natural path, lower and cooler, mud and stones.",
-      "band_along_path": "stream",
-      "band_half_width": 5,
-      "trees": {
-        "CommonTree_2": 2,
-        "CommonTree_3": 2,
-        "CommonTree_5": 2,
-        "Pine_5": 1,
-        "DeadTree_1": 0.5
-      },
-      "leaves": "cool",
-      "autumn_share": 10,
-      "ground": "mud",
-      "density": 1.0,
-      "undergrowth": {
-        "Plant_1": 2.0,
-        "Fern_1": 1.5,
-        "Grass_Wispy_Tall": 2.0
-      }
-    },
-    {
-      "id": "clearing",
-      "name": "Dry Clearing",
-      "colour": "#d8c17b",
-      "feel": "A strange open patch. Sunlight, quiet, a different atmosphere. A chance to breathe.",
-      "polygon": [
-        [
-          12,
-          -44
-        ],
-        [
-          36,
-          -44
-        ],
-        [
-          36,
-          -66
-        ],
-        [
-          20,
-          -68
-        ],
-        [
-          10,
-          -60
-        ]
-      ],
-      "trees": {
-        "CommonTree_5": 3,
-        "CommonTree_2": 2,
-        "DeadTree_1": 1
-      },
-      "leaves": "dry",
-      "autumn_share": 40,
-      "ground": "dirt",
-      "density": 1.0,
-      "undergrowth": {
-        "Grass_Wispy_Tall": 5.0,
-        "Grass_Wispy_Short": 4.0,
-        "Flower_4_Single": 1.0
-      }
-    },
-    {
-      "id": "ruins",
-      "name": "Ruin Grove",
-      "colour": "#8a8072",
-      "feel": "Broken walls and dead trees on a knoll; rubble ground. Questions, not answers.",
-      "polygon": [
-        [
-          -36,
-          -40
-        ],
-        [
-          -14,
-          -40
-        ],
-        [
-          -10,
-          -52
-        ],
-        [
-          -14,
-          -66
-        ],
-        [
-          -36,
-          -68
-        ]
-      ],
-      "trees": {
-        "DeadTree_1": 3,
-        "CommonTree_3": 2,
-        "TwistedTree_4": 1,
-        "CommonTree_1": 1
-      },
-      "leaves": "deep",
-      "autumn_share": 25,
-      "ground": "moss",
-      "density": 1.0,
-      "undergrowth": {
-        "Fern_1": 1.5,
-        "Plant_7": 1.0,
-        "Grass_Common_Short": 2.0
-      }
-    },
-    {
-      "id": "edge",
-      "name": "Thinning Edge",
-      "colour": "#8fb86a",
-      "feel": "Brighter, mossier, trees thinning as the ground climbs toward the hill. The build-up to the reveal.",
-      "polygon": [
-        [
-          -14,
-          -66
-        ],
-        [
-          -10,
-          -52
-        ],
-        [
-          10,
-          -44
-        ],
-        [
-          12,
-          -44
-        ],
-        [
-          10,
-          -60
-        ],
-        [
-          20,
-          -68
-        ],
-        [
-          36,
-          -66
-        ],
-        [
-          36,
-          -78
-        ],
-        [
-          -36,
-          -78
-        ],
-        [
-          -36,
-          -68
-        ]
-      ],
-      "trees": {
-        "CommonTree_1": 3,
-        "CommonTree_2": 3,
-        "CommonTree_4": 3,
-        "CommonTree_5": 2,
-        "Pine_2": 1
-      },
-      "leaves": "fresh",
-      "autumn_share": 12,
-      "ground": "moss",
-      "density": 1.0,
-      "undergrowth": {
-        "Grass_Common_Tall": 3.0,
-        "Flower_3_Group": 1.5,
-        "Plant_1": 1.0
-      }
-    }
-  ],
-  "nodes": {
-    "door": {
-      "pos": [
-        0,
-        -8
-      ],
-      "kind": "start"
-    },
-    "gate": {
-      "pos": [
-        0,
-        -12
-      ],
-      "kind": "junction"
-    },
-    "garden_nook": {
-      "pos": [
-        12,
-        4
-      ],
-      "kind": "dead_end",
-      "reward": "collectible",
-      "note": "Behind the house - an old greenhouse frame"
-    },
-    "fork": {
-      "pos": [
-        0,
-        -24
-      ],
-      "kind": "junction",
-      "note": "First real choice: Old Wood (west) or Pine Stand (east)"
-    },
-    "oldwood_mid": {
-      "pos": [
-        -18,
-        -30
-      ],
-      "kind": "junction"
-    },
-    "hollow_tree": {
-      "pos": [
-        -30,
-        -20
-      ],
-      "kind": "dead_end",
-      "reward": "collectible",
-      "note": "A hollow in a twisted giant"
-    },
-    "west_ford": {
-      "pos": [
-        -18,
-        -40
-      ],
-      "kind": "junction",
-      "note": "Where the Old Wood path drops into the stream bed"
-    },
-    "spring": {
-      "pos": [
-        -34,
-        -33
-      ],
-      "kind": "dead_end",
-      "reward": "collectible",
-      "note": "Stream source - water runs out of an old concrete pipe"
-    },
-    "pine_mid": {
-      "pos": [
-        18,
-        -24
-      ],
-      "kind": "junction"
-    },
-    "pine_end": {
-      "pos": [
-        32,
-        -16
-      ],
-      "kind": "dead_end",
-      "reward": "collectible",
-      "note": "Deep in the pines"
-    },
-    "east_ford": {
-      "pos": [
-        22,
-        -41
-      ],
-      "kind": "junction"
-    },
-    "giant_ford": {
-      "pos": [
-        -2,
-        -45
-      ],
-      "kind": "junction",
-      "note": "The stream passes under the Fallen Giant"
-    },
-    "clearing": {
-      "pos": [
-        22,
-        -56
-      ],
-      "kind": "clearing",
-      "radius": 8
-    },
-    "edge_mid": {
-      "pos": [
-        2,
-        -62
-      ],
-      "kind": "junction",
-      "note": "Clearing route arrives here"
-    },
-    "ruin": {
-      "pos": [
-        -22,
-        -58
-      ],
-      "kind": "landmark_site",
-      "radius": 5
-    },
-    "ruin_far": {
-      "pos": [
-        -32,
-        -69
-      ],
-      "kind": "dead_end",
-      "reward": "collectible",
-      "note": "Beyond the ruin, a sealed hatch in the ground"
-    },
-    "edge_west": {
-      "pos": [
-        -8,
-        -67
-      ],
-      "kind": "junction"
-    },
-    "exit": {
-      "pos": [
-        0,
-        -78
-      ],
-      "kind": "exit",
-      "note": "Trees part - onto the hill"
-    },
-    "hill_crest": {
-      "pos": [
-        0,
-        -86
-      ],
-      "kind": "vista",
-      "note": "City reveal"
-    },
-    "under_giant": {
-      "pos": [
-        -4,
-        -51
-      ],
-      "kind": "dead_end",
-      "reward": "collectible",
-      "note": "A short spur in under the Giant's body - a hollow you can stand inside. Blocked beyond."
-    },
-    "edge_join": {
-      "pos": [
-        1,
-        -70
-      ],
-      "kind": "junction",
-      "note": "Ruin and Clearing routes meet; last stretch to the hill"
-    },
-    "brambles": {
-      "pos": [
-        34,
-        -45
-      ],
-      "kind": "blocker",
-      "note": "Brambles choke the stream's east end - impassable for now; later a crafted cutter opens it."
-    }
-  },
-  "paths": [
-    {
-      "id": "garden_main",
-      "kind": "main",
-      "width": 2.6,
-      "points": [
-        "door",
-        "gate",
-        [
-          1,
-          -18
-        ],
-        "fork"
-      ]
-    },
-    {
-      "id": "garden_loop",
-      "kind": "side",
-      "width": 2.0,
-      "points": [
-        "gate",
-        [
-          8,
-          -10
-        ],
-        [
-          12,
-          -4
-        ],
-        "garden_nook"
-      ]
-    },
-    {
-      "id": "oldwood_in",
-      "kind": "main",
-      "width": 2.4,
-      "points": [
-        "fork",
-        [
-          -7,
-          -27
-        ],
-        [
-          -12,
-          -26
-        ],
-        "oldwood_mid"
-      ]
-    },
-    {
-      "id": "hollow",
-      "kind": "side",
-      "width": 2.0,
-      "points": [
-        "oldwood_mid",
-        [
-          -24,
-          -27
-        ],
-        [
-          -27,
-          -22
-        ],
-        "hollow_tree"
-      ]
-    },
-    {
-      "id": "oldwood_down",
-      "kind": "main",
-      "width": 2.4,
-      "points": [
-        "oldwood_mid",
-        [
-          -21,
-          -35
-        ],
-        "west_ford"
-      ]
-    },
-    {
-      "id": "stream",
-      "kind": "stream",
-      "width": 4.5,
-      "points": [
-        "spring",
-        [
-          -28,
-          -36
-        ],
-        [
-          -24,
-          -39
-        ],
-        "west_ford",
-        [
-          -11,
-          -43
-        ],
-        "giant_ford",
-        [
-          7,
-          -44
-        ],
-        [
-          15,
-          -42
-        ],
-        "east_ford",
-        [
-          29,
-          -42
-        ],
-        [
-          34,
-          -46
-        ]
-      ]
-    },
-    {
-      "id": "pine_in",
-      "kind": "side",
-      "width": 2.2,
-      "points": [
-        "fork",
-        [
-          7,
-          -25
-        ],
-        [
-          12,
-          -22
-        ],
-        "pine_mid"
-      ]
-    },
-    {
-      "id": "pine_deep",
-      "kind": "side",
-      "width": 1.9,
-      "points": [
-        "pine_mid",
-        [
-          24,
-          -21
-        ],
-        [
-          28,
-          -15
-        ],
-        "pine_end"
-      ]
-    },
-    {
-      "id": "pine_down",
-      "kind": "side",
-      "width": 2.2,
-      "points": [
-        "pine_mid",
-        [
-          23,
-          -30
-        ],
-        [
-          24,
-          -36
-        ],
-        "east_ford"
-      ]
-    },
-    {
-      "id": "to_clearing",
-      "kind": "side",
-      "width": 2.2,
-      "points": [
-        "east_ford",
-        [
-          21,
-          -47
-        ],
-        "clearing"
-      ]
-    },
-    {
-      "id": "ruin_climb",
-      "kind": "side",
-      "width": 2.2,
-      "points": [
-        "west_ford",
-        [
-          -22,
-          -46
-        ],
-        [
-          -24,
-          -52
-        ],
-        "ruin"
-      ]
-    },
-    {
-      "id": "ruin_far",
-      "kind": "side",
-      "width": 1.9,
-      "points": [
-        "ruin",
-        [
-          -27,
-          -63
-        ],
-        "ruin_far"
-      ]
-    },
-    {
-      "id": "under_giant",
-      "kind": "side",
-      "width": 2.0,
-      "points": [
-        "giant_ford",
-        [
-          -3,
-          -48
-        ],
-        "under_giant"
-      ]
-    },
-    {
-      "id": "clearing_out",
-      "kind": "side",
-      "width": 2.2,
-      "points": [
-        "clearing",
-        [
-          14,
-          -61
-        ],
-        "edge_mid"
-      ]
-    },
-    {
-      "id": "edge_mid_up",
-      "kind": "main",
-      "width": 2.4,
-      "points": [
-        "edge_mid",
-        [
-          3,
-          -66
-        ],
-        "edge_join"
-      ]
-    },
-    {
-      "id": "ruin_out",
-      "kind": "side",
-      "width": 2.2,
-      "points": [
-        "ruin",
-        [
-          -15,
-          -62
-        ],
-        "edge_west",
-        [
-          -4,
-          -70
-        ],
-        "edge_join"
-      ]
-    },
-    {
-      "id": "to_hill",
-      "kind": "main",
-      "width": 2.6,
-      "points": [
-        "edge_join",
-        [
-          0,
-          -74
-        ],
-        "exit",
-        "hill_crest"
-      ]
-    }
-  ],
-  "landmarks": [
-    {
-      "id": "giant",
-      "name": "The Fallen Giant",
-      "kind": "colossal_machine",
-      "body": [
-        [
-          -11,
-          -52
-        ],
-        [
-          6,
-          -39
-        ]
-      ],
-      "peak": [
-        -8,
-        -50
-      ],
-      "peak_height": 30,
-      "note": "A colossal dead machine slumped across the stream, blocking the way north. The stream bed passes under its raised middle; a short spur leads in beside its chest. One arm/mast still points at the sky, 30 m up, above the canopy - seen from many places. You pass it; you don't understand it.",
-      "visible_from": [
-        "gate",
-        "fork",
-        "oldwood_mid",
-        "pine_mid",
-        "clearing",
-        "ruin",
-        "edge_mid",
-        "west_ford",
-        "east_ford"
-      ]
-    },
-    {
-      "id": "clearing",
-      "name": "The Dry Clearing",
-      "kind": "place",
-      "at": "clearing",
-      "note": "Open sky, low dry grass, quiet. The Giant and the hill both visible."
-    },
-    {
-      "id": "ruin",
-      "name": "The Ruin Fragment",
-      "kind": "place",
-      "at": "ruin",
-      "note": "A small piece of reclaimed civilization on a knoll - a doorway with no building, a stair to nowhere.",
-      "pieces": [
-        {
-          "asset": "Wall_UnevenBrick_Door_Round",
-          "offset": [
-            0,
-            -1.5
-          ],
-          "heading": 10
-        },
-        {
-          "asset": "Wall_UnevenBrick_Straight",
-          "offset": [
-            -2.1,
-            -1.2
-          ],
-          "heading": 10
-        },
-        {
-          "asset": "Wall_UnevenBrick_Straight",
-          "offset": [
-            2.9,
-            -2.4
-          ],
-          "heading": 55
-        },
-        {
-          "asset": "Stairs_Exterior_Straight",
-          "offset": [
-            2.5,
-            1.8
-          ],
-          "heading": 280
-        },
-        {
-          "asset": "Wall_Arch",
-          "offset": [
-            -3.0,
-            2.2
-          ],
-          "heading": 330
-        },
-        {
-          "asset": "Prop_Vine1",
-          "offset": [
-            0.0,
-            -1.7
-          ],
-          "heading": 10,
-          "raise": 3.0
-        },
-        {
-          "asset": "Prop_Vine2",
-          "offset": [
-            -2.1,
-            -1.4
-          ],
-          "heading": 10,
-          "raise": 2.8
-        }
-      ]
-    },
-    {
-      "id": "hill",
-      "name": "The Hill",
-      "kind": "place",
-      "at": "hill_crest",
-      "note": "Visible from the Thinning Edge and the Dry Clearing - pulls you north."
-    }
-  ],
-  "terrain": {
-    "base_roll": 0.6,
-    "features": [
-      {
-        "kind": "channel",
-        "path": "stream",
-        "depth": 1.6,
-        "half_width": 3.0,
-        "falloff": 4.0
-      },
-      {
-        "kind": "bump",
-        "name": "pine rise",
-        "pos": [
-          24,
-          -30
-        ],
-        "radius": 12,
-        "height": 2.5
-      },
-      {
-        "kind": "bump",
-        "name": "ruin knoll",
-        "pos": [
-          -22,
-          -58
-        ],
-        "radius": 9,
-        "height": 3.0
-      },
-      {
-        "kind": "bump",
-        "name": "clearing dome",
-        "pos": [
-          22,
-          -56
-        ],
-        "radius": 10,
-        "height": 1.0
-      },
-      {
-        "kind": "bump",
-        "name": "damp hollow",
-        "pos": [
-          -25,
-          -23
-        ],
-        "radius": 8,
-        "height": -1.2
-      },
-      {
-        "kind": "bump",
-        "name": "the hill",
-        "pos": [
-          0,
-          -88
-        ],
-        "radius": 18,
-        "height": 6.5
-      },
-      {
-        "kind": "flat",
-        "name": "house pad",
-        "pos": [
-          0,
-          -5
-        ],
-        "radius": 9
-      }
+ "_about": "Area 2 forest design - source of truth for the review map (tools/forest_map.py) and, once approved, the level build. World coordinates in metres: X east (+), Z north (-). House at (0,-5), hill and city to the north. 'chargers' are solar charging stations (built as scenes/props/charging_station.tscn). A node with 'behind' sits behind that blocker: unreachable until it is cleared.",
+ "version": 3,
+ "forest_bounds": {
+  "x_min": -36,
+  "x_max": 44,
+  "z_min": -78,
+  "z_max": 12
+ },
+ "areas": [
+  {
+   "id": "garden",
+   "name": "Overgrown Garden",
+   "colour": "#b7cf86",
+   "feel": "Light, safe, readable. Lighter common trees, flowers, low walls. Learn the controls.",
+   "polygon": [
+    [
+     -16,
+     12
+    ],
+    [
+     16,
+     12
+    ],
+    [
+     18,
+     -12
+    ],
+    [
+     8,
+     -18
+    ],
+    [
+     -8,
+     -18
+    ],
+    [
+     -18,
+     -10
     ]
+   ],
+   "trees": {
+    "CommonTree_1": 3,
+    "CommonTree_2": 3,
+    "CommonTree_4": 2,
+    "CommonTree_5": 3,
+    "Pine_5": 0.5
+   },
+   "leaves": "fresh",
+   "autumn_share": 10,
+   "ground": "forest",
+   "density": 1.0,
+   "undergrowth": {
+    "Bush_Common_Flowers": 1.2,
+    "Flower_3_Group": 2.0,
+    "Flower_4_Group": 2.0,
+    "Grass_Common_Tall": 2.0
+   }
   },
-  "robot_speed": 3.0,
-  "blockers": [
+  {
+   "id": "old_wood",
+   "name": "Old Wood",
+   "colour": "#66703d",
+   "feel": "Twisted giants, roots, mud, darker. First real sense of being in the wild.",
+   "polygon": [
+    [
+     -36,
+     12
+    ],
+    [
+     -16,
+     12
+    ],
+    [
+     -18,
+     -10
+    ],
+    [
+     -8,
+     -18
+    ],
+    [
+     8,
+     -18
+    ],
+    [
+     12,
+     -34
+    ],
+    [
+     12,
+     -44
+    ],
+    [
+     -10,
+     -52
+    ],
+    [
+     -14,
+     -40
+    ],
+    [
+     -36,
+     -40
+    ]
+   ],
+   "trees": {
+    "TwistedTree_2": 2,
+    "TwistedTree_4": 2,
+    "TwistedTree_5": 2,
+    "CommonTree_3": 3,
+    "DeadTree_1": 1.5,
+    "CommonTree_1": 1
+   },
+   "leaves": "deep",
+   "autumn_share": 35,
+   "ground": "mud",
+   "density": 1.0,
+   "undergrowth": {
+    "Fern_1": 2.5,
+    "Mushroom_Common": 1.5,
+    "Mushroom_Laetiporus": 0.8,
+    "Plant_7": 1.0
+   }
+  },
+  {
+   "id": "pines",
+   "name": "Pine Stand",
+   "colour": "#3f5f50",
+   "feel": "Dark evergreens on a rise, straighter samey corridors - gently disorienting. Needle floor.",
+   "polygon": [
+    [
+     16,
+     12
+    ],
+    [
+     36,
+     12
+    ],
+    [
+     36,
+     -44
+    ],
+    [
+     12,
+     -44
+    ],
+    [
+     12,
+     -34
+    ],
+    [
+     8,
+     -18
+    ],
+    [
+     18,
+     -12
+    ]
+   ],
+   "trees": {
+    "Pine_1": 3,
+    "Pine_2": 3,
+    "Pine_5": 2,
+    "CommonTree_4": 0.5
+   },
+   "leaves": "pine",
+   "autumn_share": 0,
+   "ground": "forest",
+   "density": 1.0,
+   "undergrowth": {
+    "Fern_1": 1.0,
+    "Mushroom_Common": 0.5
+   }
+  },
+  {
+   "id": "stream",
+   "name": "Stream Bed",
+   "colour": "#7fa3b5",
+   "feel": "A mostly dry stream channel cutting across the forest - a natural path, lower and cooler, mud and stones.",
+   "band_along_path": "stream",
+   "band_half_width": 5,
+   "trees": {
+    "CommonTree_2": 2,
+    "CommonTree_3": 2,
+    "CommonTree_5": 2,
+    "Pine_5": 1,
+    "DeadTree_1": 0.5
+   },
+   "leaves": "cool",
+   "autumn_share": 10,
+   "ground": "mud",
+   "density": 1.0,
+   "undergrowth": {
+    "Plant_1": 2.0,
+    "Fern_1": 1.5,
+    "Grass_Wispy_Tall": 2.0
+   }
+  },
+  {
+   "id": "clearing",
+   "name": "Dry Clearing",
+   "colour": "#d8c17b",
+   "feel": "A strange open patch. Sunlight, quiet, a different atmosphere. A chance to breathe.",
+   "polygon": [
+    [
+     12,
+     -44
+    ],
+    [
+     36,
+     -44
+    ],
+    [
+     36,
+     -66
+    ],
+    [
+     20,
+     -68
+    ],
+    [
+     10,
+     -60
+    ]
+   ],
+   "trees": {
+    "CommonTree_5": 3,
+    "CommonTree_2": 2,
+    "DeadTree_1": 1
+   },
+   "leaves": "dry",
+   "autumn_share": 40,
+   "ground": "dirt",
+   "density": 1.0,
+   "undergrowth": {
+    "Grass_Wispy_Tall": 5.0,
+    "Grass_Wispy_Short": 4.0,
+    "Flower_4_Single": 1.0
+   }
+  },
+  {
+   "id": "ruins",
+   "name": "Ruin Grove",
+   "colour": "#8a8072",
+   "feel": "Broken walls and dead trees on a knoll; rubble ground. Questions, not answers.",
+   "polygon": [
+    [
+     -36,
+     -40
+    ],
+    [
+     -14,
+     -40
+    ],
+    [
+     -10,
+     -52
+    ],
+    [
+     -14,
+     -66
+    ],
+    [
+     -36,
+     -68
+    ]
+   ],
+   "trees": {
+    "DeadTree_1": 3,
+    "CommonTree_3": 2,
+    "TwistedTree_4": 1,
+    "CommonTree_1": 1
+   },
+   "leaves": "deep",
+   "autumn_share": 25,
+   "ground": "moss",
+   "density": 1.0,
+   "undergrowth": {
+    "Fern_1": 1.5,
+    "Plant_7": 1.0,
+    "Grass_Common_Short": 2.0
+   }
+  },
+  {
+   "id": "edge",
+   "name": "Thinning Edge",
+   "colour": "#8fb86a",
+   "feel": "Brighter, mossier, trees thinning as the ground climbs toward the hill. The build-up to the reveal.",
+   "polygon": [
+    [
+     -14,
+     -66
+    ],
+    [
+     -10,
+     -52
+    ],
+    [
+     10,
+     -44
+    ],
+    [
+     12,
+     -44
+    ],
+    [
+     10,
+     -60
+    ],
+    [
+     20,
+     -68
+    ],
+    [
+     36,
+     -66
+    ],
+    [
+     36,
+     -78
+    ],
+    [
+     -36,
+     -78
+    ],
+    [
+     -36,
+     -68
+    ]
+   ],
+   "trees": {
+    "CommonTree_1": 3,
+    "CommonTree_2": 3,
+    "CommonTree_4": 3,
+    "CommonTree_5": 2,
+    "Pine_2": 1
+   },
+   "leaves": "fresh",
+   "autumn_share": 12,
+   "ground": "moss",
+   "density": 1.0,
+   "undergrowth": {
+    "Grass_Common_Tall": 3.0,
+    "Flower_3_Group": 1.5,
+    "Plant_1": 1.0
+   }
+  }
+ ],
+ "nodes": {
+  "door": {
+   "pos": [
+    0,
+    -8
+   ],
+   "kind": "start"
+  },
+  "gate": {
+   "pos": [
+    0,
+    -12
+   ],
+   "kind": "junction"
+  },
+  "garden_nook": {
+   "pos": [
+    12,
+    4
+   ],
+   "kind": "dead_end",
+   "reward": "collectible",
+   "note": "Behind the house - an old greenhouse frame"
+  },
+  "fork": {
+   "pos": [
+    0,
+    -24
+   ],
+   "kind": "junction",
+   "note": "First real choice: Old Wood (west) or Pine Stand (east)"
+  },
+  "oldwood_mid": {
+   "pos": [
+    -18,
+    -30
+   ],
+   "kind": "junction"
+  },
+  "hollow_tree": {
+   "pos": [
+    -30,
+    -20
+   ],
+   "kind": "dead_end",
+   "reward": "collectible",
+   "note": "A hollow in a twisted giant"
+  },
+  "west_ford": {
+   "pos": [
+    -18,
+    -40
+   ],
+   "kind": "junction",
+   "note": "Where the Old Wood path drops into the stream bed"
+  },
+  "spring": {
+   "pos": [
+    -34,
+    -33
+   ],
+   "kind": "dead_end",
+   "reward": "collectible",
+   "note": "Stream source - water runs out of an old concrete pipe"
+  },
+  "pine_mid": {
+   "pos": [
+    18,
+    -24
+   ],
+   "kind": "junction"
+  },
+  "pine_end": {
+   "pos": [
+    32,
+    -16
+   ],
+   "kind": "dead_end",
+   "reward": "collectible",
+   "note": "Deep in the pines"
+  },
+  "east_ford": {
+   "pos": [
+    22,
+    -41
+   ],
+   "kind": "junction"
+  },
+  "giant_ford": {
+   "pos": [
+    -2,
+    -45
+   ],
+   "kind": "junction",
+   "note": "The stream passes under the Fallen Giant"
+  },
+  "clearing": {
+   "pos": [
+    22,
+    -56
+   ],
+   "kind": "clearing",
+   "radius": 8
+  },
+  "edge_mid": {
+   "pos": [
+    2,
+    -62
+   ],
+   "kind": "junction",
+   "note": "Clearing route arrives here"
+  },
+  "ruin": {
+   "pos": [
+    -22,
+    -58
+   ],
+   "kind": "landmark_site",
+   "radius": 5
+  },
+  "ruin_far": {
+   "pos": [
+    -32,
+    -69
+   ],
+   "kind": "dead_end",
+   "reward": "collectible",
+   "note": "Beyond the ruin, a sealed hatch in the ground"
+  },
+  "edge_west": {
+   "pos": [
+    -8,
+    -67
+   ],
+   "kind": "junction"
+  },
+  "exit": {
+   "pos": [
+    0,
+    -78
+   ],
+   "kind": "exit",
+   "note": "Trees part - onto the hill"
+  },
+  "hill_crest": {
+   "pos": [
+    0,
+    -86
+   ],
+   "kind": "vista",
+   "note": "City reveal"
+  },
+  "under_giant": {
+   "pos": [
+    -4,
+    -51
+   ],
+   "kind": "dead_end",
+   "reward": "collectible",
+   "note": "A short spur in under the Giant's body - a hollow you can stand inside. Blocked beyond."
+  },
+  "edge_join": {
+   "pos": [
+    1,
+    -70
+   ],
+   "kind": "junction",
+   "note": "Ruin and Clearing routes meet; last stretch to the hill"
+  },
+  "brambles": {
+   "pos": [
+    34,
+    -45
+   ],
+   "kind": "blocker",
+   "note": "Brambles choke the stream's east end - impassable for now; later a crafted cutter opens it."
+  },
+  "brambles_gate": {
+   "pos": [
+    30.5,
+    -43
+   ],
+   "kind": "junction",
+   "note": "Where the stream bed meets the thorn wall"
+  },
+  "east_pocket": {
+   "pos": [
+    40,
+    -46
+   ],
+   "kind": "dead_end",
+   "radius": 3.5,
+   "reward": "charger",
+   "behind": "stream_brambles",
+   "note": "A sunny pocket where the stream leaves the forest; a charging station somebody hid here. Needs the cutter."
+  }
+ },
+ "paths": [
+  {
+   "id": "garden_main",
+   "kind": "main",
+   "width": 2.6,
+   "points": [
+    "door",
+    "gate",
+    [
+     1,
+     -18
+    ],
+    "fork"
+   ]
+  },
+  {
+   "id": "garden_loop",
+   "kind": "side",
+   "width": 2.0,
+   "points": [
+    "gate",
+    [
+     8,
+     -10
+    ],
+    [
+     12,
+     -4
+    ],
+    "garden_nook"
+   ]
+  },
+  {
+   "id": "oldwood_in",
+   "kind": "main",
+   "width": 2.4,
+   "points": [
+    "fork",
+    [
+     -7,
+     -27
+    ],
+    [
+     -12,
+     -26
+    ],
+    "oldwood_mid"
+   ]
+  },
+  {
+   "id": "hollow",
+   "kind": "side",
+   "width": 2.0,
+   "points": [
+    "oldwood_mid",
+    [
+     -24,
+     -27
+    ],
+    [
+     -27,
+     -22
+    ],
+    "hollow_tree"
+   ]
+  },
+  {
+   "id": "oldwood_down",
+   "kind": "main",
+   "width": 2.4,
+   "points": [
+    "oldwood_mid",
+    [
+     -21,
+     -35
+    ],
+    "west_ford"
+   ]
+  },
+  {
+   "id": "stream",
+   "kind": "stream",
+   "width": 4.5,
+   "points": [
+    "spring",
+    [
+     -28,
+     -36
+    ],
+    [
+     -24,
+     -39
+    ],
+    "west_ford",
+    [
+     -11,
+     -43
+    ],
+    "giant_ford",
+    [
+     7,
+     -44
+    ],
+    [
+     15,
+     -42
+    ],
+    "east_ford",
+    [
+     29,
+     -42
+    ],
+    "brambles_gate",
+    [
+     34,
+     -46
+    ]
+   ]
+  },
+  {
+   "id": "pine_in",
+   "kind": "side",
+   "width": 2.2,
+   "points": [
+    "fork",
+    [
+     7,
+     -25
+    ],
+    [
+     12,
+     -22
+    ],
+    "pine_mid"
+   ]
+  },
+  {
+   "id": "pine_deep",
+   "kind": "side",
+   "width": 1.9,
+   "points": [
+    "pine_mid",
+    [
+     24,
+     -21
+    ],
+    [
+     28,
+     -15
+    ],
+    "pine_end"
+   ]
+  },
+  {
+   "id": "pine_down",
+   "kind": "side",
+   "width": 2.2,
+   "points": [
+    "pine_mid",
+    [
+     23,
+     -30
+    ],
+    [
+     24,
+     -36
+    ],
+    "east_ford"
+   ]
+  },
+  {
+   "id": "to_clearing",
+   "kind": "side",
+   "width": 2.2,
+   "points": [
+    "east_ford",
+    [
+     21,
+     -47
+    ],
+    "clearing"
+   ]
+  },
+  {
+   "id": "ruin_climb",
+   "kind": "side",
+   "width": 2.2,
+   "points": [
+    "west_ford",
+    [
+     -22,
+     -46
+    ],
+    [
+     -24,
+     -52
+    ],
+    "ruin"
+   ]
+  },
+  {
+   "id": "ruin_far",
+   "kind": "side",
+   "width": 1.9,
+   "points": [
+    "ruin",
+    [
+     -27,
+     -63
+    ],
+    "ruin_far"
+   ]
+  },
+  {
+   "id": "under_giant",
+   "kind": "side",
+   "width": 2.0,
+   "points": [
+    "giant_ford",
+    [
+     -3,
+     -48
+    ],
+    "under_giant"
+   ]
+  },
+  {
+   "id": "clearing_out",
+   "kind": "side",
+   "width": 2.2,
+   "points": [
+    "clearing",
+    [
+     14,
+     -61
+    ],
+    "edge_mid"
+   ]
+  },
+  {
+   "id": "edge_mid_up",
+   "kind": "main",
+   "width": 2.4,
+   "points": [
+    "edge_mid",
+    [
+     3,
+     -66
+    ],
+    "edge_join"
+   ]
+  },
+  {
+   "id": "ruin_out",
+   "kind": "side",
+   "width": 2.2,
+   "points": [
+    "ruin",
+    [
+     -15,
+     -62
+    ],
+    "edge_west",
+    [
+     -4,
+     -70
+    ],
+    "edge_join"
+   ]
+  },
+  {
+   "id": "to_hill",
+   "kind": "main",
+   "width": 2.6,
+   "points": [
+    "edge_join",
+    [
+     0,
+     -74
+    ],
+    "exit",
+    "hill_crest"
+   ]
+  },
+  {
+   "id": "bramble_out",
+   "kind": "side",
+   "width": 2.4,
+   "points": [
+    "brambles_gate",
+    [
+     34,
+     -45
+    ],
+    [
+     37.5,
+     -46
+    ],
+    "east_pocket"
+   ]
+  }
+ ],
+ "landmarks": [
+  {
+   "id": "giant",
+   "name": "The Fallen Giant",
+   "kind": "colossal_machine",
+   "body": [
+    [
+     -11,
+     -52
+    ],
+    [
+     6,
+     -39
+    ]
+   ],
+   "peak": [
+    -8,
+    -50
+   ],
+   "peak_height": 30,
+   "note": "A colossal dead machine slumped across the stream, blocking the way north. The stream bed passes under its raised middle; a short spur leads in beside its chest. One arm/mast still points at the sky, 30 m up, above the canopy - seen from many places. You pass it; you don't understand it.",
+   "visible_from": [
+    "gate",
+    "fork",
+    "oldwood_mid",
+    "pine_mid",
+    "clearing",
+    "ruin",
+    "edge_mid",
+    "west_ford",
+    "east_ford"
+   ]
+  },
+  {
+   "id": "clearing",
+   "name": "The Dry Clearing",
+   "kind": "place",
+   "at": "clearing",
+   "note": "Open sky, low dry grass, quiet. The Giant and the hill both visible."
+  },
+  {
+   "id": "ruin",
+   "name": "The Ruin Fragment",
+   "kind": "place",
+   "at": "ruin",
+   "note": "A small piece of reclaimed civilization on a knoll - a doorway with no building, a stair to nowhere.",
+   "pieces": [
     {
-      "id": "stream_brambles",
-      "kind": "brambles",
-      "from": [
-        31.5,
-        -48.5
-      ],
-      "to": [
-        36,
-        -40.5
-      ],
-      "note": "Blocks the stream bed at the forest's east edge. Future gameplay: craft a cutter to clear it."
+     "asset": "Wall_UnevenBrick_Door_Round",
+     "offset": [
+      0,
+      -1.5
+     ],
+     "heading": 10
+    },
+    {
+     "asset": "Wall_UnevenBrick_Straight",
+     "offset": [
+      -2.1,
+      -1.2
+     ],
+     "heading": 10
+    },
+    {
+     "asset": "Wall_UnevenBrick_Straight",
+     "offset": [
+      2.9,
+      -2.4
+     ],
+     "heading": 55
+    },
+    {
+     "asset": "Stairs_Exterior_Straight",
+     "offset": [
+      2.5,
+      1.8
+     ],
+     "heading": 280
+    },
+    {
+     "asset": "Wall_Arch",
+     "offset": [
+      -3.0,
+      2.2
+     ],
+     "heading": 330
+    },
+    {
+     "asset": "Prop_Vine1",
+     "offset": [
+      0.0,
+      -1.7
+     ],
+     "heading": 10,
+     "raise": 3.0
+    },
+    {
+     "asset": "Prop_Vine2",
+     "offset": [
+      -2.1,
+      -1.4
+     ],
+     "heading": 10,
+     "raise": 2.8
     }
-  ],
-  "keep_from_old_level": [
-    "house vines",
-    "gate walls and their vines",
-    "city buildings (moved 28 m north)"
-  ],
-  "open_north": {
-    "x_min": -36,
-    "x_max": 36,
-    "z_min": -140,
-    "z_max": -78,
-    "note": "Hill and city: open ground, sealed by tree rows along its west, east and north edges."
+   ]
   },
-  "city_shift_z": -28
+  {
+   "id": "hill",
+   "name": "The Hill",
+   "kind": "place",
+   "at": "hill_crest",
+   "note": "Visible from the Thinning Edge and the Dry Clearing - pulls you north."
+  }
+ ],
+ "terrain": {
+  "base_roll": 0.6,
+  "features": [
+   {
+    "kind": "channel",
+    "path": "stream",
+    "depth": 1.6,
+    "half_width": 3.0,
+    "falloff": 4.0
+   },
+   {
+    "kind": "bump",
+    "name": "pine rise",
+    "pos": [
+     24,
+     -30
+    ],
+    "radius": 12,
+    "height": 2.5
+   },
+   {
+    "kind": "bump",
+    "name": "ruin knoll",
+    "pos": [
+     -22,
+     -58
+    ],
+    "radius": 9,
+    "height": 3.0
+   },
+   {
+    "kind": "bump",
+    "name": "clearing dome",
+    "pos": [
+     22,
+     -56
+    ],
+    "radius": 10,
+    "height": 1.0
+   },
+   {
+    "kind": "bump",
+    "name": "damp hollow",
+    "pos": [
+     -25,
+     -23
+    ],
+    "radius": 8,
+    "height": -1.2
+   },
+   {
+    "kind": "bump",
+    "name": "the hill",
+    "pos": [
+     0,
+     -88
+    ],
+    "radius": 18,
+    "height": 6.5
+   },
+   {
+    "kind": "flat",
+    "name": "house pad",
+    "pos": [
+     0,
+     -5
+    ],
+    "radius": 9
+   },
+   {
+    "kind": "flat",
+    "name": "hub pad",
+    "pos": [
+     0,
+     -121
+    ],
+    "radius": 19,
+    "note": "Level ground for the Hub district (hub_design.json); the long blend keeps the hill's north face under 30 degrees",
+    "blend": 14
+   }
+  ]
+ },
+ "robot_speed": 3.0,
+ "blockers": [
+  {
+   "id": "stream_brambles",
+   "kind": "brambles",
+   "from": [
+    31.5,
+    -48.5
+   ],
+   "to": [
+    36,
+    -40.5
+   ],
+   "note": "Blocks the stream bed at the forest's east edge. A cutter clears it (Breakable, effect \"cut\"); behind it lies east_pocket."
+  }
+ ],
+ "keep_from_old_level": [
+  "house vines",
+  "gate walls and their vines"
+ ],
+ "open_north": {
+  "x_min": -36,
+  "x_max": 36,
+  "z_min": -140,
+  "z_max": -78,
+  "note": "Hill and city: open ground, sealed by tree rows along its west, east and north edges."
+ },
+ "city_shift_z": -28,
+ "chargers": [
+  {
+   "id": "clearing",
+   "name": "ClearingCharger",
+   "pos": [
+    25,
+    -60
+   ],
+   "heading": 200,
+   "capacity": 90,
+   "panel_rate": 0.55,
+   "stored": 45,
+   "note": "Open sky: the best sun in the forest. Two thirds of the way to the hill."
+  },
+  {
+   "id": "east_pocket",
+   "name": "PocketCharger",
+   "pos": [
+    41,
+    -47
+   ],
+   "heading": 270,
+   "capacity": 140,
+   "panel_rate": 0.5,
+   "stored": 100,
+   "note": "Hidden behind the brambles. Reward for the cutter."
+  }
+ ]
 }

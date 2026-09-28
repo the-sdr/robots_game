@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://0ra8ts1pc01l"
 path.s3tc="res://.godot/imported/T_MarbleFloor_ORM.png-bd83777b59f51c001a7872ab8577bdd7.s3tc.ctex"
+path.etc2="res://.godot/imported/T_MarbleFloor_ORM.png-bd83777b59f51c001a7872ab8577bdd7.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/quaternius_city/T_MarbleFloor_ORM.png"
-dest_files=["res://.godot/imported/T_MarbleFloor_ORM.png-bd83777b59f51c001a7872ab8577bdd7.s3tc.ctex"]
+dest_files=["res://.godot/imported/T_MarbleFloor_ORM.png-bd83777b59f51c001a7872ab8577bdd7.s3tc.ctex", "res://.godot/imported/T_MarbleFloor_ORM.png-bd83777b59f51c001a7872ab8577bdd7.etc2.ctex"]
 
 [params]
 

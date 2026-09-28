@@ -30,15 +30,15 @@ OLD_PLACEMENTS = os.path.join(BUILD_DIR, "placements.json")
 
 TERRAIN = {"x0": -110, "x1": 110, "z0": -200, "z1": 80}
 DENSE_BAND = 6.0          # full-density trees within this distance of reachable ground
-INDIVIDUAL_REACH = 3.0    # trees nearer than this to reachable ground stay individual nodes
-SHOULDER = 0.3            # extra clearance between a trunk and the path edge
+INDIVIDUAL_REACH = 1.5    # trees nearer than this to reachable ground stay individual nodes (draw calls!)
+SHOULDER = 0.1            # extra clearance between a trunk and the path edge (small: trees crowd the path)
 DEAD_END_CLEARING = 2.0
 JUNCTION_WIDEN = 1.2
 BACKGROUND_DEPTH = 55.0
 BACKGROUND_SPACING = 4.5
 SEED = 20260927
 GROUND_RADIUS = {"wall": 1.0, "building": 0.0, "bush": 0.5, "rock": 1.0, "prop": 0.3,
-                 "stone": 0.0, "collectible": 0.0}
+                 "stone": 0.0, "collectible": 0.0, "charger": 0.9}
 
 # Leaf palettes (sRGB) per area mood.
 PALETTES = {
@@ -182,6 +182,10 @@ class Forest:
         slope = np.degrees(np.arctan(np.hypot(gx, gz)))
 
         dirt = 1.0 - lc.smoothstep(-0.3, 0.4, path_edge)
+        # A trodden path, not a carved road: the dirt shows in patches, forest floor between.
+        patches = 0.55 + 0.45 * np.sin(0.9 * X + 0.4 * Z) * np.cos(0.5 * X - 1.1 * Z + 0.7)
+        patches = np.clip(patches * (0.8 + 0.4 * np.sin(2.3 * X + 1.7 * Z)), 0.25, 1.0)
+        dirt = dirt * patches
         mud = 1.0 - lc.smoothstep(0.0, 1.5, stream_edge)
         mud = np.maximum(mud, lc.smoothstep(-0.6, 0.0, path_edge) * (1 - lc.smoothstep(0.3, 1.2, path_edge)) * 0.6)
         moss = lc.smoothstep(24.0, 36.0, slope) * 0.7
@@ -245,11 +249,7 @@ def main():
     shift = d.get("city_shift_z", 0)
     for (code, cx, cz), (px_, pz, basis) in old.items():
         if code in ("SC1", "SC2", "SC3"):
-            asset = lc.CODES[code][0]
-            o = add("building", asset, px_, pz + shift, basis=basis)
-            o["code"] = code
-            lo, hi = assets[asset]["min"], assets[asset]["max"]
-            blockers.append(("box", (px_ + lo[0], pz + shift + lo[2], px_ + hi[0], pz + shift + hi[2])))
+            continue                                                  # the city is the Hub now (hub_design.json)
         elif code == "WUB" and abs(px_) < 3 and -10 < pz < -8:            # the two gate walls
             o = add("wall", "Wall_UnevenBrick_Straight", px_, pz, basis=basis)
             o["code"] = "WUB"
@@ -306,19 +306,32 @@ def main():
         z = pz2 + piece["offset"][1] - off[1]
         add("prop", piece["asset"], x, z, piece["heading"], y_offset=piece.get("raise", 3.0), radius=1.0)
 
-    # Brambles blocking the stream's east end
+    # Brambles blocking the stream's east end: a Breakable the cutter clears. Its
+    # bushes are its own children (they vanish with it), not merged undergrowth.
+    behind_boxes = {}
     for b in d.get("blockers", []):
         (x0, z0), (x1, z1) = b["from"], b["to"]
-        objects.append({"code": "BRAMBLE", "asset": "brambles", "kind": "bramble", "path": "",
-                        "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                        "origin": [(x0 + x1) / 2, ground((x0 + x1) / 2, (z0 + z1) / 2, 2.0), (z0 + z1) / 2],
-                        "size": [x1 - x0, 2.6, z1 - z0], "note": b["note"]})
-        blockers.append(("box", (x0, z0, x1, z1)))
+        oy = ground((x0 + x1) / 2, (z0 + z1) / 2, 2.0)
+        bushes = []
         for k in range(14):                                   # dense dark thorny bushes as the visual
             x, z = rng.uniform(x0 + 0.4, x1 - 0.4), rng.uniform(z0 + 0.4, z1 - 0.4)
-            undergrowth.append({"asset": "Bush_Common", "path": assets["Bush_Common"]["path"],
-                                "basis": [v * rng.uniform(1.1, 1.6) for v in lc.heading_to_basis(rng.uniform(0, 360))],
-                                "origin": [x, ground(x, z, 0.5) - 0.1, z], "tint": [0.20, 0.24, 0.12]})
+            bushes.append({"asset": "Bush_Common", "path": assets["Bush_Common"]["path"],
+                           "basis": [v * rng.uniform(1.1, 1.6) for v in lc.heading_to_basis(rng.uniform(0, 360))],
+                           "origin": [x - (x0 + x1) / 2, ground(x, z, 0.5) - 0.1 - oy, z - (z0 + z1) / 2], "tint": [0.20, 0.24, 0.12]})
+        objects.append({"code": "BRAMBLE", "asset": "brambles", "kind": "bramble", "path": "", "id": b["id"],
+                        "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                        "origin": [(x0 + x1) / 2, oy, (z0 + z1) / 2],
+                        "size": [x1 - x0, 2.6, z1 - z0], "note": b["note"], "bushes": bushes})
+        blockers.append(("box", (x0, z0, x1, z1)))
+        behind_boxes[b["id"]] = [x0, z0, x1, z1]
+
+    # Solar charging stations (fixed scenes; trees keep clear of them)
+    for c in d.get("chargers", []):
+        x, z = c["pos"]
+        o = add("charger", "charger", x, z, c.get("heading", 0), radius=0.9)
+        o.update({"code": "CHG", "path": "res://scenes/props/charging_station.tscn", "name": c["name"], "id": c["id"],
+                  "capacity": c.get("capacity", 100), "panel_rate": c.get("panel_rate", 0.45), "stored": c.get("stored", 50)})
+        blockers.append(("circle", (x, z, 0.9)))
 
     # Collectibles at dead ends
     names = [n for n, v in d["nodes"].items() if v["kind"] == "dead_end" and v.get("reward") == "collectible"]
@@ -460,7 +473,8 @@ def main():
                 if f.area_at(x, z) != aid:
                     continue
                 c = f.corridor_clearance(x, z)
-                if not (0.25 < c < 3.5) and not (aid == "clearing" and c < 0 and math.dist((x, z), d["nodes"]["clearing"]["pos"]) < 7):
+                on_path_grass = asset.startswith("Grass") and -0.9 < c <= 0.25 and rng.random() < 0.45
+                if not (0.25 < c < 3.5) and not on_path_grass and not (aid == "clearing" and c < 0 and math.dist((x, z), d["nodes"]["clearing"]["pos"]) < 7):
                     continue
                 if aid == "clearing" and c < 0:
                     if any(curve_dist(x, z, p["curve"]) < p["width"] / 2 + 0.2 for p in f.design.paths.values()):
@@ -503,7 +517,7 @@ def main():
 
     level = {"terrain": {k: grid[k] for k in ("x0", "z0", "nx", "nz")},
              "objects": objects, "interior": interior, "undergrowth": undergrowth, "background": background,
-             "blockers": blockers, "giant": {"mid": list(f.giant_mid), "axis": list(f.giant_axis)},
+             "blockers": blockers, "behind_boxes": behind_boxes, "giant": {"mid": list(f.giant_mid), "axis": list(f.giant_axis)},
              "giant_segments": f.giant_segments(full=True)}
     level["terrain"]["heights"] = [round(float(v), 3) for v in grid["heights"].flatten()]
     level["terrain"]["layers"] = [round(float(v), 2) for v in f.ground_layers(grid).reshape(-1)]

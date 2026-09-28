@@ -29,6 +29,8 @@ const LEAF_MATERIALS := {
 	"Leaves_Pine": preload("res://materials/leaves_pine.tres"),
 }
 
+const LOD_BIAS := 0.5    # < 1 switches to lower-detail LODs nearer the camera
+
 @export var model_path: String = ""
 ## 0 = use the measured trunk for this model (see TRUNKS).
 @export var trunk_radius: float = 0.0
@@ -42,6 +44,9 @@ func _ready() -> void:
 		var model: Node = scene.instantiate()
 		add_child(model)
 		_tint_leaves(model)
+		# Coarser mesh LODs sooner: integrated GPUs are overdraw-bound by leaf cards.
+		for node in model.find_children("*", "MeshInstance3D"):
+			(node as MeshInstance3D).lod_bias = LOD_BIAS
 
 	var radius: float = trunk_radius
 	var centre := Vector2.ZERO

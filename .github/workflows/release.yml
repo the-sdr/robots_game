@@ -1,0 +1,92 @@
+# Builds Robots Beta for Windows and publishes it as a GitHub release.
+# Two triggers:
+#   - change release/version.txt (e.g. to v0.1.1-beta) and push any branch:
+#     the release is tagged from that file, on the pushed commit;
+#   - or push a tag starting with "v" yourself.
+# Release notes come from docs/release_notes/<tag>.md if it exists.
+# An existing release with the same tag is left alone (the run stops early).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+    branches: ["**"]
+    paths: ["release/version.txt"]
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work out the release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then TAG="$GITHUB_REF_NAME"; else TAG="$(tr -d '[:space:]' < release/version.txt)"; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; bump release/version.txt for a new one."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Godot and export templates
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          V="$GODOT_VERSION"
+          curl -fsSL --retry 3 -o godot.zip "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv "Godot_v${V}-stable_linux.x86_64" /usr/local/bin/godot
+          T="$HOME/.local/share/godot/export_templates/${V}.stable"
+          mkdir -p "$T"
+          curl -fsSL --retry 3 -o templates.tpz "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_export_templates.tpz"
+          unzip -q templates.tpz
+          mv templates/windows_* templates/version.txt "$T"/
+          rm -rf templates templates.tpz godot.zip
+          godot --version
+
+      - name: Import the project
+        if: steps.tag.outputs.exists == 'false'
+        run: godot --headless --editor --path . --quit || true
+
+      - name: Export the Windows exe
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p build/windows
+          godot --headless --path . --export-release "Robots Beta (Windows)" "build/windows/Robots Beta.exe"
+          test -s "build/windows/Robots Beta.exe"
+          ls -la build/windows
+
+      - name: Check the exe's game data boots
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/empty && cd /tmp/empty
+          godot --headless --main-pack "$GITHUB_WORKSPACE/build/windows/Robots Beta.exe" -s "$GITHUB_WORKSPACE/tools/export_check.gd" | tee check.log
+          grep -q "EXPORT CHECK: OK" check.log
+
+      - name: Publish the release
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.tag.outputs.tag }}"
+          ASSET="Robots_Beta_${TAG}_Windows.exe"
+          mv "build/windows/Robots Beta.exe" "$ASSET"
+          NOTES="docs/release_notes/${TAG}.md"
+          [ -f "$NOTES" ] || NOTES="docs/windows_release.md"
+          gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" --title "Robots Beta ${TAG}" --notes-file "$NOTES" --prerelease

@@ -2,24 +2,32 @@
 
 Usage (from the project root):
     python tools/forest_routes.py            -> level_design/build/routes.json
-    <godot> --headless --path . -s tools/forest_drive_test.gd
+    python tools/forest_routes.py --design hub --start hub_entry --out hub_routes.json
+    <godot> --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd
 
 Each route follows the design's own path curves (shortest way through the path
 graph), sampled every few metres, so the robot drives exactly what was designed.
+A route to a node with "behind" names the blocker that must be cleared first.
 """
 import heapq
 import json
 import math
 import os
+import sys
 
 from forest_map import Design, catmull_rom
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "level_design", "build", "routes.json")
 
 
 def main():
-    design = Design()
+    args = sys.argv[1:]
+    def opt(flag, default):
+        return args[args.index(flag) + 1] if flag in args else default
+    name = opt("--design", "forest")
+    start_node = opt("--start", "door")
+    out = os.path.join(ROOT, "level_design", "build", opt("--out", "routes.json"))
+    design = Design(os.path.join(ROOT, "level_design", "%s_design.json" % name))
     edges = {}
     for p in design.d["paths"]:
         pts = p["points"]
@@ -33,7 +41,7 @@ def main():
             edges.setdefault(b, []).append((a, length, list(reversed(curve))))
 
     def route(target):
-        dist, prev, heap = {"door": 0.0}, {}, [(0.0, "door")]
+        dist, prev, heap = {start_node: 0.0}, {}, [(0.0, start_node)]
         while heap:
             d, u = heapq.heappop(heap)
             if u == target:
@@ -43,17 +51,23 @@ def main():
                     dist[v], prev[v] = d + length, (u, curve)
                     heapq.heappush(heap, (dist[v], v))
         pts, n = [], target
-        while n != "door":
+        while n != start_node:
             u, curve = prev[n]
             pts = curve + pts[1:] if pts else curve
             n = u
-        return [[round(x, 2), round(z, 2)] for x, z in pts]
+        dense = [pts[0]]                 # straight legs get a point every <= 3 m (the driver's per-point budget)
+        for a, b in zip(pts, pts[1:]):
+            steps = max(1, int(math.ceil(math.dist(a, b) / 3.0)))
+            for k in range(1, steps + 1):
+                dense.append((a[0] + (b[0] - a[0]) * k / steps, a[1] + (b[1] - a[1]) * k / steps))
+        return [[round(x, 2), round(z, 2)] for x, z in dense]
 
     targets = [n for n, v in design.nodes.items() if v["kind"] not in ("blocker", "start")]
-    routes = {t: route(t) for t in targets}
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(routes, open(OUT, "w"))
-    print("wrote %s: %d routes" % (OUT, len(routes)))
+    routes = {t: {"points": route(t), "behind": design.nodes[t].get("behind")} for t in targets}
+    routes["_start"] = {"node": start_node, "pos": design.nodes[start_node]["pos"]}
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    json.dump(routes, open(out, "w"))
+    print("wrote %s: %d routes" % (out, len(routes) - 1))
 
 
 if __name__ == "__main__":

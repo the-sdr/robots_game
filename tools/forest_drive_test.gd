@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Headless physics test of the built level (run tools/forest_routes.py first):
-#   <godot> --headless --path . -s tools/forest_drive_test.gd
+#   <godot> --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd
+# (--fixed-fps drops the wall-clock pacing: ~10 s instead of ~7 min.)
 # 1. Drives the real robot body from the house door along every route in
 #    level_design/build/routes.json (the design's own path curves) at
 #    player speed, on the real terrain and collision. Reports any route that
@@ -10,9 +11,11 @@ extends SceneTree
 # 3. Drives hill crest -> city -> back up, so nobody can get trapped below.
 # Headless = no window, no GPU; it proves logic and collision, never looks.
 
-const ROUTES := "res://level_design/build/routes.json"
 const SPEED := 3.0          # scripts/player.gd SPEED
 
+var ROUTES := "res://level_design/build/routes.json"
+var district := ""          # "" = the forest; "hub" = ++ hub: routes from hub_routes.json, gates instead of brambles
+var start_pos := Vector3(0, 0.3, -8.6)
 var p: CharacterBody3D
 
 func drive_to(target: Vector2, max_frames: int) -> bool:
@@ -27,7 +30,26 @@ func drive_to(target: Vector2, max_frames: int) -> bool:
 		await physics_frame
 	return false
 
+## Drives one route from the start; true if the last point was reached.
+func drive_route(points: Array) -> bool:
+	p.global_position = start_pos
+	p.velocity = Vector3.ZERO
+	await physics_frame
+	var stuck := 0
+	for q in points:
+		if not await drive_to(Vector2(q[0], q[1]), 200):
+			stuck += 1
+			if stuck > 2:
+				break
+	var end := Vector2(p.global_position.x, p.global_position.z)
+	var goal := Vector2(points[-1][0], points[-1][1])
+	return stuck == 0 or end.distance_to(goal) < 2.5
+
 func _initialize() -> void:
+	var user_args := OS.get_cmdline_user_args()
+	if user_args.size() > 0:
+		district = user_args[0]
+		ROUTES = "res://level_design/build/%s_routes.json" % district
 	var world: Node = load("res://scenes/world.tscn").instantiate()
 	root.add_child(world)
 	for i in 5:
@@ -38,25 +60,48 @@ func _initialize() -> void:
 
 	var routes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROUTES))
 	var failures := 0
+	var props: Node = world.get_node("GeneratedLevel/Props") if district == "" else world.get_node("Generated%s/Props" % district.capitalize())
+	if routes.has("_start"):
+		var sp: Array = routes["_start"]["pos"]
+		start_pos = Vector3(sp[0], 0.3, sp[1])
+		routes.erase("_start")
 	for name in routes:
-		p.global_position = Vector3(0, 0.3, -8.6)
-		p.velocity = Vector3.ZERO
-		await physics_frame
-		var stuck := []
-		for q in routes[name]:
-			if not await drive_to(Vector2(q[0], q[1]), 200):
-				stuck.append(Vector2(q[0], q[1]))
-				if stuck.size() > 2:
-					break
-		var end := Vector2(p.global_position.x, p.global_position.z)
-		var goal := Vector2(routes[name][-1][0], routes[name][-1][1])
-		var reached := stuck.is_empty() or end.distance_to(goal) < 2.5
-		if not reached:
+		var points: Array = routes[name]["points"]
+		var behind: Variant = routes[name]["behind"]
+		# A place behind a blocker: the blocker must stop the robot first, then
+		# clearing it (what the cutter does) must open the way.
+		if behind != null:
+			var reached_early := await drive_route(points)
+			if reached_early:
+				failures += 1
+				print("  REACHED TOO EARLY  %-12s (blocker %s does not hold)" % [name, behind])
+				continue
+			var blocker: Node = props.get_node_or_null("Brambles_%s" % behind)
+			if blocker == null:
+				blocker = props.get_node_or_null("Gate_%s" % behind)
+			if blocker == null or not (blocker.has_method("accepts") or blocker.has_method("unlock")):
+				failures += 1
+				print("  BLOCKER MISSING or not clearable: %s" % behind)
+				continue
+			if blocker.has_method("unlock"):
+				root.get_node("Game").add_item(blocker.key_item)     # the key the design says opens it
+				blocker.unlock()                                       # rises and frees itself
+				for i in 90:
+					await physics_frame
+			else:
+				blocker.queue_free()
+				await physics_frame
+				await physics_frame
+		if not await drive_route(points):
 			failures += 1
-			print("  STUCK  %-12s end (%.1f, %.1f) near %s" % [name, end.x, end.y, stuck[0]])
-	var left := world.get_node("GeneratedLevel/Collectibles").get_children().filter(func(n): return not n.is_queued_for_deletion()).size()
+			var end := Vector2(p.global_position.x, p.global_position.z)
+			print("  STUCK  %-12s end (%.1f, %.1f)%s" % [name, end.x, end.y, " after clearing %s" % behind if behind != null else ""])
+	var left := props.get_parent().get_node("Collectibles").get_children().filter(func(n): return not n.is_queued_for_deletion()).size()
 	print("routes: %d of %d reached | collectibles left: %d" % [routes.size() - failures, routes.size(), left])
 	ok = ok and failures == 0 and left == 0
+	if district != "":
+		print("RESULT: %s" % ("OK" if ok else "PROBLEMS FOUND"))
+		quit(0 if ok else 1)
 
 	var bad := []
 	for t in world.get_node("GeneratedLevel/Trees").get_children():

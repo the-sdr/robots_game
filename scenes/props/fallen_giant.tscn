@@ -1,5 +1,11 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://scripts/interact/inspectable.gd" id="inspect"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_inspect"]
+radius = 3.2
+
+
 ; Placeholder for "The Fallen Giant" - a colossal dead machine slumped across
 ; the stream. Local X runs along the body (head at -X, legs at +X), origin at
 ; stream-bed level under the raised middle. The middle hull section is lifted
@@ -221,3 +227,12 @@ shape = SubResource("Shape_foot")
 [node name="ColArm" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -6, 1.6, -5.6)
 shape = SubResource("Shape_limb")
+
+[node name="Inspect" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.5, 1.5, 0.6)
+script = ExtResource("inspect")
+prompt = "Inspect the giant's head"
+beat = "giant_close"
+
+[node name="Shape" type="CollisionShape3D" parent="Inspect"]
+shape = SubResource("SphereShape3D_inspect")

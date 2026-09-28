@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ekj4b142lbgl"
 path.s3tc="res://.godot/imported/T_RedBrick_BaseColor.png-42c79f36ebcad7179cb3b4edaa1c3323.s3tc.ctex"
+path.etc2="res://.godot/imported/T_RedBrick_BaseColor.png-42c79f36ebcad7179cb3b4edaa1c3323.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/quaternius_medieval/T_RedBrick_BaseColor.png"
-dest_files=["res://.godot/imported/T_RedBrick_BaseColor.png-42c79f36ebcad7179cb3b4edaa1c3323.s3tc.ctex"]
+dest_files=["res://.godot/imported/T_RedBrick_BaseColor.png-42c79f36ebcad7179cb3b4edaa1c3323.s3tc.ctex", "res://.godot/imported/T_RedBrick_BaseColor.png-42c79f36ebcad7179cb3b4edaa1c3323.etc2.ctex"]
 
 [params]
 

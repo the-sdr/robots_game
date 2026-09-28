@@ -1,17 +1,25 @@
 extends SceneTree
 
 # Build step 2 of 2: level_design/build/level.json -> scenes/level/generated_level.tscn
-# (run tools/level_build.py first). From the project root:
+# (run tools/forest_build.py first). From the project root:
 #   <godot> --headless --path . -s tools/level_bake.gd
-# Overwrites only files in scenes/level/. world.tscn instances the result.
+# A district (tools/district_build.py, no terrain of its own):
+#   <godot> --headless --path . -s tools/level_bake.gd ++ hub     -> scenes/level_hub/generated_hub.tscn
+# Overwrites only files in the output folder. world.tscn instances the results.
 
-const LEVEL_JSON := "res://level_design/build/level.json"
-const OUT_DIR := "res://scenes/level/"
+var LEVEL_JSON := "res://level_design/build/level.json"
+var OUT_DIR := "res://scenes/level/"
+var ROOT_NAME := "GeneratedLevel"
+var SCENE_FILE := "generated_level.tscn"
+const LOCKED_GATE_SCRIPT := "res://scripts/interact/locked_gate.gd"
+const INTERACTABLE_SCRIPT := "res://scripts/interact/interactable.gd"
 const TREE_SCENE := "res://scenes/props/solid_tree.tscn"
 const ROCK_SCENE := "res://scenes/props/solid_rock.tscn"
 const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
 const GIANT_SCENE := "res://scenes/props/fallen_giant.tscn"
+const CRATE_SCENE := "res://scenes/props/crate.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
+const BREAKABLE_SCRIPT := "res://scripts/interact/breakable.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
 # Hand-tunable (painterly sliders); created once, then reused so edits survive rebuilds.
 const TERRAIN_MATERIAL := "res://materials/terrain_painterly.tres"
@@ -40,11 +48,19 @@ var _root: Node3D
 var _scenes := {}
 
 func _initialize() -> void:
+	var user_args := OS.get_cmdline_user_args()
+	if user_args.size() > 0:
+		var district: String = user_args[0]
+		LEVEL_JSON = "res://level_design/build/%s.json" % district
+		OUT_DIR = "res://scenes/level_%s/" % district
+		ROOT_NAME = "Generated" + district.capitalize()
+		SCENE_FILE = "generated_%s.tscn" % district
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(LEVEL_JSON))
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR + "background"))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	_root = Node3D.new()
-	_root.name = "GeneratedLevel"
-	_build_terrain(data["terrain"])
+	_root.name = ROOT_NAME
+	if data.has("terrain"):
+		_build_terrain(data["terrain"])
 	var trees := _group("Trees")
 	var props := _group("Props")
 	var collectibles := _group("Collectibles")
@@ -67,10 +83,29 @@ func _initialize() -> void:
 			"giant":
 				_instance(GIANT_SCENE, props, "FallenGiant", xf)
 			"bramble":
-				# Impassable for now; a crafted cutter should clear it later.
-				var body := _static_body(props, "Brambles_%d" % counts[kind], xf)
+				# A Breakable the cutter clears; its bushes go with it.
+				var body := _static_body(props, "Brambles_%s" % o["id"], xf)
+				body.set_script(load(BREAKABLE_SCRIPT))
+				body.set("effects", PackedStringArray(["cut"]))
+				body.set("health", 80.0)
+				body.set("break_flag", "cleared:%s" % o["id"])
+				body.set("display_name", "the brambles")
+				body.set("hit_notice", "Thorns. Something sharp and spinning would clear them.")
+				body.set("debris_colour", Color(0.25, 0.3, 0.14))
+				body.set("debris_count", 50)
 				var size := Vector3(o["size"][0], o["size"][1], o["size"][2])
 				_box_collision(body, size, Vector3(0, size.y * 0.5, 0))
+				var b := 0
+				for bush in o.get("bushes", []):
+					b += 1
+					var node := _instance(bush["path"], body, "Bush_%d" % b, _transform(bush))
+					node.set_script(load(BUSH_SCRIPT))
+					node.set("leaf_tint", Color(bush["tint"][0], bush["tint"][1], bush["tint"][2]))
+			"charger":
+				var charger := _instance(o["path"], props, o["name"], xf)
+				charger.set("capacity", float(o["capacity"]))
+				charger.set("panel_rate", float(o["panel_rate"]))
+				charger.set("stored", float(o["stored"]))
 			"bush":
 				var bush := _instance(o["path"], props, node_name, xf)
 				bush.set_script(load(BUSH_SCRIPT))
@@ -86,8 +121,58 @@ func _initialize() -> void:
 			"collectible":
 				var part := _instance(COLLECTIBLE_SCENE, collectibles, node_name, xf)
 				var info: Dictionary = COLLECTIBLES.get(o["code"], {"name": o["code"], "color": Color.WHITE})
+				if o.has("item"):
+					var c: Array = o.get("colour", [1, 1, 1])
+					info = {"name": o["name"], "color": Color(c[0], c[1], c[2])}
+					part.set("item_id", o["item"])
 				part.set("part_name", info["name"])
 				part.set("color", info["color"])
+			"crate":
+				_instance(CRATE_SCENE, props, node_name, xf)       # a smashable crate (drops scrap)
+			"scene":
+				_instance(o["path"], props, String(o["id"]).to_pascal_case(), xf)
+			"gate_rubble":
+				# Collapsed masonry: a Breakable the smasher clears.
+				var body := _static_body(props, "Gate_%s" % o["id"], xf)
+				body.set_script(load(BREAKABLE_SCRIPT))
+				body.set("effects", PackedStringArray(["smash"]))
+				body.set("health", float(o.get("health", 120)))
+				body.set("break_flag", "cleared:%s" % o["id"])
+				body.set("display_name", "the rubble")
+				body.set("hit_notice", "Collapsed masonry. Something heavy would break it up.")
+				body.set("debris_colour", Color(0.55, 0.5, 0.45))
+				body.set("debris_count", 60)
+				body.set("drops", o.get("drops", {}))
+				var size := Vector3(o["size"][0], o["size"][1], o["size"][2])
+				_box_collision(body, size, Vector3(0, size.y * 0.5, 0))
+				var r := 0
+				for rock in o.get("rocks", []):
+					r += 1
+					_instance(rock["path"], body, "Rock_%d" % r, _transform(rock))
+			"gate_locked":
+				var body := _static_body(props, "Gate_%s" % o["id"], xf)
+				body.set_script(load(LOCKED_GATE_SCRIPT))
+				body.set("key_item", o["key"])
+				body.set("gate_id", o["id"])
+				body.set("display_name", "the tower door" if o["id"] == "tower_door" else "the gate")
+				var size := Vector3(o["size"][0], o["size"][1], o["size"][2])
+				_box_collision(body, size, Vector3(0, size.y * 0.5, 0))
+				var f := 0
+				for piece in o.get("pieces", []):
+					f += 1
+					_instance(piece["path"], body, "Fence_%d" % f, _transform(piece))
+				var area := Area3D.new()
+				area.name = "Interactable"
+				area.set_script(load(INTERACTABLE_SCRIPT))
+				area.position = Vector3(0, 0.8, 0)
+				body.add_child(area)
+				area.owner = _root
+				var shape := SphereShape3D.new()
+				shape.radius = maxf(size.x, size.z) * 0.5 + 1.2
+				var col := CollisionShape3D.new()
+				col.shape = shape
+				area.add_child(col)
+				col.owner = _root
 			_:
 				_instance(o["path"], props, node_name, xf)
 	var near: Array = data.get("interior", []).filter(func(i): return i.get("lod", 1) <= 1)
@@ -95,13 +180,13 @@ func _initialize() -> void:
 	_build_merged(near, "InteriorForestNear", 16.0, 1, true)
 	_build_merged(far, "InteriorForestFar", 24.0, 2, true)
 	_build_merged(data.get("undergrowth", []), "Undergrowth", 16.0, 0, false)
-	_build_merged(data["background"], "BackgroundForest", BACKGROUND_CHUNK, BACKGROUND_LOD, false)
+	_build_merged(data.get("background", []), "BackgroundForest", BACKGROUND_CHUNK, BACKGROUND_LOD, false)
 
 	var packed := PackedScene.new()
 	var err := packed.pack(_root)
 	if err == OK:
-		err = ResourceSaver.save(packed, OUT_DIR + "generated_level.tscn")
-	print("baked generated_level.tscn: ", counts, " background ", data["background"].size(), " -> ", error_string(err))
+		err = ResourceSaver.save(packed, OUT_DIR + SCENE_FILE)
+	print("baked %s: " % SCENE_FILE, counts, " background ", data.get("background", []).size(), " -> ", error_string(err))
 	_root.free()
 	quit(0 if err == OK else 1)
 

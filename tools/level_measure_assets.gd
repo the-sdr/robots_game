@@ -45,6 +45,20 @@ const ASSETS := {
 	"Wall_UnevenBrick_Door_Round": "res://assets/quaternius_medieval/Wall_UnevenBrick_Door_Round.gltf",
 	"Stairs_Exterior_Straight": "res://assets/quaternius_medieval/Stairs_Exterior_Straight.gltf",
 	"Wall_Arch": "res://assets/quaternius_medieval/Wall_Arch.gltf",
+	"Prop_MetalFence_Simple": "res://assets/quaternius_medieval/Prop_MetalFence_Simple.gltf",
+	"Prop_MetalFence_Ornament": "res://assets/quaternius_medieval/Prop_MetalFence_Ornament.gltf",
+	"Prop_WoodenFence_Single": "res://assets/quaternius_medieval/Prop_WoodenFence_Single.gltf",
+	"Prop_Crate": "res://assets/quaternius_medieval/Prop_Crate.gltf",
+	"Prop_Wagon": "res://assets/quaternius_medieval/Prop_Wagon.gltf",
+	"Wall_Plaster_Straight": "res://assets/quaternius_medieval/Wall_Plaster_Straight.gltf",
+	"Roof_Tower_RoundTiles": "res://assets/quaternius_medieval/Roof_Tower_RoundTiles.gltf",
+	"DeadTree_2": "res://assets/quaternius_nature/DeadTree_2.gltf",
+	"Prop_Bollard": "res://assets/quaternius_city/Prop_Bollard.gltf",
+	"Prop_Planter_Single": "res://assets/quaternius_city/Prop_Planter_Single.gltf",
+	"Prop_ACUnit": "res://assets/quaternius_city/Prop_ACUnit.gltf",
+	"Entrance_Concrete_2x2": "res://assets/quaternius_city/Entrance_Concrete_2x2.gltf",
+	"Stairs_Entrance_Concrete": "res://assets/quaternius_city/Stairs_Entrance_Concrete.gltf",
+	"Metal_Column_Center": "res://assets/quaternius_city/Metal_Column_Center.gltf",
 }
 func walk(n: Node, xf: Transform3D, out: Dictionary) -> void:
 	var t := xf
@@ -63,6 +77,9 @@ func _initialize() -> void:
 	var result := {}
 	for k in ASSETS:
 		var d := {"lo": Vector3(1e9, 1e9, 1e9), "hi": Vector3(-1e9, -1e9, -1e9), "low_r": 0.0, "r3": 0.0, "meshes": 0}
+		if not ResourceLoader.exists(ASSETS[k]):
+			print("MISSING ", k, " ", ASSETS[k])
+			continue
 		walk(load(ASSETS[k]).instantiate(), Transform3D(), d)
 		result[k] = {"path": ASSETS[k], "min": [d.lo.x, d.lo.y, d.lo.z], "max": [d.hi.x, d.hi.y, d.hi.z], "spread_below_house_roof": d.low_r, "spread_below_3m": d.r3, "mesh_instances": d.meshes}
 	var f := FileAccess.open("res://level_design/build/assets.json", FileAccess.WRITE)

@@ -1,50 +1,76 @@
 # TODO — next session
 
-Written 2026-09-27 before a reboot. Newest priorities first.
+Written 2026-09-27 at the end of sprint 1 (cloud). Newest priorities first.
 
-## 1. Performance (next) — forest runs 13–21 FPS, target 25 on the owner's laptop
-- [x] Owner F4 round after the rebuild: perf_3–perf_7 (table in `CLAUDE_NOTES.md` → Performance).
-- [ ] Suggestions awaiting the owner's go-ahead (details in `CLAUDE_NOTES.md`):
-      1. 3D render scale ~0.75–0.8, 2. simpler trees sooner (LOD bias / interior LOD 2),
-      3. sun shadows 30 m, 4. only if needed: thinner pine leaf cards / sparser pines.
-- [ ] Then the owner re-measures perf_4 (pines, 10, −23, E) and perf_5 (stream by the Giant, −8, −44, W).
+## 0. Owner playtest of the vertical slice (nothing below moves until this)
+Pull `claude/godot-headless-setup-fdm8ay`, open in Godot 4.7.2, press Play
+(main scene is now the menu). ~20 minutes. Please report with F2/F3
+coordinates and F4 perf logs as before. Checklist:
+- [ ] Menu: New game starts beside the house charger; Continue is greyed until a dock.
+- [ ] House: find the hammer head (behind the crate by the door) and the actuator
+      arm (on the corner crate); Tab → build the Smasher; click to smash the door (3 hits).
+- [ ] HUD reads right: battery %, Day/clock, tool line, [E] prompts, notices, story cards.
+- [ ] Energy: driving drains ~0.9 %/s; docking (E at a charger) fills and says
+      "consciousness copied"; Esc pause; a dead battery reboots you next morning.
+      **Tuning numbers are guesses** (`scripts/game/energy.gd`, `charger.gd`).
+- [ ] Day/night: 8-minute day; sunset colours, moonlight, headlights and eye glow
+      at night; the clearing charger fills fastest at noon.
+- [ ] Forest: the six parts still at the dead ends; brambles say "thorns" to the
+      smasher; Cutter needs servo + gear train + blade strip (2 scrap) + power cell;
+      cutting the brambles reveals the pocket charger.
+- [ ] Hill → Hub: the city is on a flat pad, the hill's north face is 37°.
+- [ ] Hub: rubble (4 smashes) → gate key → west gate → relay card → tower door →
+      "The relay" card. Do the walls/buildings read as a city? Does it feel sealed?
+- [ ] Performance: F4 at perf_4 (pines, 10, −23, E), perf_5 (stream by the Giant,
+      −8, −44, W), in the Hub avenue looking north, and at night in the forest.
+      Perf pass 1 (render scale 0.8, 2048 shadows, 30 m, LOD bias) is unmeasured.
+- [ ] Anything that looks wrong: say where (coordinates) and what.
 
-## 1b. Cloud handover
-- [x] `CLAUDE.md` (rules + workflow), test scripts in `tools/`, `tools/cloud_setup.sh`, all committed.
-- [ ] First cloud session: `bash tools/cloud_setup.sh`, then `python3 tools/forest_verify.py`.
+## 0a. Windows release (Robots Beta)
+- [ ] Owner: export `Robots Beta.exe` (`docs/windows_release.md`), run it once
+      outside the editor, share with testers.
 
-## 2. Known placeholders
-- Fallen Giant (primitive machine), Ruin Fragment (medieval kit pieces), brambles
-  (bushes + invisible box), collectibles (spinning gears, no inventory).
-- Brambles: future gameplay — craft a cutter to open the stream's east end.
+## 0b. Apple release (Robots Beta)
+- [ ] Owner: on a Mac, follow `docs/apple_release.md` (TestFlight). Needs an Apple
+      developer account, Xcode, certificates, a provisioning profile.
+- [ ] Decide: iPhone/iPad too? Needs touch controls first.
 
-## 4. Textures
-- [ ] Owner is collecting more Poly Haven sets in `C:\projects\Global_assets\polyhaven`.
-      Current: forest_ground_06 (base under trees), dirt_floor (path),
-      brown_mud_leaves_01 (path edges / wet dips), roots (around trunks).
-- [ ] Still wanted: mossy/meadow ground for the hill + city; rock for steep slopes.
-- [ ] Approve: Claude extracts from the zips into `assets/polyhaven/`, converting
-      colour/ARM/displacement to JPG and keeping normals PNG (~35 MB/set instead of 70).
-- [ ] Terrain shader with painterly stylisation sliders (colour banding, palette
-      remap, detail softening, optional brush pattern).
-- [ ] New "Ground" sheet in the level map (G grass, D dirt, M mud, L leaves) +
-      automatic rules (path → dirt/leaves, slopes → dirt/rock, under trees → litter).
+## 1. Known rough edges (fix after the playtest, in this order)
+- Placeholder art everywhere new: tool heads, relay tower, gates, the Fallen
+  Giant, the robot. Real kits need the owner's push (sandbox reaches GitHub only).
+- The two house crates are not smashable (scrap only comes from the door and
+  rubble); consider making crates Breakables that drop scrap.
+- Story text is placeholder; ids in `scripts/game/story.gd` are what the code uses.
+- Debug overlay (F2) and HUD may overlap at the top-right; move one if so.
+- Save: a single autosave; a save written by a future version is ignored
+  (`SAVE_VERSION` in game.gd) — bump it when the format changes.
 
-## 5. Look and feel
-- [ ] Grass cards: batched in chunks, wind sway, colour taken from the ground below.
-- [ ] Revamp tree models — current forest looks too homogeneous; consider the
-      painterly-canopy technique (leaf cards + sphere-like shading).
-- [ ] Colour grade / post effects once the above exist (watch integrated-GPU cost).
+## 2. Next sprint candidates (owner picks)
+- **The relay tower as dungeon 1** (interior, sealed shell, a puzzle, the first
+  NPC robot / consciousness-copy story beat).
+- **More tools** on the framework: hover/fly (energy per second while airborne),
+  laser (ranged "burn"), matter generation (turn scrap into parts). Each is a
+  Catalog entry + one effect in `tool_rig.gd` / a `Breakable` effect name.
+- **Charger upgrades** (capacity, panel tilt/size) and a solar readout on the HUD.
+- **Combat** prototype: robot vs robot, turn-based (Stick of Truth / Clair Obscur).
+- **Cuttable trees** (owner decision which), dead-end props (spring pipe, hatch).
+- **The zombie Easter egg** (annoy it → shrunk for two days).
+- More Hub districts: each new `<name>_design.json` unlocks from the Hub.
 
-## 6. Pipeline / tech
-- [ ] Name trees by cell (e.g. `Tree_-9_-21`) so names survive rebuilds — needed
-      before saved games or cuttable trees.
-- [ ] Top-down level image for Claude to check layouts — needs a rendered (windowed)
-      run, so only with the owner's permission each time.
+## 3. Performance (still the open problem until measured)
+- Perf pass 1 applied (project.godot, world.tscn, solid_tree.gd). Next levers if
+  needed: fewer individual trees (`INDIVIDUAL_REACH` 3.0 → 1.5 in forest_build.py,
+  needs a re-bake), thinner pine leaf cards, sparser pines on paths.
+- Watch draw calls in the Hub: 118 wall pieces are 118 draws; merge them into
+  chunks like trees if F4 says so.
 
-## 7. Owner decisions (vision)
-- [ ] Which trees can be cut / smashed (tool-gated? dead trees only?).
-- [ ] Scope: aim for a ~20-minute vertical slice first (areas 1–3, energy loop, one tool, one craft)?
-- [ ] Zombies vs. corrupted machines / overgrowth creatures.
-- [ ] Energy/solar charging as the core loop?
-- [ ] Confirm the coordinate language works → Claude adds it to `CLAUDE_NOTES.md`.
+## 4. Textures / look (unchanged from before the sprint)
+- Owner collecting Poly Haven sets locally; wanted: mossy meadow ground,
+  rock for slopes. Approve extraction to `assets/polyhaven/`.
+- Grass cards, tree revamp, colour grade — after performance is known.
+
+## 5. Owner decisions (vision)
+- [ ] The diegetic reason robot consciousness can be copied at a charger (the save).
+- [ ] Which trees can be cut / smashed.
+- [ ] Zombie details; combat system reference.
+- [ ] Names: Delphi (the Hub), Talos (the giant), the hearth (chargers) are placeholders.

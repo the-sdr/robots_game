@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c2l3yi6u6d1m8"
 path.s3tc="res://.godot/imported/T_Trim_BaseColor.png-f9b5d74ad2ff58fed9ce47cbd81e0d85.s3tc.ctex"
+path.etc2="res://.godot/imported/T_Trim_BaseColor.png-f9b5d74ad2ff58fed9ce47cbd81e0d85.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/quaternius_city/T_Trim_BaseColor.png"
-dest_files=["res://.godot/imported/T_Trim_BaseColor.png-f9b5d74ad2ff58fed9ce47cbd81e0d85.s3tc.ctex"]
+dest_files=["res://.godot/imported/T_Trim_BaseColor.png-f9b5d74ad2ff58fed9ce47cbd81e0d85.s3tc.ctex", "res://.godot/imported/T_Trim_BaseColor.png-f9b5d74ad2ff58fed9ce47cbd81e0d85.etc2.ctex"]
 
 [params]
 

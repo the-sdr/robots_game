@@ -35,7 +35,7 @@ var _perf_time_left := 0.0
 
 func _ready() -> void:
 	panel.visible = false
-	add_to_group("hud")   # anything can call_group("hud", "show_notice", text)
+	# Debug overlay only; gameplay notices go to the HUD (group "hud").
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_coords"):
