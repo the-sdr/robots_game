@@ -37,11 +37,23 @@ Also read before substantial work:
 9. **Commit/push only when the owner asks.** End commit messages with the
    attribution line the environment provides.
 
-## The owner's machine and targets
-- Lenovo Windows laptop with an **Intel i3 CPU** and **Intel UHD integrated
+## The owner's machines and targets
+The owner works on **two Windows machines**; check which one before talking
+about paths or performance (`$env:PROCESSOR_ARCHITECTURE`: AMD64 = laptop,
+ARM64 = Surface).
+- **Laptop** — Lenovo, x64, **Intel i3 CPU** and **Intel UHD integrated
   graphics**: CPU-bound as much as GPU-bound. Watch draw calls, node counts
-  and per-frame script cost, not only triangles. Target **25 FPS** there.
-- Godot 4.7.2 at `C:\Godot_v4.7.2-stable_win64.exe\` (local sessions only).
+  and per-frame script cost, not only triangles. Target **25 FPS** there
+  (the weakest machine sets the bar). Godot 4.7.2 at
+  `C:\Godot_v4.7.2-stable_win64.exe\`.
+- **Surface Pro** (12", Snapdragon X Plus, 16 GB) — ARM64, **Adreno X1-45**
+  (shared memory, native Vulkan + D3D12 drivers, no native OpenGL), screen
+  2196 × 1464 @ 60 Hz. Godot 4.7.2 **native ARM64** at
+  `C:\Godot_v4.7.2-stable_windows_arm64\` (`..._console.exe` for logs).
+  Performance here is not yet measured — don't assume laptop numbers apply.
+  If Vulkan misbehaves, try `--rendering-driver d3d12` (per-run, not a
+  renderer switch).
+- Record which machine each F4 capture came from in `playtest/perf.md`.
 - In the cloud: run `bash tools/cloud_setup.sh` once (Python packages + Linux
   Godot for headless baking/tests). If Godot can't be downloaded, the Python
   tools still work; say so and let the owner bake locally.

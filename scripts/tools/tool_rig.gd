@@ -6,7 +6,10 @@ extends Node3D
 # Catalog entry; nothing here needs to change for smash/cut variants. Other
 # effect families (hover, laser, matter generation) plug in via `_special`.
 
-const HIT_RADIUS := 0.55
+## Hit volume: a box from the robot's centre out to the tool's reach, this wide
+## and tall. (A ball centred ahead missed a door the robot was pressed against.)
+const HIT_WIDTH := 1.1
+const HIT_HEIGHT := 1.3
 const DRY_SWING_COST_FRACTION := 0.25
 
 @onready var player: CharacterBody3D = owner as CharacterBody3D
@@ -17,11 +20,10 @@ var tool_id := ""
 var _head: Node3D
 var _cooldown_left := 0.0
 var _swing_tween: Tween
-var _hit_shape := SphereShape3D.new()
+var _hit_shape := BoxShape3D.new()
 var _flash: OmniLight3D
 
 func _ready() -> void:
-	_hit_shape.radius = HIT_RADIUS
 	_flash = OmniLight3D.new()
 	_flash.light_energy = 0.0
 	_flash.omni_range = 3.0
@@ -93,9 +95,12 @@ func use() -> bool:
 
 func _find_target(reach: float) -> Breakable:
 	var forward: Vector3 = -visual.global_transform.basis.z
+	forward.y = 0.0
+	forward = forward.normalized()
+	_hit_shape.size = Vector3(HIT_WIDTH, HIT_HEIGHT, reach)
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = _hit_shape
-	query.transform = Transform3D(Basis(), player.global_position + Vector3(0, 0.6, 0) + forward * (reach * 0.65))
+	query.transform = Transform3D(Basis.looking_at(forward, Vector3.UP), player.global_position + Vector3(0, 0.6, 0) + forward * (reach * 0.5))
 	query.collide_with_areas = false
 	query.exclude = [player.get_rid()]
 	var best: Breakable = null

@@ -227,6 +227,8 @@ func _initialize() -> void:
 	player.set_physics_process(false)
 	var door: StaticBody3D = world.get_node("HouseDoor")
 	check(door != null and is_instance_valid(door), "door present on a new game")
+	var cut: int = world.get_node("House").get("door_triangles_removed")
+	check(cut > 100, "house model's own door slab cut out of the doorway (%d triangles)" % cut)
 	player.global_position = Vector3(0.0, 0.1, -6.0)
 	var blocked := await drive_to(player, Vector2(0.0, -9.5), 240)
 	check(not blocked and player.global_position.z > -7.6, "door blocks the way out (z %.2f)" % player.global_position.z)
@@ -240,7 +242,7 @@ func _initialize() -> void:
 	check(Game.count("hammer_head") == 1 and Game.count("actuator_arm") == 1, "both smasher parts found in the house")
 	check(Game.craft("smasher"), "smasher built from them (anywhere)")
 	await process_frame
-	player.global_position = Vector3(0.0, 0.1, -6.4)
+	player.global_position = Vector3(0.0, 0.1, -7.2)    # pressed against the door (owner's save_4)
 	player.get_node("Visual").global_rotation.y = 0.0    # Visual -Z = north; the door wall is the north wall (z -7.74)
 	for i in 3:
 		await physics_frame

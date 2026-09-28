@@ -324,10 +324,32 @@ independent so they land in any order. Owner decisions:
   preset sets the custom tag `robots_beta` so the editor keeps its own name
   and user folder. See `docs/windows_release.md`.
 
+- **The house model (`1Story.fbx`) has its own door.** A slab in the north
+  doorway, just inside `HouseDoor` (z −7.74), hid the smashable door from
+  inside: smashing looked like nothing happened and the "door" stayed after
+  it broke. `scripts/house_setup.gd` cuts it out of the mesh on load
+  (`BUILT_IN_DOOR` box; systems_test checks the count). Imported buildings
+  can carry doors, glass or props — check the mesh before layering gameplay
+  objects over them.
+- **Tool hits use a box from the robot out to the tool's reach.** The old ball
+  centred ahead missed anything the robot was pressed against (a door at
+  arm's length took no hits). The house test now swings from flush (z −7.2).
+- **Never commit `.import` files or `project.godot` from the Surface.** The
+  ARM64 Windows editor re-imports textures as ETC2/ASTC only and drops the
+  desktop `s3tc` format the x64 exe needs; it also reorders `project.godot`.
+  Commit those only from the laptop or the cloud.
+
 ## Session log
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-09-28 (local, Surface Pro)** — first session on the owner's second
+  machine (ARM64, Adreno X1-45; native ARM64 Godot 4.7.2). Merged the cloud
+  sprint branch to `main` (PR #1). Fixed the house door: cut the model's
+  built-in door slab, box-shaped tool hits. perf_10 (12 FPS, door looking
+  north) / perf_11 (36 FPS, doorway looking into the house) are Surface
+  captures. Released v0.1.1-beta.
 
 - **2026-09-27 (cloud, sprint 1)** — `session_01XVn1FgoerKkQG5JNTTccvE`.
   First cloud session: Godot 4.7.2 runs headless here; setup script fixed;
