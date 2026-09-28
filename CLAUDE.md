@@ -34,7 +34,10 @@ Also read before substantial work:
    outcomes faithfully, including failures.
 8. **Don't switch renderers** (`project.godot`) without the owner agreeing to
    test it. Renderer is **Mobile** (Forward+ hung the owner's laptop).
-9. **Commit/push only when the owner asks.** End commit messages with the
+9. **Standing permission to commit and push to the working branch** — no need
+   to ask first. After each one, give a brief plain-language summary of what
+   was committed and why. Merging into `main`, force-pushing, and deleting
+   branches still need the owner's go-ahead. End commit messages with the
    attribution line the environment provides.
 
 ## The owner's machines and targets
