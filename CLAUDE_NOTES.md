@@ -308,6 +308,14 @@ independent so they land in any order. Owner decisions:
   (z −7.74); the charger corner (−1.6, −3.2) is the south-west corner. "Into the
   room" from there is (+X, −Z).
 
+- **Apple exports:** universal/arm64 macOS exports refuse to run unless
+  `rendering/textures/vram_compression/import_etc2_astc` is on (one-time
+  re-import of every texture). Export templates live outside the project
+  (`~/.local/share/godot/export_templates/4.7.2.stable`, 2 GB) and must be
+  downloaded per machine. The cloud can build and verify the `.app` (boot the
+  `.pck` with `--main-pack`), but signing/upload is Mac-only: see
+  `docs/apple_release.md`. "Beta" apps go to TestFlight, not the App Store.
+
 ## Session log
 
 Newest first. Session ID links follow the

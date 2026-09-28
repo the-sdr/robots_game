@@ -90,7 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 	if event.is_action_pressed("zoom_out"):
 		target_zoom = clamp(target_zoom + ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
-	if event.is_action_pressed("toggle_god_mode"):
+	if event.is_action_pressed("toggle_god_mode") and OS.is_debug_build():   # debug/editor only, never in a release build
 		god_mode = not god_mode
 		if not god_mode:
 			_set_flying(false)

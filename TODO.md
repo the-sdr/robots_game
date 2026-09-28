@@ -26,6 +26,11 @@ coordinates and F4 perf logs as before. Checklist:
       Perf pass 1 (render scale 0.8, 2048 shadows, 30 m, LOD bias) is unmeasured.
 - [ ] Anything that looks wrong: say where (coordinates) and what.
 
+## 0b. Apple release (Robots Beta)
+- [ ] Owner: on a Mac, follow `docs/apple_release.md` (TestFlight). Needs an Apple
+      developer account, Xcode, certificates, a provisioning profile.
+- [ ] Decide: iPhone/iPad too? Needs touch controls first.
+
 ## 1. Known rough edges (fix after the playtest, in this order)
 - Placeholder art everywhere new: tool heads, relay tower, gates, the Fallen
   Giant, the robot. Real kits need the owner's push (sandbox reaches GitHub only).

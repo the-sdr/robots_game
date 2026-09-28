@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Robots_game_godotfile"
+config/name.macos="Robots Beta"
+config/name.ios="Robots Beta"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
+config/macos_native_icon=""
+config/version="0.1.0"
 
 [autoload]
 
@@ -157,4 +161,5 @@ renderer/rendering_method="mobile"
 lights_and_shadows/directional_shadow/size=2048
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=0
 textures/default_filters/anisotropic_filtering_level=1
+textures/vram_compression/import_etc2_astc=true
 scaling_3d/scale=0.8
