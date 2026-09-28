@@ -1,0 +1,67 @@
+# Builds Robots Beta for Windows and publishes it as a GitHub release.
+# Trigger: push a tag starting with "v", e.g.
+#   git tag v0.1.1-beta && git push origin v0.1.1-beta
+# Release notes come from docs/release_notes/<tag>.md if it exists.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot and export templates
+        run: |
+          set -euo pipefail
+          V="$GODOT_VERSION"
+          curl -fsSL --retry 3 -o godot.zip "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv "Godot_v${V}-stable_linux.x86_64" /usr/local/bin/godot
+          T="$HOME/.local/share/godot/export_templates/${V}.stable"
+          mkdir -p "$T"
+          curl -fsSL --retry 3 -o templates.tpz "https://github.com/godotengine/godot/releases/download/${V}-stable/Godot_v${V}-stable_export_templates.tpz"
+          unzip -q templates.tpz
+          mv templates/windows_* templates/version.txt "$T"/
+          rm -rf templates templates.tpz godot.zip
+          godot --version
+
+      - name: Import the project
+        run: godot --headless --editor --path . --quit || true
+
+      - name: Export the Windows exe
+        run: |
+          set -euo pipefail
+          mkdir -p build/windows
+          godot --headless --path . --export-release "Robots Beta (Windows)" "build/windows/Robots Beta.exe"
+          test -s "build/windows/Robots Beta.exe"
+          ls -la build/windows
+
+      - name: Check the exe's game data boots
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/empty && cd /tmp/empty
+          godot --headless --main-pack "$GITHUB_WORKSPACE/build/windows/Robots Beta.exe" -s "$GITHUB_WORKSPACE/tools/export_check.gd" | tee check.log
+          grep -q "EXPORT CHECK: OK" check.log
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          ASSET="Robots_Beta_${TAG}_Windows.exe"
+          mv "build/windows/Robots Beta.exe" "$ASSET"
+          NOTES="docs/release_notes/${TAG}.md"
+          [ -f "$NOTES" ] || NOTES="docs/windows_release.md"
+          gh release create "$TAG" "$ASSET" --title "Robots Beta ${TAG}" --notes-file "$NOTES" --prerelease
