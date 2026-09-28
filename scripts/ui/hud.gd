@@ -12,6 +12,9 @@ const MESSAGE_SECONDS := 7.0
 @onready var battery_label: Label = %BatteryLabel
 @onready var clock_label: Label = %ClockLabel
 @onready var curse_label: Label = %CurseLabel
+@onready var sun_icon: Control = %SunIcon
+@onready var solar_label: Label = %SolarLabel
+@onready var charger_label: Label = %ChargerLabel
 @onready var tool_label: Label = %ToolLabel
 @onready var prompt_panel: PanelContainer = %PromptPanel
 @onready var prompt_label: Label = %PromptLabel
@@ -38,6 +41,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	clock_label.text = "Day %d  %s" % [Clock.day, Clock.time_text()]
+	_update_solar()
 	var tiny_left: float = Game.tiny_days_left()
 	curse_label.visible = tiny_left > 0.0
 	if curse_label.visible:
@@ -54,6 +58,48 @@ func _process(delta: float) -> void:
 		_message_time -= delta
 		if _message_time <= 0.0:
 			message_panel.visible = false
+
+## The solar readout: how much sun a panel gets right now, and the charger you
+## rely on (the one you're docked at, else the last one you docked at, else home):
+## its charge and how fast the sun is filling it.
+func _update_solar() -> void:
+	var day := Clock.is_day()
+	var light := Clock.sunlight()
+	sun_icon.set("level", light)
+	sun_icon.set("night", not day)
+	sun_icon.queue_redraw()
+	solar_label.text = "Sun %d%%" % roundi(light * 100.0) if day else "Night: no sun"
+	var charger := readout_charger()
+	charger_label.visible = charger != null
+	if charger == null:
+		return
+	var cap: float = charger.effective_capacity()
+	var rate: String
+	if charger.docked_player != null:
+		rate = "charging you"
+	elif charger.fill_rate() > 0.005:
+		rate = "+%.2f/s" % charger.fill_rate()
+	else:
+		rate = "not filling"
+	charger_label.text = "%s %d%%  %s" % [charger_title(charger.name), roundi(charger.stored / cap * 100.0), rate]
+
+func readout_charger() -> Node:
+	var chargers := get_tree().get_nodes_in_group("charger")
+	var wanted := String(Game.data.get("last_charger", ""))
+	var home: Node = null
+	for c in chargers:
+		if c.docked_player != null:
+			return c
+	for c in chargers:
+		if c.name == wanted:
+			return c
+		if c.get("is_home"):
+			home = c
+	return home
+
+## "HouseCharger" -> "House charger".
+static func charger_title(node_name: String) -> String:
+	return node_name.replace("Charger", " charger").strip_edges()
 
 func _on_energy_changed(current: float, maximum: float) -> void:
 	battery_bar.max_value = maximum

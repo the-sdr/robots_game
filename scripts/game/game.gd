@@ -162,9 +162,22 @@ func craft_blocker(recipe_id: String) -> String:
 		return "Not understood yet"
 	if recipe.has("tool") and has_tool(recipe["tool"]):
 		return "Already built"
+	if recipe.has("upgrade"):
+		var charger := docked_charger()
+		if charger == null:
+			return "Dock at a charger first"
+		if charger.has_upgrade(recipe["upgrade"]):
+			return "Already fitted"
 	if not has_items(recipe["needs"]):
 		return "Missing parts"
 	return ""
+
+## The charger the robot is docked at (charger upgrades go on it), or null.
+func docked_charger() -> Node:
+	for c in get_tree().get_nodes_in_group("charger"):
+		if c.get("docked_player") != null:
+			return c
+	return null
 
 func craft(recipe_id: String) -> bool:
 	if craft_blocker(recipe_id) != "":
@@ -174,6 +187,8 @@ func craft(recipe_id: String) -> bool:
 		remove_item(id, int(recipe["needs"][id]))
 	if recipe.has("tool"):
 		add_tool(recipe["tool"])
+	if recipe.has("upgrade"):
+		docked_charger().add_upgrade(recipe["upgrade"])
 	for id in recipe.get("gives", {}):
 		add_item(id, int(recipe["gives"][id]))
 	return true

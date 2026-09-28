@@ -32,7 +32,13 @@ headless tests pass; pull the branch to playtest any of them.
       sits beside the path. On Medium/Hard losing rolls you back down the hill.
       Is Easy easy enough for a six-year-old? Is the camera framing OK? Laser:
       does the beam read? (Nothing burnable yet: vines come with the Agora.)
-- [ ] Phase 5: charger upgrades, solar HUD, segmented charge bar.
+- [x] Phase 5: charger upgrades, solar HUD, segmented charge bar. **Playtest:**
+      each charger's post now has five glowing rings (the filling one blinks).
+      Top-left HUD: a sun (moon at night) with "Sun NN%", and your charger's
+      charge and fill rate. Dock, then Tab: "Battery bank" (capacitor from the
+      sentry), "Sun tracker" (from the crooked house's mouse hole) and "Panel
+      extension" (2 solar cells: one on the crooked house shelf, the second
+      comes with the relay vault) fit to that charger and show on it.
 - [ ] Phase 6: opening cutscene.
 - [ ] Phase 7: relay vault dungeon, Pythia, hover.
 - [ ] Phase 8: the Agora district, fabricator.

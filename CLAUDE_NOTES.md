@@ -107,6 +107,14 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   trigger covers the crest (0, −86). Beaten → flag `defeated:hill_sentry`,
   capacitor, sits by the path. The drive test sets that flag first so routes
   over the crest don't start a fight.
+- **Chargers (sprint 2)**: `charger.gd` adds upgrades ("panel" ×1.5 fill,
+  "tracker" = full light whenever the sun is up + the panel turns to it,
+  "battery" +60 capacity), fitted while docked via Catalog recipes with
+  `"upgrade"` (Game.craft_blocker: "Dock at a charger first" / "Already
+  fitted"); saved in `save_state()`. Use `effective_capacity()` /
+  `effective_rate()` / `fill_rate()`, not the raw exports. The post has a
+  5-ring charge bar (`bar_state()` = [lit, blinking]); the HUD shows sunlight
+  and the relied-on charger (docked → last docked → home) with its fill rate.
 - **Laser**: ranged tool (`"ranged": true`): nearest `apply()` body in a long
   aim box with a clear line of sight; burns `Breakable` effect "burn".
 - **Part models (sprint 2)**: `tools/item_models_bake.gd` builds one small model

@@ -256,6 +256,54 @@ func _initialize() -> void:
 		await process_frame
 	check(player.headlight.light_energy < 0.1, "headlights off at noon")
 
+	print("== chargers: charge bar, upgrades, solar readout")
+	var hud_c: CanvasLayer = world.get_node("HUD")
+	charger.undock()
+	check(Game.craft_blocker("battery_bank") == "Dock at a charger first", "charger upgrades need a dock")
+	charger.stored = charger.effective_capacity() * 0.1
+	check(str(charger.bar_state()) == str([0, 0]), "nearly empty: the first ring blinks (%s)" % [charger.bar_state()])
+	charger.stored = charger.effective_capacity() * 0.5
+	check(str(charger.bar_state()) == str([2, 2]), "half full: two rings lit, the third blinking (%s)" % [charger.bar_state()])
+	charger.stored = charger.effective_capacity()
+	for i in 2:
+		await process_frame
+	var top_ring: MeshInstance3D = charger.get_node("BarSegment4")
+	check(str(charger.bar_state()) == str([5, -1]) and (top_ring.material_override as StandardMaterial3D).emission_energy_multiplier > 1.0, "full: all five rings glow")
+	Energy.current = 50.0
+	charger.dock(player)
+	Game.add_item("capacitor")
+	Game.add_item("solar_cell", 2)
+	Game.add_item("sun_tracker")
+	check(Game.craft_blocker("battery_bank") == "", "docked: the battery bank can be fitted")
+	check(Game.craft("battery_bank") and charger.effective_capacity() == 180.0 and charger.has_node("Upgrade_battery"), "battery bank: holds 60 more, and shows on the charger")
+	check(Game.craft_blocker("battery_bank") == "Already fitted", "only one per charger")
+	Clock.time = 0.5
+	var flat_rate: float = charger.fill_rate()
+	check(Game.craft("panel_extension") and absf(charger.fill_rate() - flat_rate * 1.5) < 0.001 and charger.has_node("PanelMesh/Upgrade_panel"), "panel extension: fills half again as fast")
+	Clock.time = 0.28
+	var before_tracker: float = charger.sun_factor()
+	check(Game.craft("fit_sun_tracker") and charger.sun_factor() > before_tracker + 0.3, "sun tracker: full light in the early morning (%.2f -> %.2f)" % [before_tracker, charger.sun_factor()])
+	var fresh: Node = load("res://scenes/props/charging_station.tscn").instantiate()
+	world.add_child(fresh)
+	fresh.load_state(charger.save_state())
+	check(fresh.effective_capacity() == 180.0 and fresh.has_upgrade("panel") and fresh.has_upgrade("tracker"), "upgrades are saved and loaded with the charger")
+	fresh.free()
+	Clock.time = 0.5
+	for i in 3:
+		await process_frame
+	check(hud_c.solar_label.text.begins_with("Sun ") and hud_c.charger_label.text.begins_with("House charger") and hud_c.charger_label.text.ends_with("charging you"),
+		"HUD: sunlight and the docked charger (%s | %s)" % [hud_c.solar_label.text, hud_c.charger_label.text])
+	charger.undock()
+	charger.stored = 20.0
+	for i in 3:
+		await process_frame
+	check(hud_c.charger_label.text.contains("+"), "HUD: the charger's fill rate when not docked (%s)" % hud_c.charger_label.text)
+	Clock.time = 0.0
+	for i in 3:
+		await process_frame
+	check(hud_c.solar_label.text.begins_with("Night") and hud_c.charger_label.text.ends_with("not filling"), "HUD at night: no sun, not filling")
+	Clock.time = 0.5
+
 	print("== tools and breakables")
 	Game.new_game()
 	Game.add_tool("smasher")
