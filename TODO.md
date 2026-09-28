@@ -4,7 +4,8 @@
 1. Open `playtest/sprint2_feedback.md`. If the owner hasn't filled it in, go
    through it with them one question at a time (most important first) and
    write each answer on its `Answer:` line. Also read new entries in
-   `playtest/perf.md` / `playtest/saves.md` (F4/F3) and note the machine.
+   `playtest/perf.md` / `playtest/saves.md` (F4/F3), **including their
+   `Note:` lines** (the owner's typed feedback), and note the machine.
 2. List the bugs and wanted changes from the answers here, most serious first,
    and confirm the order with the owner before fixing.
 3. Work on `claude/sync-local-fixes-b85lpn` (playtests run from it until the

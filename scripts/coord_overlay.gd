@@ -12,6 +12,11 @@ extends CanvasLayer
 # times, draw calls and triangles to PERF_FILE as perf_1, perf_2, ...
 # Numbering continues from the highest entry already in each file.
 #
+# Both then pause the game and ask for a playtest note (Enter = log it with
+# the note, Esc = log it without). The note is written on its own line under
+# the entry, so feedback is read from these files instead of pasted into chat.
+# F4 measures first and asks afterwards: an open text box would skew the numbers.
+#
 # While the player's god mode (F7) is on, a status line is shown as well.
 
 const DIRECTIONS: Array[String] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
@@ -23,6 +28,10 @@ const PERF_SECONDS := 5.0
 @onready var panel: PanelContainer = $Panel
 @onready var label: Label = $Panel/Label
 
+## Folder the logs go in. Empty = res:// in the editor, user:// in an export
+## (res:// is read-only there). Tests point it elsewhere.
+var log_root := ""
+
 var _player: Node3D
 var _player_visual: Node3D
 var _pinned_visible := false
@@ -33,11 +42,33 @@ var _frame_ms := 16.7
 var _perf_samples: Array[Dictionary] = []
 var _perf_time_left := 0.0
 
+var _note_box: PanelContainer
+var _note_title: Label
+var _note_edit: LineEdit
+var _pending: Dictionary = {}          # the entry waiting for its note
+var _was_paused := false
+var _old_mouse_mode := Input.MOUSE_MODE_CAPTURED
+
 func _ready() -> void:
 	panel.visible = false
 	# Debug overlay only; gameplay notices go to the HUD (group "hud").
+	# Always processing so the note box works while the game is paused for it;
+	# _process and the F-keys below still stop while anything else pauses.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_build_note_box()
+
+func note_open() -> bool:
+	return _note_box.visible
+
+# _input, before the text box: a LineEdit may keep Esc for itself.
+func _input(event: InputEvent) -> void:
+	if note_open() and event.is_action_pressed("ui_cancel"):
+		_finish_note("")
+		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if note_open() or get_tree().paused:
+		return
 	if event.is_action_pressed("toggle_coords"):
 		_pinned_visible = not _pinned_visible
 	if event.is_action_pressed("save_position"):
@@ -47,6 +78,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_perf_time_left = PERF_SECONDS
 
 func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
 	_frame_ms = lerpf(_frame_ms, delta * 1000.0, 0.1)
 	if _perf_time_left > 0.0:
 		_sample_performance(delta)
@@ -101,10 +134,11 @@ func _save_position() -> void:
 	if not _find_player():
 		return
 	var details: String = "  ".join(_describe_position()) + "  FPS %d" % roundi(1000.0 / maxf(_frame_ms, 0.1))
-	var entry := _append_entry(SAVE_FILE, "save",
-		"# Playtest saves (F3). North = -Z, East = +X. Headings clockwise from North.", details)
-	if entry != "":
-		show_notice("Saved %s" % entry)
+	_ask_note({
+		"file": SAVE_FILE, "prefix": "save", "details": details, "notice": "Saved %s",
+		"header": "# Playtest saves (F3). North = -Z, East = +X. Headings clockwise from North.",
+		"title": "%s at X %.1f  Z %.1f: what's here?",
+	})
 
 func _sample_performance(delta: float) -> void:
 	_perf_samples.append({
@@ -130,22 +164,100 @@ func _sample_performance(delta: float) -> void:
 		objects += s["objects"]
 	var n := float(_perf_samples.size())
 	var avg := total / n
-	var details := "avg %.1f ms (%d FPS), worst %.1f ms, draw calls %d, triangles %.2fM, objects %d, %s  —  %s" % [
-		avg, roundi(1000.0 / avg), worst, roundi(draw_calls / n), triangles / n / 1e6, roundi(objects / n),
-		RenderingServer.get_current_rendering_method(), "  ".join(_describe_position())]
-	var entry := _append_entry(PERF_FILE, "perf",
-		"# Performance logs (F4): %d s averages. North = -Z, East = +X." % int(PERF_SECONDS), details)
-	if entry != "":
-		show_notice("Logged %s: %d FPS" % [entry, roundi(1000.0 / avg)])
+	var fps := roundi(1000.0 / avg)
+	# The machine goes in the line: x86_64 = the laptop, arm64 = the Surface.
+	var machine := "%s, %s, %s" % [Engine.get_architecture_name(), RenderingServer.get_video_adapter_name(),
+		RenderingServer.get_current_rendering_driver_name()]
+	var details := "avg %.1f ms (%d FPS), worst %.1f ms, draw calls %d, triangles %.2fM, objects %d, %s, %s  —  %s" % [
+		avg, fps, worst, roundi(draw_calls / n), triangles / n / 1e6, roundi(objects / n),
+		RenderingServer.get_current_rendering_method(), machine, "  ".join(_describe_position())]
+	_ask_note({
+		"file": PERF_FILE, "prefix": "perf", "details": details, "notice": "Logged %%s: %d FPS" % fps,
+		"header": "# Performance logs (F4): %d s averages. North = -Z, East = +X." % int(PERF_SECONDS),
+		"title": "%%s: %d FPS. What are you looking at?" % fps,
+	})
 
-# Appends "- **<prefix>_N** — time — details" to a log and returns the entry name.
-func _append_entry(relative_path: String, prefix: String, header: String, details: String) -> String:
+# Pauses the game and opens the note box for an entry; it is written by _finish_note.
+func _ask_note(entry: Dictionary) -> void:
+	_pending = entry
+	var entry_name := "%s_%d" % [entry["prefix"], _highest_number(_read_log(entry["file"]), entry["prefix"]) + 1]
+	var title: String = entry["title"]
+	if entry["prefix"] == "save":
+		title = title % [entry_name, _player.global_position.x, _player.global_position.z]
+	else:
+		title = title % entry_name
+	_note_title.text = title
+	_note_edit.clear()
+	_was_paused = get_tree().paused
+	_old_mouse_mode = Input.mouse_mode
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_note_box.visible = true
+	panel.visible = false
+	_note_edit.grab_focus()
+
+func _finish_note(note: String) -> void:
+	if not note_open():
+		return
+	_note_box.visible = false
+	get_tree().paused = _was_paused
+	Input.mouse_mode = _old_mouse_mode
+	var entry: Dictionary = _pending
+	_pending = {}
+	var written := _append_entry(entry["file"], entry["prefix"], entry["header"], entry["details"], note.strip_edges())
+	if written != "":
+		show_notice(String(entry["notice"]) % written)
+
+func _build_note_box() -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.85)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(12)
+	_note_box = PanelContainer.new()
+	_note_box.name = "NoteBox"
+	_note_box.add_theme_stylebox_override("panel", style)
+	_note_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 60)
+	_note_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_note_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_note_box.visible = false
+	var vbox := VBoxContainer.new()
+	_note_box.add_child(vbox)
+	_note_title = Label.new()
+	_note_title.add_theme_font_size_override("font_size", 18)
+	vbox.add_child(_note_title)
+	_note_edit = LineEdit.new()
+	_note_edit.custom_minimum_size = Vector2(720, 0)
+	_note_edit.placeholder_text = "Playtest note (optional)"
+	_note_edit.add_theme_font_size_override("font_size", 18)
+	_note_edit.text_submitted.connect(_finish_note)
+	# Clicking outside the box must not leave the keyboard nowhere.
+	_note_edit.focus_exited.connect(func() -> void:
+		if note_open():
+			_note_edit.grab_focus.call_deferred())
+	vbox.add_child(_note_edit)
+	var hint := Label.new()
+	hint.text = "Enter = save with note     Esc = save without note"
+	hint.add_theme_font_size_override("font_size", 13)
+	hint.modulate = Color(1, 1, 1, 0.7)
+	vbox.add_child(hint)
+	add_child(_note_box)
+
+func _log_path(relative_path: String) -> String:
+	if log_root != "":
+		return log_root.path_join(relative_path)
 	# res:// is only writable when running from the editor.
-	var path: String = ("res://" if OS.has_feature("editor") else "user://") + relative_path
+	return ("res://" if OS.has_feature("editor") else "user://") + relative_path
+
+func _read_log(relative_path: String) -> String:
+	var path := _log_path(relative_path)
+	return FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+
+# Appends "- **<prefix>_N** — time — details" (and an indented note line) to a
+# log and returns the entry name.
+func _append_entry(relative_path: String, prefix: String, header: String, details: String, note := "") -> String:
+	var path := _log_path(relative_path)
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
-	var existing := ""
-	if FileAccess.file_exists(path):
-		existing = FileAccess.get_file_as_string(path)
+	var existing := _read_log(relative_path)
 	var entry := "%s_%d" % [prefix, _highest_number(existing, prefix) + 1]
 	var file := FileAccess.open(path, FileAccess.READ_WRITE if existing != "" else FileAccess.WRITE)
 	if file == null:
@@ -156,16 +268,19 @@ func _append_entry(relative_path: String, prefix: String, header: String, detail
 		file.store_line("")
 	file.seek_end()
 	file.store_line("- **%s** — %s — %s" % [entry, Time.get_datetime_string_from_system(false, true), details])
+	if note != "":
+		file.store_line("  - **Note:** %s" % note)
 	file.close()
-	print("%s: %s" % [entry, details])
+	print("%s: %s%s" % [entry, details, ("  NOTE: " + note) if note != "" else ""])
 	return entry
 
 func show_notice(text: String) -> void:
 	_notice = text
 	_notice_time_left = NOTICE_SECONDS
 
+# Only the bold entry names count, so a note mentioning "save_12" can't skip numbers.
 func _highest_number(text: String, prefix: String) -> int:
-	var regex := RegEx.create_from_string(prefix + "_(\\d+)")
+	var regex := RegEx.create_from_string("\\*\\*" + prefix + "_(\\d+)\\*\\*")
 	var highest := 0
 	for found in regex.search_all(text):
 		highest = maxi(highest, found.get_string(1).to_int())

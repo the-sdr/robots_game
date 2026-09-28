@@ -942,6 +942,66 @@ func _initialize() -> void:
 			await process_frame
 		check(Game.beat_seen("wake"), "%s: then the wake-up message" % run)
 		world.free()
+
+	print("== playtest notes (F3 / F4 ask for a note)")
+	var log_dir := "res://.godot/test_playtest"
+	for f in ["playtest/saves.md", "playtest/perf.md"]:
+		if FileAccess.file_exists(log_dir.path_join(f)):
+			DirAccess.remove_absolute(log_dir.path_join(f))
+	var stand_in := Node3D.new()           # the overlay only needs a "player" to read a position from
+	stand_in.add_to_group("player")
+	root.add_child(stand_in)
+	stand_in.global_position = Vector3(4.0, 0.0, -20.0)
+	var overlay: CanvasLayer = load("res://scenes/ui/coord_overlay.tscn").instantiate()
+	overlay.log_root = log_dir
+	root.add_child(overlay)
+	await process_frame
+	var f3 := InputEventAction.new()
+	f3.action = "save_position"
+	f3.pressed = true
+	Input.parse_input_event(f3)
+	await process_frame
+	check(overlay.note_open() and paused, "F3 opens the note box and pauses the game")
+	var note_edit: LineEdit = overlay.get("_note_edit")
+	note_edit.text = "  a tree floats here, like save_99  "
+	note_edit.text_submitted.emit(note_edit.text)
+	var saves_text := FileAccess.get_file_as_string(log_dir.path_join("playtest/saves.md"))
+	check(not overlay.note_open() and not paused, "Enter closes the box and unpauses")
+	check(saves_text.contains("- **save_1** —") and saves_text.contains("X    +4.0") and saves_text.contains("\n  - **Note:** a tree floats here, like save_99\n"),
+		"the save and its trimmed note are on consecutive lines")
+	Input.parse_input_event(f3)
+	await process_frame
+	var esc := InputEventAction.new()
+	esc.action = "ui_cancel"
+	esc.pressed = true
+	Input.parse_input_event(esc)
+	await process_frame
+	saves_text = FileAccess.get_file_as_string(log_dir.path_join("playtest/saves.md"))
+	check(not overlay.note_open() and not paused and saves_text.contains("- **save_2** —"), "Esc still saves (save_2: a note naming save_99 doesn't skip numbers)")
+	check(saves_text.split("\n", false)[-1].begins_with("- **save_2**"), "Esc writes no note line")
+	paused = true
+	Input.parse_input_event(f3)
+	await process_frame
+	check(not overlay.note_open(), "F3 does nothing while the game is paused by a menu")
+	paused = false
+	var f4 := InputEventAction.new()
+	f4.action = "log_performance"
+	f4.pressed = true
+	Input.parse_input_event(f4)
+	await process_frame
+	check(not overlay.note_open(), "F4 measures first, no box yet")
+	var perf_frames := 0
+	while not overlay.note_open() and perf_frames < 60 * 8:
+		await process_frame
+		perf_frames += 1
+	check(overlay.note_open() and paused and perf_frames >= 60 * 4, "F4 asks for its note after the 5 s sample (%d frames)" % perf_frames)
+	note_edit.text = "fps drops by the ford"
+	note_edit.text_submitted.emit(note_edit.text)
+	var perf_text := FileAccess.get_file_as_string(log_dir.path_join("playtest/perf.md"))
+	check(perf_text.contains("- **perf_1** —") and perf_text.contains(Engine.get_architecture_name()) and perf_text.contains("\n  - **Note:** fps drops by the ford"),
+		"perf_1 carries the machine and the note")
+	overlay.free()
+	stand_in.free()
 	Game.delete_save()
 	print("RESULT: %s (%d failures)" % ["OK" if failures == 0 else "PROBLEMS FOUND", failures])
 	quit(0 if failures == 0 else 1)

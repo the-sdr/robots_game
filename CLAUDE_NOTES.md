@@ -21,6 +21,12 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   calls, triangles), F7 god mode — double-tap Space to fly (no collision),
   hold Space up / Shift down. Owner measures performance with F4 in their
   own playtests; Claude reads the file (no windowed runs by Claude).
+  **Playtest notes (2026-09-29):** F3 and F4 pause and open a text box
+  (Enter = log with note, Esc = log without; F4 asks after its 5 s sample).
+  The note is the indented `- **Note:**` line under its entry: that is the
+  owner's playtest feedback, read it from the files instead of asking for a
+  paste. F4 lines also carry the machine (x86_64 = laptop, arm64 = Surface),
+  GPU name and driver.
 - **Branch `wip/perf-pass` is superseded** (its MultiMesh batching saved empty;
   the forest rebuild does merged chunks instead) (batched
   interior trees, LOD bias 0.4, 2-cascade 50 m shadows). After it was baked
