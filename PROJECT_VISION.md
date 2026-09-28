@@ -6,6 +6,10 @@ This is the game's source of truth. It is owned and edited by the project owners
 
 **Robots** — an exploration game about a robot waking up in the remains of a failed civilization. Nature has reclaimed almost everything. The immediate goal is small and personal; what it's really about is larger and sadder.
 
+## Who it's for
+
+Robots is being made for the owner's six-year-old son. On Easy, everything must be playable and fun for a six-year-old: generous timing, clear prompts, nothing that punishes for long. Medium and Hard are there for older players.
+
 ## Original gameplay pillars
 
 From the initial project brief, still the long-term target:
@@ -23,6 +27,8 @@ The world is built as a sequence of enclosed spaces. The starting area/dungeon r
 
 1. **Area 1 — the house.** Enclosed interior. Player spawns here, facing a charging station (placeholder design, functionally and narratively important — this is the robot's actual origin point). One door out. Learn controls, feel contained, get bearings. 
 2. **Area 2 — the garden/forest maze (~3,000 m², about 48 × 62 m).** Immediately surrounding the house. Densely packed trees and strategically placed walls *are* the maze walls — not a separate structure — interwoven with a few reclaimed ancient wall fragments (ruins, vines draped over them) as curated accents, not a corridor system of their own. One single path winds through; everything else is sealed, sight and collision both. Ends at a modest raised vantage point (a small hill) framed by trees parting at the crest. Disorienting, exploration, slow reveal. Player feels lost but curious.
+   - **The crooked house** — a side branch off the garden near Area 1, to the south-west. An old, crooked house; inside lives the Angry Zombie. Annoy him and he casts the tiny curse: the robot is tiny for two days. Tiny robots fit through a mouse hole to a secret.
+   - **The hill sentry** — an enemy robot on top of the hill: the first fight, a tutorial. The Smasher and any tools built in the forest can be used in it.
 3. **Area 3 — the Hub.** The ruined city, revealed at the top of the hill and glimpsed beyond the tree line. Player feels reward from discovery. The Hub is the game's central district: from it, the further dungeons branch off. Parts of the Hub are locked at first and are unlocked by tools, crafted items or story progress, so each unlock opens the way to another dungeon. Each unlocked part plus its dungeon is roughly one sprint of work, which is how the project's scope is staged. Currently a distant skyline (non-walkable depth); the first walkable district is the vertical slice's end point.
 4. **Area 4+ — the town.** Content inside the buildings, more areas as part of the town to explore. Future state of multiple mini dungeons with story, characters and items for crafting.
 
@@ -43,6 +49,18 @@ It's deliberately **modular** — treads, torso, arms and head are separate part
 ## Curated over procedural
 
 Narrative-relevant structure (the maze path, points of interest, building placement) is hand-placed, not randomly generated — the world should feel designed, not scattered. Exception: sheer background *density* — filling a hand-defined area with thousands of trees/bushes so the forest reads as impenetrable — is generated (seeded/reproducible, not true randomness), since authoring that volume by hand isn't practical and it carries no narrative weight itself; the shape of the area it fills, what it excludes (buildings, the maze path), and the maze's actual walls/path are still hand-designed. Same logic covers cloud puffs. Deterministic *formulas* for placement (e.g. a tree ring computed from an angle, or a dense grid minus a path corridor) are treated as curated, since the shape is a deliberate design choice even though the math is automated — what's avoided is true randomness driving where meaningful content ends up.
+
+## Combat
+
+Turn-based robot fights with reactive defence and timing presses (Clair Obscur / Stick of Truth as references). The robot equips three of its tools for fights, each on its own key; holding a direction with the key picks a different move, so every tool has several moves. Easy, Medium and Hard change the timing windows and how hard enemies hit; on Easy a six-year-old wins without trouble.
+
+## Opening cutscene
+
+Made in the game engine with the game's own models. Establishing shot of the forest. Cut to the shed. A bird lands on top of a precarious fallen panel lying across the roof. It wobbles. Close-up of the bird; it takes off. The panel slides off, revealing a solar panel underneath. Cut to a close-up of the dock: a charging bar lights up and shows one segment blinking. Cut to an extreme close-up of the robot's face: an iris in its eye lens opens slightly. End of scene; the game starts.
+
+## Sprint 2 (planned 2026-09-28)
+
+The relay tower becomes the first dungeon, with the first NPC robot. New tools: laser, hover, matter generation. Charger upgrades and a solar readout. The combat system and the hill sentry. A second Hub district. Real models for collectible parts. The crooked house and the opening cutscene.
 
 ## Future plans / open ideas
 

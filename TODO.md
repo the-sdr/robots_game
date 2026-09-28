@@ -1,9 +1,28 @@
 # TODO — next session
 
+## Sprint 2 (cloud, started 2026-09-28) — branch `claude/sync-local-fixes-b85lpn`
+Plan approved by the owner: crooked house + Angry Zombie + tiny curse, the hill
+sentry tutorial fight (turn-based, 3-tool loadout), Easy/Medium/Hard, real part
+models, laser/hover/fabricator, charger upgrades + solar HUD, opening cutscene,
+relay vault dungeon + Pythia, the Agora district. Each phase is pushed when its
+headless tests pass; pull the branch to playtest any of them.
+
+- [x] Phase 0: vision wording added (owner-approved with the plan).
+- [x] Phase 1: difficulty setting. **Playtest:** main menu and pause menu show
+      "Difficulty: Easy"; clicking cycles Easy → Medium → Hard; it is remembered
+      after quitting. (It only matters once fights exist, phase 4.)
+- [ ] Phase 2: crooked house, Angry Zombie, tiny curse.
+- [ ] Phase 3: real collectible models.
+- [ ] Phase 4: combat, hill sentry, laser.
+- [ ] Phase 5: charger upgrades, solar HUD, segmented charge bar.
+- [ ] Phase 6: opening cutscene.
+- [ ] Phase 7: relay vault dungeon, Pythia, hover.
+- [ ] Phase 8: the Agora district, fabricator.
+
 Written 2026-09-27 at the end of sprint 1 (cloud). Newest priorities first.
 
 ## 0. Owner playtest of the vertical slice (nothing below moves until this)
-Pull `claude/godot-headless-setup-fdm8ay`, open in Godot 4.7.2, press Play
+The slice is on `main` (merged via PR #1). Open in Godot 4.7.2, press Play
 (main scene is now the menu). ~20 minutes. Please report with F2/F3
 coordinates and F4 perf logs as before. Checklist:
 - [ ] Menu: New game starts beside the house charger; Continue is greyed until a dock.

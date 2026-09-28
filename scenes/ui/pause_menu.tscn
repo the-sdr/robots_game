@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1"]
+
+[ext_resource type="Script" path="res://scripts/ui/difficulty_button.gd" id="2"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 20
@@ -32,6 +34,12 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 text = "Resume"
+
+[node name="DifficultyButton" type="Button" parent="Center/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Difficulty: Easy"
+script = ExtResource("2")
 
 [node name="MenuButton" type="Button" parent="Center/VBox"]
 unique_name_in_owner = true

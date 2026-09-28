@@ -53,6 +53,38 @@ func _initialize() -> void:
 		for field in ["name", "effect", "power", "energy", "range", "cooldown"]:
 			check(t.has(field), "tool %s has %s" % [tid, field])
 
+	print("== settings: difficulty")
+	var settings: Node = root.get_node("Settings")
+	var owner_level: String = settings.difficulty          # put back at the end of this section
+	for level in settings.LEVELS:
+		var t: Dictionary = settings.DIFFICULTY[level]
+		for field in ["name", "ring_speed", "good_window", "perfect_window", "miss_factor", "defend_window", "now_cue", "enemy_damage", "enemy_health", "tutorial_knockout"]:
+			check(t.has(field), "difficulty %s has %s" % [level, field])
+	var easy: Dictionary = settings.DIFFICULTY["easy"]
+	var medium: Dictionary = settings.DIFFICULTY["medium"]
+	var hard: Dictionary = settings.DIFFICULTY["hard"]
+	check(easy["good_window"] > medium["good_window"] and medium["good_window"] > hard["good_window"], "timing windows narrow from Easy to Hard")
+	check(easy["defend_window"] >= 0.5 and easy["ring_speed"] <= 0.5 and easy["miss_factor"] == 1.0, "Easy: slow ring, half-second dodge window, a missed press still hits")
+	check(not easy["tutorial_knockout"] and medium["tutorial_knockout"], "the tutorial fight can't be lost on Easy")
+	settings.set_difficulty("easy")
+	settings.next_difficulty()
+	check(settings.difficulty == "medium", "Easy -> Medium")
+	settings.next_difficulty()
+	settings.next_difficulty()
+	check(settings.difficulty == "easy", "Hard wraps back to Easy")
+	settings.set_difficulty("hard")
+	var stored := ConfigFile.new()
+	check(stored.load(settings.PATH) == OK and stored.get_value("game", "difficulty") == "hard", "difficulty saved to settings.cfg")
+	var menu: Control = load("res://scenes/ui/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	var diff_button: Button = menu.get_node("%DifficultyButton")
+	check(diff_button.text == "Difficulty: Hard", "main menu shows the difficulty (%s)" % diff_button.text)
+	diff_button.pressed.emit()
+	check(settings.difficulty == "easy" and diff_button.text == "Difficulty: Easy", "pressing it cycles to Easy")
+	menu.free()
+	settings.set_difficulty(owner_level)
+
 	print("== inventory and crafting")
 	Game.delete_save()
 	Game.new_game()

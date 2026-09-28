@@ -69,6 +69,13 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   once per save). `scripts/world.gd` starts/loads the game and handles the
   shutdown → reboot-at-last-charger loop; `scripts/day_night.gd` drives the
   one directional light as sun/moon plus sky, fog, ambient, cloud tint.
+- **Settings (sprint 2)**: autoload `Settings` (`scripts/game/settings.gd`) holds
+  preferences that are not progress, in `user://settings.cfg` (not the save).
+  Difficulty Easy/Medium/Hard changes **fights only** (`Settings.tuning()`:
+  timing ring speed, good/perfect windows, miss damage, dodge window, "NOW!"
+  cue, enemy damage/health, whether the tutorial can be lost). Easy must stay
+  winnable by a six-year-old (vision, "Who it's for"). One cycling button
+  (`scripts/ui/difficulty_button.gd`) on the main menu and the pause menu.
 - **Interaction**: `Interactable` (Area3D + prompt; `Inspectable` plays a
   beat) found by the player's `InteractProbe`; E uses the nearest. HUD group
   "hud": `show_notice`, `show_message(title, text)`, `set_prompt`.

@@ -28,6 +28,7 @@ Clock="*res://scripts/game/clock.gd"
 Energy="*res://scripts/game/energy.gd"
 Game="*res://scripts/game/game.gd"
 Story="*res://scripts/game/story.gd"
+Settings="*res://scripts/game/settings.gd"
 
 [display]
 
