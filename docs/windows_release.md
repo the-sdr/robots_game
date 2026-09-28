@@ -9,6 +9,13 @@ One self-contained file: `Robots Beta.exe` (about 480 MB, game data embedded).
 3. Project > Export > **Robots Beta (Windows)** > Export Project. Untick
    "Export With Debug" for the release build. It writes `build/windows/Robots Beta.exe`.
 
+## Or let GitHub build and publish it
+Put a new version in `release/version.txt` (e.g. `v0.1.1-beta`), add notes at
+`docs/release_notes/<version>.md`, commit and push. The Release workflow
+(`.github/workflows/release.yml`) builds the exe on GitHub, boots it headlessly
+as a check, and publishes a prerelease with the exe attached (Releases page).
+Pushing a `v*` tag does the same.
+
 ## Hand it to testers
 - Share the exe through a cloud drive link (too big for email).
 - Windows SmartScreen will warn that the publisher is unknown, because the exe
