@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cv20q6gob7hp6"
 path.s3tc="res://.godot/imported/rocky_mossy_terrain_02_normal.png-dc0c9f7da5b419db4476cb71169d6627.s3tc.ctex"
+path.etc2="res://.godot/imported/rocky_mossy_terrain_02_normal.png-dc0c9f7da5b419db4476cb71169d6627.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/ground/rocky_mossy_terrain_02_normal.png"
-dest_files=["res://.godot/imported/rocky_mossy_terrain_02_normal.png-dc0c9f7da5b419db4476cb71169d6627.s3tc.ctex"]
+dest_files=["res://.godot/imported/rocky_mossy_terrain_02_normal.png-dc0c9f7da5b419db4476cb71169d6627.s3tc.ctex", "res://.godot/imported/rocky_mossy_terrain_02_normal.png-dc0c9f7da5b419db4476cb71169d6627.etc2.ctex"]
 
 [params]
 

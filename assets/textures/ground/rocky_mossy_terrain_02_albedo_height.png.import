@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bethvfa4vqkvd"
 path.s3tc="res://.godot/imported/rocky_mossy_terrain_02_albedo_height.png-93044adcee99674d156e60cd6af5fdd9.s3tc.ctex"
+path.etc2="res://.godot/imported/rocky_mossy_terrain_02_albedo_height.png-93044adcee99674d156e60cd6af5fdd9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/ground/rocky_mossy_terrain_02_albedo_height.png"
-dest_files=["res://.godot/imported/rocky_mossy_terrain_02_albedo_height.png-93044adcee99674d156e60cd6af5fdd9.s3tc.ctex"]
+dest_files=["res://.godot/imported/rocky_mossy_terrain_02_albedo_height.png-93044adcee99674d156e60cd6af5fdd9.s3tc.ctex", "res://.godot/imported/rocky_mossy_terrain_02_albedo_height.png-93044adcee99674d156e60cd6af5fdd9.etc2.ctex"]
 
 [params]
 
