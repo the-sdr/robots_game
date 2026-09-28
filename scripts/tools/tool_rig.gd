@@ -11,6 +11,8 @@ extends Node3D
 const HIT_WIDTH := 1.1
 const HIT_HEIGHT := 1.3
 const DRY_SWING_COST_FRACTION := 0.25
+## A tiny robot (the Angry Zombie's curse) hits half as hard.
+const TINY_POWER := 0.5
 
 @onready var player: CharacterBody3D = owner as CharacterBody3D
 @onready var visual: Node3D = get_node("../..")          # Visual, whose -Z is the robot's facing
@@ -85,7 +87,8 @@ func use() -> bool:
 		Energy.spend(cost * DRY_SWING_COST_FRACTION)
 		return false
 	Energy.spend(cost)
-	var applied: bool = target.apply(def["effect"], def["power"], player.global_position)
+	var power: float = def["power"] * (TINY_POWER if player.get("tiny") else 1.0)
+	var applied: bool = target.apply(def["effect"], power, player.global_position)
 	if applied:
 		_flash.light_color = def.get("colour", Color.WHITE)
 		_flash.light_energy = 4.0
@@ -93,21 +96,25 @@ func use() -> bool:
 		tween.tween_property(_flash, "light_energy", 0.0, 0.18)
 	return applied
 
-func _find_target(reach: float) -> Breakable:
+## The nearest thing in reach that a tool can act on: any body with
+## apply(effect, power, from) -> bool (a Breakable, the Angry Zombie...).
+func _find_target(reach: float) -> Node3D:
 	var forward: Vector3 = -visual.global_transform.basis.z
 	forward.y = 0.0
 	forward = forward.normalized()
-	_hit_shape.size = Vector3(HIT_WIDTH, HIT_HEIGHT, reach)
+	var s: float = player.get("size_scale") if player.get("size_scale") != null else 1.0
+	reach *= s
+	_hit_shape.size = Vector3(HIT_WIDTH * s, HIT_HEIGHT * s, reach)
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = _hit_shape
-	query.transform = Transform3D(Basis.looking_at(forward, Vector3.UP), player.global_position + Vector3(0, 0.6, 0) + forward * (reach * 0.5))
+	query.transform = Transform3D(Basis.looking_at(forward, Vector3.UP), player.global_position + Vector3(0, 0.6 * s, 0) + forward * (reach * 0.5))
 	query.collide_with_areas = false
 	query.exclude = [player.get_rid()]
-	var best: Breakable = null
+	var best: Node3D = null
 	var best_d := INF
 	for hit in player.get_world_3d().direct_space_state.intersect_shape(query, 16):
-		var body := hit["collider"] as Breakable
-		if body == null:
+		var body := hit["collider"] as Node3D
+		if body == null or not body.has_method("apply"):
 			continue
 		var d := player.global_position.distance_squared_to(body.global_position)
 		if d < best_d:

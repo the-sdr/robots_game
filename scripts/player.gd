@@ -19,6 +19,13 @@ const CAMERA_PROBE_RADIUS = 0.3
 const FLY_SPEED = 10.0
 const FLY_VERTICAL_SPEED = 6.0
 const DOUBLE_TAP_TIME = 0.3
+# The Angry Zombie's tiny curse (Game.is_tiny): smaller, slower, thriftier, fits through mouse holes.
+const TINY_SCALE = 0.4
+const TINY_SPEED = 0.6
+const TINY_JUMP = 0.6
+const TINY_DRAIN = 0.5
+const TINY_ZOOM = 0.55
+const CAMERA_HEIGHT = 1.5
 
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
@@ -47,9 +54,22 @@ var docked := false
 var shut_down := false
 var _hud: CanvasLayer
 var _focus: Interactable = null
+## True while the tiny curse has shrunk the robot (it can lag Game.is_tiny() while there's no room to regrow).
+var tiny := false
+## 1.0 normally, TINY_SCALE while tiny: camera, tool reach and hit height follow it.
+var size_scale := 1.0
+var _normal_shape: CapsuleShape3D
+var _tiny_shape: CapsuleShape3D
+var _regrow_wait := 0.0
+var _cramped_told := false
+var _size_tween: Tween
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_normal_shape = body_collision.shape as CapsuleShape3D
+	_tiny_shape = CapsuleShape3D.new()
+	_tiny_shape.radius = _normal_shape.radius * TINY_SCALE
+	_tiny_shape.height = _normal_shape.height * TINY_SCALE
 	# Own copies of the shared materials so this robot can light up on its own.
 	_chest_material = StandardMaterial3D.new()
 	_chest_material.albedo_color = Color(0.1, 0.11, 0.12)
@@ -116,7 +136,9 @@ func _rotate_camera(yaw_delta: float, pitch_delta: float) -> void:
 func _update_camera_distance(delta: float) -> void:
 	var pivot_pos: Vector3 = camera_arm.global_transform.origin
 	var back_dir: Vector3 = camera_arm.global_transform.basis.z
-	var motion: Vector3 = back_dir * target_zoom
+	var zoom: float = target_zoom * (TINY_ZOOM if tiny else 1.0)
+	var motion: Vector3 = back_dir * zoom
+	_camera_probe_shape.radius = CAMERA_PROBE_RADIUS * size_scale
 
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = _camera_probe_shape
@@ -128,7 +150,7 @@ func _update_camera_distance(delta: float) -> void:
 	var result := space_state.cast_motion(query)
 	var safe_fraction: float = result[0] if result.size() > 0 else 1.0
 
-	var safe_distance: float = max(target_zoom * safe_fraction - CAMERA_COLLISION_MARGIN, 0.5)
+	var safe_distance: float = max(zoom * safe_fraction - CAMERA_COLLISION_MARGIN * size_scale, 0.5 * size_scale)
 
 	var smoothing: float = clamp(CAMERA_ZOOM_SMOOTHING * delta, 0.0, 1.0)
 	var new_distance: float = lerp(camera.position.z, safe_distance, smoothing)
@@ -170,6 +192,7 @@ func _process(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_focus()
+	_update_size(delta)
 	if shut_down or docked:
 		velocity.x = 0.0
 		velocity.z = 0.0
@@ -185,7 +208,7 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor():
 			velocity.y -= GRAVITY * delta
 		if Input.is_action_pressed("jump") and is_on_floor():
-			velocity.y = JUMP_VELOCITY
+			velocity.y = JUMP_VELOCITY * (TINY_JUMP if tiny else 1.0)
 
 	var look_vec := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 	if look_vec.length() > 0.0:
@@ -202,7 +225,7 @@ func _physics_process(delta: float) -> void:
 
 	var move_dir := (cam_forward * -input_2d.y) + (cam_right * input_2d.x)
 
-	var speed: float = FLY_SPEED if flying else SPEED
+	var speed: float = FLY_SPEED if flying else SPEED * (TINY_SPEED if tiny else 1.0)
 	velocity.x = move_dir.x * speed
 	velocity.z = move_dir.z * speed
 
@@ -214,4 +237,51 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_update_camera_distance(delta)
 	if not god_mode:
-		Energy.drain((Energy.DRIVE_DRAIN if move_dir.length() > 0.1 else Energy.IDLE_DRAIN) * delta)
+		Energy.drain((Energy.DRIVE_DRAIN if move_dir.length() > 0.1 else Energy.IDLE_DRAIN) * delta * (TINY_DRAIN if tiny else 1.0))
+
+# --- the tiny curse ------------------------------------------------------------------
+## Shrinks when Game says the curse is on; regrows when it's over, but only once
+## there's room for the full-size body (never inside the wardrobe's mouse hole).
+func _update_size(delta: float) -> void:
+	var want := Game.is_tiny()
+	if want == tiny:
+		_cramped_told = false
+		return
+	if want:
+		set_tiny(true)
+		return
+	_regrow_wait -= delta
+	if _regrow_wait > 0.0:
+		return
+	_regrow_wait = 0.5
+	if room_to_grow():
+		set_tiny(false)
+		Story.play("tiny_over")
+	elif not _cramped_told:
+		_cramped_told = true
+		get_tree().call_group("hud", "show_notice", "The curse is over, but it's too cramped to grow here")
+
+## Would the full-size body fit where the robot stands now?
+func room_to_grow() -> bool:
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = _normal_shape
+	query.transform = Transform3D(Basis(), global_position + Vector3(0, _normal_shape.height * 0.5 + 0.05, 0))
+	query.exclude = [get_rid()]
+	query.collide_with_areas = false
+	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
+
+## Instant for loading and tests; animated (a squash-and-pop) in play.
+func set_tiny(on: bool, animate: bool = true) -> void:
+	tiny = on
+	size_scale = TINY_SCALE if on else 1.0
+	body_collision.shape = _tiny_shape if on else _normal_shape
+	body_collision.position.y = (_tiny_shape.height if on else _normal_shape.height) * 0.5
+	camera_rig.position.y = CAMERA_HEIGHT * size_scale
+	if _size_tween != null and _size_tween.is_valid():
+		_size_tween.kill()
+	if not animate or not is_inside_tree():
+		visual.scale = Vector3.ONE * size_scale
+		return
+	_size_tween = create_tween()
+	_size_tween.tween_property(visual, "scale", Vector3.ONE * size_scale * (0.8 if on else 1.15), 0.18)
+	_size_tween.tween_property(visual, "scale", Vector3.ONE * size_scale, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

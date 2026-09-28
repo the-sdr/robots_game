@@ -542,6 +542,24 @@
    "reward": "charger",
    "behind": "stream_brambles",
    "note": "A sunny pocket where the stream leaves the forest; a charging station somebody hid here. Needs the cutter."
+  },
+  "crooked_yard": {
+   "pos": [
+    -18.5,
+    3
+   ],
+   "kind": "clearing",
+   "radius": 4,
+   "note": "The yard in front of the crooked house's door (the door faces east, towards the path)."
+  },
+  "crooked_inside": {
+   "pos": [
+    -24.3,
+    3
+   ],
+   "kind": "dead_end",
+   "radius": 0,
+   "note": "Inside the crooked house, just past the door. The Angry Zombie lives here; a mouse hole in the wardrobe needs a tiny robot."
   }
  },
  "paths": [
@@ -844,6 +862,40 @@
     ],
     "east_pocket"
    ]
+  },
+  {
+   "id": "crooked_branch",
+   "kind": "side",
+   "width": 2.0,
+   "points": [
+    "gate",
+    [
+     -6,
+     -12.5
+    ],
+    [
+     -11,
+     -10.5
+    ],
+    [
+     -15,
+     -6.5
+    ],
+    [
+     -17.2,
+     -1.5
+    ],
+    "crooked_yard"
+   ]
+  },
+  {
+   "id": "crooked_door",
+   "kind": "side",
+   "width": 1.3,
+   "points": [
+    "crooked_yard",
+    "crooked_inside"
+   ]
   }
  ],
  "landmarks": [
@@ -1040,6 +1092,17 @@
     "radius": 19,
     "note": "Level ground for the Hub district (hub_design.json); the long blend keeps the hill's north face under 30 degrees",
     "blend": 14
+   },
+   {
+    "kind": "flat",
+    "name": "crooked pad",
+    "pos": [
+     -24,
+     3
+    ],
+    "radius": 7,
+    "blend": 6,
+    "note": "Level ground under the crooked house and its yard (the house itself is what's crooked)."
    }
   ]
  },
@@ -1098,5 +1161,88 @@
    "stored": 100,
    "note": "Hidden behind the brambles. Reward for the cutter."
   }
- ]
+ ],
+ "scenes": [
+  {
+   "id": "crooked_house",
+   "path": "res://scenes/props/crooked_house.tscn",
+   "pos": [
+    -25.0,
+    3.0
+   ],
+   "heading": 0,
+   "footprint": [
+    -28.0,
+    -1.0,
+    -22.0,
+    7.0
+   ],
+   "note": "Hand-made scene: generated shell (tools/crooked_house_build.gd) + zombie, wardrobe mouse hole, shelf part. Trees keep clear of the footprint (roof + chimney)."
+  }
+ ],
+ "solids": {
+  "_note": "Verification-only boxes (world x0, z0, x1, z1) for collision that lives in hand-made scenes: the crooked house's walls (door gap 1.3 m in the east wall) and furniture, in this order: north wall, south wall, west wall, east wall north of the door, east wall south of the door, bed, shelf, wardrobe, table, zombie.",
+  "boxes": [
+   [
+    -27.09,
+    -0.09,
+    -22.91,
+    0.31
+   ],
+   [
+    -27.09,
+    5.69,
+    -22.91,
+    6.09
+   ],
+   [
+    -27.09,
+    -0.09,
+    -26.69,
+    6.09
+   ],
+   [
+    -23.31,
+    -0.09,
+    -22.91,
+    2.35
+   ],
+   [
+    -23.31,
+    3.65,
+    -22.91,
+    6.09
+   ],
+   [
+    -26.69,
+    0.31,
+    -25.59,
+    2.01
+   ],
+   [
+    -24.6,
+    0.31,
+    -23.5,
+    0.71
+   ],
+   [
+    -26.69,
+    3.9,
+    -25.79,
+    5.3
+   ],
+   [
+    -24.6,
+    4.6,
+    -23.6,
+    5.3
+   ],
+   [
+    -26.05,
+    2.65,
+    -25.35,
+    3.35
+   ]
+  ]
+ }
 }

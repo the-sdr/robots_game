@@ -11,7 +11,14 @@ headless tests pass; pull the branch to playtest any of them.
 - [x] Phase 1: difficulty setting. **Playtest:** main menu and pause menu show
       "Difficulty: Easy"; clicking cycles Easy → Medium → Hard; it is remembered
       after quitting. (It only matters once fights exist, phase 4.)
-- [ ] Phase 2: crooked house, Angry Zombie, tiny curse.
+- [x] Phase 2: crooked house, Angry Zombie, tiny curse. **Playtest:** from the
+      garden gate (0, −12) take the new path south-west to the crooked house
+      (−25, 3). Sign "ANGRY ZOMBIE — DO NOT POKE". Inside: the zombie, a solar
+      cell on the shelf (north wall). Poke him (E) three times, or hit him with
+      the smasher → ZAP, tiny for two days (HUD shows the countdown). Tiny: drive
+      through the mouse hole at the bottom of the wardrobe (south-west corner)
+      to the sun tracker. Does the house read as crooked? Anything poking
+      through walls or roof? (Say where, F3.) Can the camera escape?
 - [ ] Phase 3: real collectible models.
 - [ ] Phase 4: combat, hill sentry, laser.
 - [ ] Phase 5: charger upgrades, solar HUD, segmented charge bar.

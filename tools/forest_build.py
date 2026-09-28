@@ -97,6 +97,9 @@ class Forest:
         self.north = self.d["open_north"]
         self.areas = {a["id"]: a for a in self.d["areas"]}
         self.stream = self.design.paths["stream"]
+        # hand-made scenes (the crooked house...): trees keep clear of each footprint box
+        self.scenes = self.d.get("scenes", [])
+        self.footprints = [s["footprint"] for s in self.scenes if "footprint" in s]
         # giant frame
         g = next(l for l in self.d["landmarks"] if l["id"] == "giant")
         (ax, az), (bx, bz) = g["body"]
@@ -136,7 +139,12 @@ class Forest:
                 best = min(best, math.dist((x, z), n["pos"]) - r)
         # the walkable strip around the house: trees next to it must be dense too
         best = min(best, lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX) - 1.2)
+        best = min(best, self.structure_distance(x, z) - 1.2)      # same strip around hand-made scenes
         return best
+
+    def structure_distance(self, x, z):
+        """Distance from (x, z) to the nearest hand-made scene's footprint (inf if none)."""
+        return min((lc.box_distance(x, z, (b[0], b[1]), (b[2], b[3])) for b in self.footprints), default=math.inf)
 
     def reach_distance(self, x, z):
         """Like corridor_clearance, but also counting the open hill/city ground north of
@@ -333,8 +341,18 @@ def main():
                   "capacity": c.get("capacity", 100), "panel_rate": c.get("panel_rate", 0.45), "stored": c.get("stored", 50)})
         blockers.append(("circle", (x, z, 0.9)))
 
+    # Hand-made scenes (the crooked house...). Their collision lives in the scene;
+    # the design's "solids" describe it for the verifier (and keep trees off it).
+    for s in f.scenes:
+        x, z = s["pos"]
+        objects.append({"code": "SCN", "asset": s["id"], "kind": "scene", "id": s["id"], "path": s["path"],
+                        "basis": [float(v) for v in lc.heading_to_basis(s.get("heading", 0))],
+                        "origin": [x, ground(x, z), z]})
+    for b in d.get("solids", {}).get("boxes", []):
+        blockers.append(("box", tuple(b)))
+
     # Collectibles at dead ends
-    names = [n for n, v in d["nodes"].items() if v["kind"] == "dead_end" and v.get("reward") == "collectible"]
+    names =[n for n, v in d["nodes"].items() if v["kind"] == "dead_end" and v.get("reward") == "collectible"]
     for i, n in enumerate(sorted(names, key=lambda n: d["nodes"][n]["pos"][0]), start=1):
         x, z = d["nodes"][n]["pos"]
         objects.append({"code": "CP%d" % i, "asset": "collectible", "kind": "collectible", "path": "",
@@ -409,7 +427,7 @@ def main():
             reach = f.reach_distance(x, z)
             if in_forest and reach > DENSE_BAND and (x % 2 or z % 2):
                 continue                                          # deep interior: half density
-            house_d = lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX)
+            house_d = min(lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX), f.structure_distance(x, z))
             area = f.area_at(x, z) if in_forest else "edge"
             weights = f.areas[area]["trees"]
             models = sorted(weights, key=lambda m: -math.log((lc.cell_hash(x, z, tree_models.index(m)) % 100000 + 1) / 100001.0) / weights[m])
@@ -479,7 +497,8 @@ def main():
                 if aid == "clearing" and c < 0:
                     if any(curve_dist(x, z, p["curve"]) < p["width"] / 2 + 0.2 for p in f.design.paths.values()):
                         continue
-                if near_tree(x, z, 0.5) or blocked(x, z, 0.3) or lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX) < 0.8:
+                if near_tree(x, z, 0.5) or blocked(x, z, 0.3) or lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX) < 0.8 \
+                        or f.structure_distance(x, z) < 0.8:
                     continue
                 s = rng.uniform(0.8, 1.3)
                 item = {"asset": asset, "path": assets[asset]["path"],

@@ -226,6 +226,19 @@ def main():
     hx1, hz1 = px(2.8, -2.2)
     draw.rectangle([hx0, hz0, hx1, hz1], fill=(150, 90, 60), outline=INK, width=2)
     draw.text(((hx0 + hx1) / 2, hz1 - 10), "House", fill=(255, 255, 255), font=f_small, anchor="mm")
+    # hand-made scenes (the crooked house...): footprint, then their solid walls/furniture
+    for s in d.get("scenes", []):
+        if "footprint" in s:
+            fx0_, fz0_, fx1_, fz1_ = s["footprint"]
+            a, b = px(fx0_, fz0_), px(fx1_, fz1_)
+            draw.rectangle([a[0], a[1], b[0], b[1]], fill=(120, 80, 110, 120), outline=INK, width=2)
+            draw.text(((a[0] + b[0]) / 2, b[1] + 10), s["id"].replace("_", " ").title(), fill=INK, font=f_small, anchor="mm",
+                      stroke_width=2, stroke_fill=(250, 248, 240))
+    for bx0_, bz0_, bx1_, bz1_ in d.get("solids", {}).get("boxes", []):
+        if not (-40 < bx0_ < 44 and -90 < bz0_ < 12):
+            continue                                            # Hub solids live on the hub map
+        a, b = px(bx0_, bz0_), px(bx1_, bz1_)
+        draw.rectangle([a[0], a[1], b[0], b[1]], fill=(90, 50, 40, 220))
 
     # Fallen Giant + sightlines
     giant = next(l for l in d["landmarks"] if l["id"] == "giant")

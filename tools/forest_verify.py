@@ -141,6 +141,9 @@ def main():
             allowed |= (GX > data[0] - 3) & (GX < data[2] + 3) & (GZ > data[1] - 3) & (GZ < data[3] + 3)
     hd = np.hypot(np.maximum(np.maximum(hx0 - GX, GX - hx1), 0), np.maximum(np.maximum(hz0 - GZ, GZ - hz1), 0))
     allowed |= hd < 3.0
+    for sx0, sz0, sx1, sz1 in f.footprints:                 # the same walkable strip around hand-made scenes
+        sd = np.hypot(np.maximum(np.maximum(sx0 - GX, GX - sx1), 0), np.maximum(np.maximum(sz0 - GZ, GZ - sz1), 0))
+        allowed |= sd < 3.5         # the canopy rule keeps trees back a little further than round the house
     leaks = seen_open & ~allowed              # with every blocker cleared, still nothing leaks
 
     print("trees %d | reachable ground %.0f m2 | leak cells %d" % (trees, seen.sum() * CELL * CELL, leaks.sum()))

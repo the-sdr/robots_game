@@ -11,6 +11,7 @@ const MESSAGE_SECONDS := 7.0
 @onready var battery_bar: ProgressBar = %BatteryBar
 @onready var battery_label: Label = %BatteryLabel
 @onready var clock_label: Label = %ClockLabel
+@onready var curse_label: Label = %CurseLabel
 @onready var tool_label: Label = %ToolLabel
 @onready var prompt_panel: PanelContainer = %PromptPanel
 @onready var prompt_label: Label = %PromptLabel
@@ -37,6 +38,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	clock_label.text = "Day %d  %s" % [Clock.day, Clock.time_text()]
+	var tiny_left: float = Game.tiny_days_left()
+	curse_label.visible = tiny_left > 0.0
+	if curse_label.visible:
+		var hours := ceili(tiny_left * 24.0)
+		curse_label.text = "Tiny curse: %d d %d h left" % [hours / 24, hours % 24]
 	if _notice_time > 0.0:
 		_notice_time -= delta
 		if _notice_time <= 0.0:

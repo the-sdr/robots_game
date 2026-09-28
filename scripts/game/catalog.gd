@@ -25,6 +25,8 @@ const ITEMS := {
 	"blade_strip": {"name": "Blade strip", "description": "An edge that was part of something bigger.", "colour": Color(0.8, 0.9, 1.0)},
 	"gate_key": {"name": "Gate key", "description": "Brass, heavy, a number stamped on it: 7.", "colour": Color(0.95, 0.8, 0.3)},
 	"relay_card": {"name": "Relay access card", "description": "A card with a chip. The relay tower's door reads these.", "colour": Color(0.4, 0.9, 1.0)},
+	"solar_cell": {"name": "Solar cell", "description": "A square of dark glass that drinks sunlight. Two would make a charger's panel bigger.", "colour": Color(0.35, 0.55, 1.0)},
+	"sun_tracker": {"name": "Sun tracker", "description": "A little motor with an eye for the sun. On a charger, it turns the panel to follow the sun all day.", "colour": Color(1.0, 0.8, 0.3)},
 }
 
 const TOOLS := {

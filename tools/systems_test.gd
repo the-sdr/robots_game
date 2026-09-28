@@ -291,6 +291,87 @@ func _initialize() -> void:
 	player.set_physics_process(true)
 	Game.save(player, "HouseCharger")
 
+	print("== the crooked house: Angry Zombie, tiny curse, mouse hole")
+	var crooked: Node3D = world.get_node_or_null("GeneratedLevel/Props/CrookedHouse")
+	check(crooked != null, "the crooked house is in the forest")
+	var zombie: Node = crooked.get_node("AngryZombie")
+	check(zombie.global_position.distance_to(Vector3(-25.7, 0.0, 3.0)) < 0.3, "the Angry Zombie stands inside it (%s)" % zombie.global_position)
+	var shell_origin: Vector3 = crooked.global_position
+	var hole_front := shell_origin + (crooked.get_node("Shell/HoleFront") as Node3D).position
+	var nook := shell_origin + (crooked.get_node("Shell/NookCentre") as Node3D).position
+	var hud_node: CanvasLayer = world.get_node("HUD")
+	Game.data["tiny_until"] = 0.0
+	player.set_tiny(false, false)
+	player.set_physics_process(false)
+	player.global_position = hole_front + Vector3(0, 0.1, 0)
+	player.velocity = Vector3.ZERO
+	await physics_frame
+	await drive_to(player, Vector2(nook.x, nook.z), 120)
+	for i in 4:
+		await physics_frame
+	check(player.global_position.x > shell_origin.x - 0.89 + 0.3, "full size: the mouse hole is too small (%.2f m from the wardrobe front)" % (player.global_position.x - (shell_origin.x - 0.89)))
+	check(Game.count("sun_tracker") == 0, "and the part inside can't be grabbed through it")
+	player.set_physics_process(true)
+	check(not zombie.poke(player) and not zombie.poke(player), "two pokes: just grumbling")
+	check(not Game.is_tiny(), "not cursed yet")
+	check(zombie.poke(player), "the third poke casts the curse")
+	for i in 40:
+		await process_frame
+	check(Game.is_tiny() and absf(Game.tiny_days_left() - 2.0) < 0.05, "tiny for two days (%.2f left)" % Game.tiny_days_left())
+	for i in 40:
+		await physics_frame                  # the player's own physics step shrinks it
+	check(player.tiny and absf(player.get_node("Visual").scale.x - 0.4) < 0.02, "the robot shrank (scale %.2f)" % player.get_node("Visual").scale.x)
+	check((player.get_node("CollisionShape3D").shape as CapsuleShape3D).radius < 0.2, "its collision shrank too")
+	check(hud_node.curse_label.visible and hud_node.curse_label.text.begins_with("Tiny curse"), "HUD shows the curse (%s)" % hud_node.curse_label.text)
+	var until_before: float = Game.data["tiny_until"]
+	zombie.poke(player)
+	check(Game.data["tiny_until"] == until_before, "poking him while tiny only makes him laugh")
+	Game.save(player, "HouseCharger")
+	Game.new_game()
+	check(not Game.is_tiny(), "a new game has no curse")
+	Game.load_save()
+	Game.inventory_changed.emit()          # re-attach the loaded tool (new_game detached it)
+	check(Game.is_tiny(), "the curse survives save and load")
+	player.set_physics_process(false)
+	player.global_position = hole_front + Vector3(0, 0.1, 0)
+	player.velocity = Vector3.ZERO
+	await physics_frame
+	var in_nook := await drive_to(player, Vector2(nook.x - 0.5, nook.z), 240)     # aim at the back: drive_to stops within 0.6 m
+	for i in 4:
+		await physics_frame
+	check(in_nook and Game.count("sun_tracker") == 1, "tiny: through the mouse hole to the sun tracker (reached %s, at %s, nook %s)" % [in_nook, player.global_position, nook])
+	Game.data["tiny_until"] = 0.0          # the curse runs out while it's in there
+	for i in 3:
+		player._update_size(1.0)
+	check(player.tiny and not player.room_to_grow(), "no regrowing inside the wardrobe (too cramped)")
+	check(await drive_to(player, Vector2(hole_front.x + 0.6, hole_front.z), 240), "the tiny robot drives back out")
+	player._update_size(1.0)
+	check(not player.tiny and (player.get_node("CollisionShape3D").shape as CapsuleShape3D).radius > 0.3, "full size again outside it (at %s)" % player.global_position)
+	player.global_position = shell_origin + Vector3(0.7, 0.1, -1.3)
+	await physics_frame
+	await drive_to(player, Vector2(shell_origin.x + 1.0, shell_origin.z - 2.5), 120)     # into the shelf: stops right in front of it
+	for i in 4:
+		await physics_frame
+	check(Game.count("solar_cell") == 1, "the solar cell on the shelf")
+	# a tool hit is the last straw too
+	player.global_position = shell_origin + Vector3(0.6, 0.1, 0.0)
+	player.get_node("Visual").global_rotation.y = PI * 0.5        # Visual -Z = west, at the zombie
+	for i in 40:
+		await process_frame
+	Energy.current = 50.0
+	check(rig.use(), "the smasher hits the zombie")
+	for i in 40:
+		await process_frame
+	check(Game.is_tiny(), "hitting him casts the curse")
+	Clock.advance(1.9)
+	check(Game.is_tiny(), "still tiny a little before two days")
+	Clock.advance(0.2)
+	check(not Game.is_tiny(), "the curse wears off after two days")
+	player.set_physics_process(true)
+	for i in 40:
+		await physics_frame
+	check(not player.tiny, "and the robot regrows by itself")
+
 	print("== the Hub: rubble, key, gate, card, tower door")
 	player.set_physics_process(false)
 	var hub: Node = world.get_node("GeneratedHub")

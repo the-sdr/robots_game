@@ -399,7 +399,17 @@ func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		group.add_child(mi)
 		mi.owner = _root
-	print("%s: %d items in %d chunks, %d triangles%s" % [group_name, items.size(), chunks.size(), triangles, ", with trunk collision" if collision else ""])
+	# chunks from an earlier bake that no cell uses any more would linger in git unreferenced
+	var written := {}
+	for cell in chunks:
+		written["chunk_%s.res" % cell.replace(",", "_")] = true
+	var stale := 0
+	for file in DirAccess.get_files_at(folder):
+		if file.begins_with("chunk_") and file.ends_with(".res") and not written.has(file):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(folder + file))
+			stale += 1
+	print("%s: %d items in %d chunks, %d triangles%s%s" % [group_name, items.size(), chunks.size(), triangles, ", with trunk collision" if collision else "",
+		", %d stale chunk files removed" % stale if stale else ""])
 
 # One model's surfaces at a given detail level, compacted to the vertices that
 # level uses, in model space. Leaf surfaces get the batched tinted material.

@@ -1,0 +1,304 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/angry_zombie.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/interactable.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_skin"]
+albedo_color = Color(0.45, 0.66, 0.36, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_shirt"]
+albedo_color = Color(0.46, 0.3, 0.58, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_trousers"]
+albedo_color = Color(0.36, 0.26, 0.18, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_boot"]
+albedo_color = Color(0.14, 0.11, 0.09, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_eye"]
+albedo_color = Color(0.97, 0.96, 0.88, 1)
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_pupil"]
+albedo_color = Color(0.05, 0.05, 0.05, 1)
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="Mat_mouth"]
+albedo_color = Color(0.35, 0.08, 0.1, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_hair"]
+albedo_color = Color(0.12, 0.16, 0.1, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_leg"]
+material = SubResource("Mat_trousers")
+size = Vector3(0.16, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="Mesh_foot"]
+material = SubResource("Mat_boot")
+size = Vector3(0.18, 0.09, 0.32)
+
+[sub_resource type="BoxMesh" id="Mesh_hips"]
+material = SubResource("Mat_trousers")
+size = Vector3(0.42, 0.18, 0.24)
+
+[sub_resource type="BoxMesh" id="Mesh_torso"]
+material = SubResource("Mat_shirt")
+size = Vector3(0.48, 0.56, 0.28)
+
+[sub_resource type="BoxMesh" id="Mesh_rip"]
+material = SubResource("Mat_skin")
+size = Vector3(0.16, 0.12, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_sleeve"]
+material = SubResource("Mat_shirt")
+size = Vector3(0.14, 0.26, 0.14)
+
+[sub_resource type="BoxMesh" id="Mesh_forearm"]
+material = SubResource("Mat_skin")
+size = Vector3(0.1, 0.3, 0.1)
+
+[sub_resource type="BoxMesh" id="Mesh_hand"]
+material = SubResource("Mat_skin")
+size = Vector3(0.13, 0.12, 0.08)
+
+[sub_resource type="BoxMesh" id="Mesh_finger"]
+material = SubResource("Mat_skin")
+size = Vector3(0.025, 0.08, 0.025)
+
+[sub_resource type="BoxMesh" id="Mesh_neck"]
+material = SubResource("Mat_skin")
+size = Vector3(0.12, 0.12, 0.12)
+
+[sub_resource type="SphereMesh" id="Mesh_face"]
+radius = 0.24
+height = 0.5
+radial_segments = 16
+rings = 10
+
+[sub_resource type="SphereMesh" id="Mesh_eye_small"]
+material = SubResource("Mat_eye")
+radius = 0.075
+height = 0.15
+radial_segments = 12
+rings = 6
+
+[sub_resource type="SphereMesh" id="Mesh_eye_big"]
+material = SubResource("Mat_eye")
+radius = 0.095
+height = 0.19
+radial_segments = 12
+rings = 6
+
+[sub_resource type="SphereMesh" id="Mesh_pupil"]
+material = SubResource("Mat_pupil")
+radius = 0.035
+height = 0.07
+radial_segments = 8
+rings = 4
+
+[sub_resource type="BoxMesh" id="Mesh_brow"]
+material = SubResource("Mat_hair")
+size = Vector3(0.36, 0.055, 0.07)
+
+[sub_resource type="BoxMesh" id="Mesh_mouth"]
+material = SubResource("Mat_mouth")
+size = Vector3(0.17, 0.04, 0.03)
+
+[sub_resource type="BoxMesh" id="Mesh_tooth"]
+material = SubResource("Mat_eye")
+size = Vector3(0.035, 0.04, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_ear"]
+material = SubResource("Mat_skin")
+size = Vector3(0.05, 0.1, 0.08)
+
+[sub_resource type="CylinderMesh" id="Mesh_tuft"]
+material = SubResource("Mat_hair")
+top_radius = 0.0
+bottom_radius = 0.045
+height = 0.14
+radial_segments = 6
+
+[sub_resource type="CapsuleShape3D" id="Shape_body"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="Shape_talk"]
+radius = 1.3
+
+[node name="AngryZombie" type="StaticBody3D"]
+script = ExtResource("1")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("Shape_body")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="LegLeft" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 0.995, 0.1, 0, -0.1, 0.995, -0.12, 0.4, 0)
+mesh = SubResource("Mesh_leg")
+
+[node name="LegRight" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.995, -0.1, 0, 0.1, 0.995, 0, 0, 0, 1, 0.12, 0.4, 0.02)
+mesh = SubResource("Mesh_leg")
+
+[node name="FootLeft" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.97, 0, 0.26, 0, 1, 0, -0.26, 0, 0.97, -0.14, 0.045, -0.06)
+mesh = SubResource("Mesh_foot")
+
+[node name="FootRight" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.97, 0, -0.26, 0, 1, 0, 0.26, 0, 0.97, 0.15, 0.045, -0.04)
+mesh = SubResource("Mesh_foot")
+
+[node name="Hips" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.82, 0)
+mesh = SubResource("Mesh_hips")
+
+[node name="Torso" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.995, 0.1, 0, -0.1, 0.995, 0, 0, 0, 1, 0, 1.18, 0.02)
+mesh = SubResource("Mesh_torso")
+
+[node name="ShirtRip" type="MeshInstance3D" parent="Visual/Torso"]
+transform = Transform3D(0.94, 0.34, 0, -0.34, 0.94, 0, 0, 0, 1, 0.1, -0.1, -0.145)
+mesh = SubResource("Mesh_rip")
+
+[node name="ShirtRip2" type="MeshInstance3D" parent="Visual/Torso"]
+transform = Transform3D(0.94, -0.34, 0, 0.34, 0.94, 0, 0, 0, 1, -0.14, 0.12, -0.145)
+mesh = SubResource("Mesh_rip")
+
+[node name="ArmLeft" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 0.22, -0.975, 0, 0.975, 0.22, -0.31, 1.38, 0)
+
+[node name="Sleeve" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13, 0)
+mesh = SubResource("Mesh_sleeve")
+
+[node name="Forearm" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
+mesh = SubResource("Mesh_forearm")
+
+[node name="Hand" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, 0)
+mesh = SubResource("Mesh_hand")
+
+[node name="FingerA" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, -0.7, 0)
+mesh = SubResource("Mesh_finger")
+
+[node name="FingerB" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, -0.71, 0)
+mesh = SubResource("Mesh_finger")
+
+[node name="ArmRight" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 0.22, -0.975, 0, 0.975, 0.22, 0.31, 1.38, 0)
+
+[node name="Sleeve" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13, 0)
+mesh = SubResource("Mesh_sleeve")
+
+[node name="Forearm" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
+mesh = SubResource("Mesh_forearm")
+
+[node name="Hand" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, 0)
+mesh = SubResource("Mesh_hand")
+
+[node name="FingerA" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, -0.71, 0)
+mesh = SubResource("Mesh_finger")
+
+[node name="FingerB" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, -0.7, 0)
+mesh = SubResource("Mesh_finger")
+
+[node name="Neck" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 1.5, 0)
+mesh = SubResource("Mesh_neck")
+
+[node name="Head" type="Node3D" parent="Visual"]
+transform = Transform3D(0.99, -0.14, 0, 0.14, 0.99, 0, 0, 0, 1, 0.03, 1.72, 0)
+
+[node name="Face" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1.06, 0, 0, 0, 0.95, 0, 0, 0)
+mesh = SubResource("Mesh_face")
+surface_material_override/0 = SubResource("Mat_skin")
+
+[node name="EyeLeft" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.04, -0.18)
+mesh = SubResource("Mesh_eye_small")
+
+[node name="PupilLeft" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0.03, -0.25)
+mesh = SubResource("Mesh_pupil")
+
+[node name="EyeRight" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.05, -0.17)
+mesh = SubResource("Mesh_eye_big")
+
+[node name="PupilRight" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.035, -0.26)
+mesh = SubResource("Mesh_pupil")
+
+[node name="Brow" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(0.995, -0.1, 0, 0.1, 0.995, 0, 0, 0, 1, 0, 0.16, -0.19)
+mesh = SubResource("Mesh_brow")
+
+[node name="Mouth" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(0.98, 0.2, 0, -0.2, 0.98, 0, 0, 0, 1, 0.02, -0.11, -0.215)
+mesh = SubResource("Mesh_mouth")
+
+[node name="Tooth" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.05, -0.095, -0.23)
+mesh = SubResource("Mesh_tooth")
+
+[node name="EarLeft" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(0.94, 0, 0.34, 0, 1, 0, -0.34, 0, 0.94, -0.25, 0.0, 0)
+mesh = SubResource("Mesh_ear")
+
+[node name="EarRight" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(0.94, 0, -0.34, 0, 1, 0, 0.34, 0, 0.94, 0.25, 0.02, 0)
+mesh = SubResource("Mesh_ear")
+
+[node name="Tuft1" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(0.94, -0.34, 0, 0.34, 0.94, 0, 0, 0, 1, -0.05, 0.27, 0.02)
+mesh = SubResource("Mesh_tuft")
+
+[node name="Tuft2" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, 0.29, -0.02)
+mesh = SubResource("Mesh_tuft")
+
+[node name="Tuft3" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(0.87, 0.5, 0, -0.5, 0.87, 0, 0, 0, 1, 0.1, 0.25, 0.04)
+mesh = SubResource("Mesh_tuft")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+billboard = 1
+pixel_size = 0.004
+modulate = Color(0.75, 1, 0.6, 1)
+outline_size = 10
+outline_modulate = Color(0.1, 0.15, 0.08, 1)
+text = "Angry Zombie"
+font_size = 48
+
+[node name="Interactable" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+script = ExtResource("2")
+prompt = "Poke Angry Zombie"
+
+[node name="Shape" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("Shape_talk")
+
+[node name="ZapLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.45)
+light_color = Color(0.5, 1, 0.3, 1)
+light_energy = 0.0
+omni_range = 4.0

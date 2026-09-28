@@ -76,6 +76,28 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   cue, enemy damage/health, whether the tutorial can be lost). Easy must stay
   winnable by a six-year-old (vision, "Who it's for"). One cycling button
   (`scripts/ui/difficulty_button.gd`) on the main menu and the pause menu.
+- **Hand-made scenes in the forest (sprint 2)**: the forest design now has the
+  Hub's `scenes` (path, pos, heading, plus a tree-exclusion `footprint` box) and
+  `solids` (verify-only world boxes mirroring the scene's collision). Trees keep
+  the same strip around a footprint as around the house; the verifier treats
+  solids as walls. First user: **the crooked house** (−25, 3), off the garden
+  gate. Its shell is built by `tools/crooked_house_build.gd` (Medieval pieces +
+  primitive furniture merged per *material name* into one mesh, 13 surfaces;
+  the whole structure is **sheared** ~5° west / 2° north so joins stay closed;
+  collision boxes are tilted to match; Marker3D anchors) into
+  `scenes/props/crooked_house/generated_*` — never hand-edit. The hand-made
+  wrapper `scenes/props/crooked_house.tscn` (+ `scripts/crooked_house.gd`)
+  snaps the Angry Zombie, the shelf's solar cell, the wardrobe-nook sun tracker,
+  lights and chimney smoke to those markers. Walls/furniture changed in the
+  tool → update the design's `solids` too.
+- **The tiny curse**: `Game.curse_tiny()` sets `tiny_until` (day + time, two
+  in-game days, saved). `player.gd` shrinks to 0.4 (collision capsule swapped,
+  speed ×0.6, jump ×0.6, drain ×0.5, camera closer; `tool_rig` power ×0.5 and a
+  smaller hit box) and only regrows where `room_to_grow()` finds space — the
+  wardrobe nook is lower than the full robot on purpose. The Angry Zombie
+  (`scenes/npc/angry_zombie.tscn`) curses on the third poke or any tool hit;
+  `tool_rig` now targets any body with `apply()` (duck typing), not only
+  `Breakable`.
 - **Interaction**: `Interactable` (Area3D + prompt; `Inspectable` plays a
   beat) found by the player's `InteractProbe`; E uses the nearest. HUD group
   "hud": `show_notice`, `show_message(title, text)`, `set_prompt`.
@@ -341,6 +363,17 @@ independent so they land in any order. Owner decisions:
 - **Tool hits use a box from the robot out to the tool's reach.** The old ball
   centred ahead missed anything the robot was pressed against (a door at
   arm's length took no hits). The house test now swings from flush (z −7.2).
+- **Test drives stop 0.6 m short.** `drive_to` (systems test, drive test) counts
+  as arrived within 0.6 m, so a target *in* a small space (a mouse hole, a
+  pickup on a shelf) is never entered. Aim past it (the back wall, into the
+  shelf) and let collision stop the robot.
+- **Facing in tests:** `Visual.global_rotation.y` = 0 faces north (−Z),
+  −π/2 faces east, +π/2 faces west.
+- **Every glTF brings its own copy of shared materials** (MI_Plaster in each
+  wall file is a separate Material). Merging per Material object gave 39
+  surfaces for one small house; merging per material *name* gave 13.
+- **The bake now deletes chunk files it didn't write** (they lingered in git
+  unreferenced after a rebuild moved trees between cells).
 - **Never commit `.import` files or `project.godot` from the Surface.** The
   ARM64 Windows editor re-imports textures as ETC2/ASTC only and drops the
   desktop `s3tc` format the x64 exe needs; it also reorders `project.godot`.

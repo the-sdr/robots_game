@@ -103,19 +103,24 @@ func _initialize() -> void:
 		print("RESULT: %s" % ("OK" if ok else "PROBLEMS FOUND"))
 		quit(0 if ok else 1)
 
-	var bad := []
-	for t in world.get_node("GeneratedLevel/Trees").get_children():
-		if Vector2(t.position.x, t.position.z).distance_to(Vector2(0, -5)) > 14:
-			continue
-		for mi in t.find_children("*", "MeshInstance3D", true, false):
-			var xf: Transform3D = mi.global_transform
-			for s in mi.mesh.get_surface_count():
-				for v in mi.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]:
-					var w: Vector3 = xf * v
-					if w.x > -2.99 and w.x < 2.99 and w.z > -8.04 and w.z < -2.01 and w.y < 4.3 and not bad.has(t.name):
-						bad.append(t.name)
-	print("trees reaching into the house: %s" % [bad])
-	ok = ok and bad.is_empty()
+	# No individual tree may reach inside a house: [centre x, z, then box x0, z0, x1, z1, below height].
+	var houses := {"the house": [0.0, -5.0, -2.99, -8.04, 2.99, -2.01, 4.3],
+		"the crooked house": [-25.0, 3.0, -27.1, -0.1, -22.9, 6.1, 3.1]}
+	for house in houses:
+		var hb: Array = houses[house]
+		var bad := []
+		for t in world.get_node("GeneratedLevel/Trees").get_children():
+			if Vector2(t.position.x, t.position.z).distance_to(Vector2(hb[0], hb[1])) > 14:
+				continue
+			for mi in t.find_children("*", "MeshInstance3D", true, false):
+				var xf: Transform3D = mi.global_transform
+				for s in mi.mesh.get_surface_count():
+					for v in mi.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]:
+						var w: Vector3 = xf * v
+						if w.x > hb[2] and w.x < hb[4] and w.z > hb[3] and w.z < hb[5] and w.y < hb[6] and not bad.has(t.name):
+							bad.append(t.name)
+		print("trees reaching into %s: %s" % [house, bad])
+		ok = ok and bad.is_empty()
 
 	var ray := PhysicsRayQueryParameters3D.create(Vector3(0, 60, -84), Vector3(0, -60, -84))
 	ray.exclude = [p.get_rid()]

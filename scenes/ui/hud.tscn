@@ -91,6 +91,13 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 0.92, 1)
 text = "Day 1  08:00"
 
+[node name="CurseLabel" type="Label" parent="Root/StatusPanel/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 1, 0.45, 1)
+text = "Tiny curse: 2 d 0 h left"
+
 [node name="ToolLabel" type="Label" parent="Root"]
 unique_name_in_owner = true
 layout_mode = 1

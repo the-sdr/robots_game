@@ -49,6 +49,7 @@ func _reset_data() -> void:
 		"player_yaw": 0.0,
 		"seen_beats": [],
 		"chargers": {},           # charger name -> its saved state
+		"tiny_until": 0.0,        # the Angry Zombie's tiny curse lasts until this day + time (see curse_tiny)
 	}
 
 # --- flags ---------------------------------------------------------------------
@@ -97,6 +98,24 @@ func add_tool(tool_id: String) -> void:
 	if data["equipped_tool"] == "":
 		data["equipped_tool"] = tool_id
 	inventory_changed.emit()
+
+# --- the tiny curse (Angry Zombie, in the crooked house) --------------------------
+## Two in-game days (16 real minutes at the 8-minute day). Counted on the game
+## clock, so it survives saves and reboots; player.gd shrinks and regrows the robot.
+const TINY_DAYS := 2.0
+
+func _now_days() -> float:
+	return float(Clock.day) + Clock.time
+
+func curse_tiny(days: float = TINY_DAYS) -> void:
+	data["tiny_until"] = _now_days() + days
+
+func is_tiny() -> bool:
+	return float(data.get("tiny_until", 0.0)) > _now_days()
+
+## In-game days of curse left (0 when not cursed).
+func tiny_days_left() -> float:
+	return maxf(float(data.get("tiny_until", 0.0)) - _now_days(), 0.0)
 
 # --- crafting ---------------------------------------------------------------------
 ## Returns "" when the recipe can be made, else the reason it can't.

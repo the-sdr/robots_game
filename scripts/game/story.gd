@@ -53,6 +53,14 @@ const BEATS := {
 		"Its eye is the size of you. Behind the glass something is still faintly lit, counting down or counting up. It does not look at you."},
 	"east_pocket": {"title": "The stream station", "text":
 		"Somebody dragged a charger out here and hid it behind thorns. Full sun, running water, no visitors. A good place to stop being afraid."},
+	"crooked_house": {"title": "The crooked house", "text":
+		"Every wall leans a different way, like the house is trying to tiptoe off. Smoke from the chimney. Somebody lives here. You can hear them grumbling."},
+	"zombie": {"title": "Angry Zombie", "text":
+		"A zombie. A very grumpy one. He does not like visitors, and he REALLY does not like being poked."},
+	"tiny": {"title": "The tiny curse", "text":
+		"ZAP! Everything is suddenly enormous. You are tiny for two days. Tiny robots use less power... and fit through tiny holes."},
+	"tiny_over": {"title": "Pop!", "text":
+		"Back to full size. Maybe don't poke him next time. Or maybe do."},
 	"shutdown": {"title": "Power lost", "text":
 		"Systems shutting down. The last copy of you waits at the charger."},
 }

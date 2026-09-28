@@ -12,6 +12,9 @@ const BOB_SPEED := 2.0
 @export var item_id: String = ""
 @export var amount: int = 1
 @export var color: Color = Color(1.0, 0.7, 0.2)
+## Reach of the pickup sphere. Small for parts hidden in tight spots (the
+## crooked house's mouse-hole nook), so they can't be grabbed from outside.
+@export var pickup_radius: float = 0.9
 
 @onready var visual: Node3D = $Visual
 @onready var pickup: Area3D = $Pickup
@@ -37,6 +40,11 @@ func _ready() -> void:
 	for mesh_instance in visual.find_children("*", "MeshInstance3D"):
 		(mesh_instance as MeshInstance3D).material_override = material
 	($Glow as OmniLight3D).light_color = color
+	var col: CollisionShape3D = pickup.get_node("CollisionShape3D")
+	if not is_equal_approx((col.shape as SphereShape3D).radius, pickup_radius):
+		var sphere := SphereShape3D.new()        # the scene's sphere is shared by every pickup
+		sphere.radius = pickup_radius
+		col.shape = sphere
 	pickup.body_entered.connect(_on_body_entered)
 
 func _process(delta: float) -> void:

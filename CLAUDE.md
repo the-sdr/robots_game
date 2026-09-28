@@ -102,8 +102,11 @@ godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, c
   `behind: <blocker id>` = sealed until that blocker is cleared), `paths`
   (named nodes + free points), `blockers` (forest: brambles → Breakable "cut";
   district: `rubble` → Breakable "smash", `locked` → LockedGate with `key`),
-  `chargers`. The Hub adds `walls.segments` (2 m pieces), `buildings`, `scenes`,
-  `collectibles`, `props`, `solids` (verify-only boxes for hand-made scenes).
+  `chargers`, `scenes` (hand-made scenes; in the forest with a tree-exclusion
+  `footprint`) and `solids` (verify-only boxes for their collision). The Hub adds
+  `walls.segments` (2 m pieces), `buildings`, `collectibles`, `props`.
+- Generated props: `godot --headless --path . -s tools/crooked_house_build.gd`
+  rebuilds the crooked house shell (`scenes/props/crooked_house/generated_*`).
 - Tunable by hand (kept across rebuilds): `materials/terrain_painterly.tres`
   (terrain look), `materials/leaves_*.tres` (leaf material).
 - The spreadsheet pipeline is retired (`tools/legacy_sheet/`, don't run it).
