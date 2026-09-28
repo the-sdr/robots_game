@@ -1178,10 +1178,20 @@
     7.0
    ],
    "note": "Hand-made scene: generated shell (tools/crooked_house_build.gd) + zombie, wardrobe mouse hole, shelf part. Trees keep clear of the footprint (roof + chimney)."
+  },
+  {
+   "id": "hill_sentry",
+   "path": "res://scenes/npc/hill_sentry.tscn",
+   "pos": [
+    3,
+    -90
+   ],
+   "heading": 180,
+   "note": "The Hill Sentry, the tutorial fight: reaching the crest (0, -86) starts it; beaten, it sits here beside the path to the Hub."
   }
  ],
  "solids": {
-  "_note": "Verification-only boxes (world x0, z0, x1, z1) for collision that lives in hand-made scenes: the crooked house's walls (door gap 1.3 m in the east wall) and furniture, in this order: north wall, south wall, west wall, east wall north of the door, east wall south of the door, bed, shelf, wardrobe, table, zombie.",
+  "_note": "Verification-only boxes (world x0, z0, x1, z1) for collision that lives in hand-made scenes: the crooked house's walls (door gap 1.3 m in the east wall) and furniture, in this order: north wall, south wall, west wall, east wall north of the door, east wall south of the door, bed, shelf, wardrobe, table, zombie. Then the Hill Sentry's body.",
   "boxes": [
    [
     -27.09,
@@ -1242,6 +1252,12 @@
     2.65,
     -25.35,
     3.35
+   ],
+   [
+    2.3,
+    -90.7,
+    3.7,
+    -89.3
    ]
   ]
  }

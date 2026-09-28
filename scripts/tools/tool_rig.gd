@@ -13,6 +13,10 @@ const HIT_HEIGHT := 1.3
 const DRY_SWING_COST_FRACTION := 0.25
 ## A tiny robot (the Angry Zombie's curse) hits half as hard.
 const TINY_POWER := 0.5
+## Ranged tools look for targets in a box this wide and tall along their reach.
+const RANGED_AIM_WIDTH := 1.6
+const RANGED_AIM_HEIGHT := 2.0
+const HAMMER_MODEL := "res://scenes/props/items/hammer_head.res"
 
 @onready var player: CharacterBody3D = owner as CharacterBody3D
 @onready var visual: Node3D = get_node("../..")          # Visual, whose -Z is the robot's facing
@@ -81,8 +85,13 @@ func use() -> bool:
 		get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % def["name"])
 		return false
 	_cooldown_left = def["cooldown"]
-	_swing(def["cooldown"])
-	var target := _find_target(def["range"])
+	var ranged: bool = def.get("ranged", false)
+	var target := _find_ranged_target(def["range"]) if ranged else _find_target(def["range"])
+	if ranged:
+		_recoil()
+		_beam(def, target)
+	else:
+		_swing(def["cooldown"])
 	if target == null:
 		Energy.spend(cost * DRY_SWING_COST_FRACTION)
 		return false
@@ -122,6 +131,88 @@ func _find_target(reach: float) -> Node3D:
 			best = body
 	return best
 
+## Ranged tools (the laser): the nearest body with apply() in a long box ahead
+## (a little auto-aim) that nothing solid stands in front of.
+func _find_ranged_target(reach: float) -> Node3D:
+	var forward: Vector3 = -visual.global_transform.basis.z
+	forward.y = 0.0
+	forward = forward.normalized()
+	var s: float = player.get("size_scale") if player.get("size_scale") != null else 1.0
+	var box := BoxShape3D.new()
+	box.size = Vector3(RANGED_AIM_WIDTH, RANGED_AIM_HEIGHT, reach)
+	var eye := player.global_position + Vector3(0, 0.9 * s, 0)
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = box
+	query.transform = Transform3D(Basis.looking_at(forward, Vector3.UP), eye + forward * (reach * 0.5))
+	query.collide_with_areas = false
+	query.exclude = [player.get_rid()]
+	var space := player.get_world_3d().direct_space_state
+	var candidates := []
+	for hit in space.intersect_shape(query, 32):
+		var body := hit["collider"] as Node3D
+		if body != null and body.has_method("apply"):
+			candidates.append(body)
+	candidates.sort_custom(func(a: Node3D, b: Node3D) -> bool: return eye.distance_squared_to(a.global_position) < eye.distance_squared_to(b.global_position))
+	for body in candidates:
+		var aim: Vector3 = _aim_point(body)
+		var ray := PhysicsRayQueryParameters3D.create(eye, aim)
+		ray.exclude = [player.get_rid()]
+		var seen := space.intersect_ray(ray)
+		if seen.is_empty() or seen["collider"] == body:
+			return body
+	return null
+
+func _aim_point(body: Node3D) -> Vector3:
+	return body.global_position + Vector3(0, 0.8, 0)
+
+## The laser's beam: a thin glowing rod from the arm to what it hit (or as far as it reaches).
+func _beam(def: Dictionary, target: Node3D) -> void:
+	var from := global_position + (-visual.global_transform.basis.z) * 0.4
+	var forward: Vector3 = -visual.global_transform.basis.z
+	forward.y = 0.0
+	var to: Vector3 = _aim_point(target) if target != null else from + forward.normalized() * float(def["range"])
+	var length := from.distance_to(to)
+	if length < 0.05:
+		return
+	var rod := CylinderMesh.new()
+	rod.top_radius = 0.025
+	rod.bottom_radius = 0.025
+	rod.height = length
+	rod.radial_segments = 6
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = def.get("colour", Color.RED)
+	material.emission_enabled = true
+	material.emission = def.get("colour", Color.RED)
+	material.emission_energy_multiplier = 4.0
+	rod.material = material
+	var mi := MeshInstance3D.new()
+	mi.mesh = rod
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	player.get_parent().add_child(mi)
+	var up := (to - from).normalized()
+	var side := up.cross(Vector3.UP if absf(up.dot(Vector3.UP)) < 0.9 else Vector3.RIGHT).normalized()
+	mi.global_transform = Transform3D(Basis(side, up, side.cross(up)).orthonormalized(), (from + to) * 0.5)
+	var tween := mi.create_tween()
+	tween.tween_property(material, "albedo_color:a", 0.0, 0.25)
+	tween.tween_callback(mi.queue_free)
+
+func _recoil() -> void:
+	if _swing_tween != null and _swing_tween.is_valid():
+		_swing_tween.kill()
+	_swing_tween = create_tween()
+	_swing_tween.tween_property(arm, "rotation:x", 0.35, 0.05)
+	_swing_tween.tween_property(arm, "rotation:x", 0.0, 0.25)
+
+## The fight screen's swing (no target, no energy: combat_state does the rules).
+func swing() -> void:
+	if definition().get("ranged", false):
+		_recoil()
+		_beam(definition(), null)
+	else:
+		_swing(0.5)
+
 func _swing(seconds: float) -> void:
 	if _swing_tween != null and _swing_tween.is_valid():
 		_swing_tween.kill()
@@ -152,11 +243,44 @@ func _build_head(def: Dictionary) -> Node3D:
 			disc.radial_segments = 12
 			mi.mesh = disc
 			mi.rotation.x = PI * 0.5
+			mi.material_override = material
+		"burn":
+			# an emitter barrel with a glowing lens at the tip
+			var barrel := CylinderMesh.new()
+			barrel.top_radius = 0.03
+			barrel.bottom_radius = 0.045
+			barrel.height = 0.24
+			barrel.radial_segments = 10
+			mi.mesh = barrel
+			mi.rotation.x = PI * 0.5
+			var dark := StandardMaterial3D.new()
+			dark.albedo_color = Color(0.2, 0.21, 0.23)
+			dark.metallic = 0.8
+			dark.roughness = 0.4
+			mi.material_override = dark
+			var lens := MeshInstance3D.new()
+			var ball := SphereMesh.new()
+			ball.radius = 0.035
+			ball.height = 0.07
+			lens.mesh = ball
+			var glow := StandardMaterial3D.new()
+			glow.albedo_color = def.get("colour", Color.RED)
+			glow.emission_enabled = true
+			glow.emission = def.get("colour", Color.RED)
+			glow.emission_energy_multiplier = 3.0
+			lens.material_override = glow
+			lens.position = Vector3(0, 0, -0.13)
+			head.add_child(lens)
 		_:
-			var box := BoxMesh.new()
-			box.size = Vector3(0.14, 0.1, 0.2)
-			mi.mesh = box
-	mi.material_override = material
+			if ResourceLoader.exists(HAMMER_MODEL):     # the hammer head the smasher is built from
+				mi.mesh = load(HAMMER_MODEL)
+				mi.scale = Vector3.ONE * 0.5
+				mi.rotation.y = PI * 0.5
+			else:
+				var box := BoxMesh.new()
+				box.size = Vector3(0.14, 0.1, 0.2)
+				mi.mesh = box
+				mi.material_override = material
 	head.add_child(mi)
 	head.position = Vector3(0, -0.24, -0.36)
 	return head

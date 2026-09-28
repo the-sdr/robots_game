@@ -9,11 +9,29 @@ extends Control
 
 @onready var close_button: Button = %CloseButton
 
+## The fight kit: three buttons, one per key 1-3; click to put another built tool in that slot.
+var kit_buttons: Array[Button] = []
+
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	Game.inventory_changed.connect(_refresh)
 	close_button.pressed.connect(toggle)
+	var row := HBoxContainer.new()
+	row.name = "KitRow"
+	row.add_theme_constant_override("separation", 8)
+	var title := Label.new()
+	title.text = "Fight kit (keys 1-3, click to change):"
+	row.add_child(title)
+	for i in Game.LOADOUT_SIZE:
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(130, 0)
+		button.pressed.connect(func() -> void: Game.cycle_loadout_slot(i))
+		row.add_child(button)
+		kit_buttons.append(button)
+	var vbox: Node = $Center/Panel/VBox
+	vbox.add_child(row)
+	vbox.move_child(row, 1)
 
 # The player is paused while this is open, so Tab and Esc are handled here.
 func _unhandled_input(event: InputEvent) -> void:
@@ -29,6 +47,10 @@ func toggle() -> void:
 		_refresh()
 
 func _refresh() -> void:
+	var kit := Game.loadout()
+	for i in kit_buttons.size():
+		kit_buttons[i].text = "%d: %s" % [i + 1, Catalog.tool_name(kit[i]) if kit[i] != "" else "(empty)"]
+		kit_buttons[i].disabled = Game.data["tools"].is_empty()
 	for child in items_list.get_children():
 		child.queue_free()
 	for child in recipes_list.get_children():

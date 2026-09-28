@@ -50,6 +50,7 @@ func _reset_data() -> void:
 		"seen_beats": [],
 		"chargers": {},           # charger name -> its saved state
 		"tiny_until": 0.0,        # the Angry Zombie's tiny curse lasts until this day + time (see curse_tiny)
+		"loadout": [],            # the fight kit: up to LOADOUT_SIZE tool ids, keys 1-3 ("" = empty slot)
 	}
 
 # --- flags ---------------------------------------------------------------------
@@ -97,6 +98,40 @@ func add_tool(tool_id: String) -> void:
 	data["tools"].append(tool_id)
 	if data["equipped_tool"] == "":
 		data["equipped_tool"] = tool_id
+	var kit: Array = data["loadout"]
+	if kit.size() < LOADOUT_SIZE:
+		kit.append(tool_id)
+	elif kit.has(""):
+		kit[kit.find("")] = tool_id
+	inventory_changed.emit()
+
+# --- the fight kit (loadout): three tools on keys 1-3 ------------------------------
+const LOADOUT_SIZE := 3
+
+## Always LOADOUT_SIZE entries, each a built tool id or "" (empty). A save with
+## no kit (older saves) gets the first tools built.
+func loadout() -> Array[String]:
+	var kit: Array[String] = []
+	var saved: Array = data.get("loadout", [])
+	var any := false
+	for i in LOADOUT_SIZE:
+		var t: String = String(saved[i]) if i < saved.size() else ""
+		kit.append(t if has_tool(t) and not kit.has(t) else "")
+		any = any or kit[i] != ""
+	if not any:
+		for i in mini(LOADOUT_SIZE, data["tools"].size()):
+			kit[i] = data["tools"][i]
+	return kit
+
+## The Tab screen: slot N steps through empty and every built tool not in another slot.
+func cycle_loadout_slot(slot: int) -> void:
+	var kit := loadout()
+	var options: Array[String] = [""]
+	for t in data["tools"]:
+		if not kit.has(t) or kit[slot] == t:
+			options.append(t)
+	kit[slot] = options[(options.find(kit[slot]) + 1) % options.size()]
+	data["loadout"] = kit
 	inventory_changed.emit()
 
 # --- the tiny curse (Angry Zombie, in the crooked house) --------------------------

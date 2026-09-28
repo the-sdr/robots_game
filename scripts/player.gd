@@ -52,6 +52,8 @@ var _last_jump_press_time := -1.0
 var docked := false
 ## Set by the world while the battery is dead: nothing responds.
 var shut_down := false
+## Set by the fight screen (scripts/combat/combat.gd): no driving, tools or interacting.
+var in_combat := false
 var _hud: CanvasLayer
 var _focus: Interactable = null
 ## True while the tiny curse has shrunk the robot (it can lag Game.is_tiny() while there's no room to regrow).
@@ -96,6 +98,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _find_hud():
 			_hud.toggle_pause()
 			get_viewport().set_input_as_handled()
+	if in_combat:
+		return               # the fight screen reads its own keys
 	if event.is_action_pressed("inventory") and not shut_down:
 		if _find_hud():
 			_hud.toggle_inventory()
@@ -193,7 +197,7 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	_update_focus()
 	_update_size(delta)
-	if shut_down or docked:
+	if shut_down or docked or in_combat:
 		velocity.x = 0.0
 		velocity.z = 0.0
 		if not is_on_floor():

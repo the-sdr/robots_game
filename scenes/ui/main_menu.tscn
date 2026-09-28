@@ -81,8 +81,8 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -420.0
-offset_top = -120.0
+offset_left = -520.0
+offset_top = -140.0
 offset_right = -16.0
 offset_bottom = -16.0
 grow_horizontal = 0
@@ -90,6 +90,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(0.5, 0.55, 0.6, 1)
 text = "WASD drive   mouse look   scroll zoom
 E use / dock   Tab parts & builds   Q next tool   click use tool
+Fights: 1 2 3 use a tool (hold W or S for other moves), Space on the beat
 Esc pause   F2 coords   F3 save spot   F4 perf log   F7 god mode
 F11 fullscreen"
 horizontal_alignment = 2

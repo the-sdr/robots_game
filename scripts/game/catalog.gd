@@ -34,13 +34,60 @@ const ITEMS := {
 	"nozzle": {"name": "Print nozzle", "description": "A hot little cone that lays down metal a hair at a time.", "colour": Color(1.0, 0.5, 0.2)},
 }
 
+#
+# Fight moves (turn-based combat, scripts/combat/): every tool has three, picked
+# with its loadout key alone ("") or with forward ("forward", W) / back ("back", S)
+# held. Move fields: name, kind ("attack" | "guard" | "evade" | "stun" | "repair"),
+# power (damage per hit), hits (timing presses, one per hit), energy (battery),
+# guard (share of the next enemy blow that still lands), counter (damage back
+# when that blow is dodged or blocked), heal, hint (one line for the fight screen).
 const TOOLS := {
 	"smasher": {"name": "Smasher", "effect": "smash", "power": 34.0, "energy": 3.0, "range": 2.2,
 		"cooldown": 0.55, "colour": Color(0.85, 0.5, 0.2),
-		"description": "A hammer head on an actuator. Breaks doors, boards, rotten wood."},
+		"description": "A hammer head on an actuator. Breaks doors, boards, rotten wood.",
+		"moves": {
+			"": {"name": "Smash", "kind": "attack", "power": 14.0, "hits": 1, "energy": 3.0, "hint": "One big hit"},
+			"forward": {"name": "Leaping slam", "kind": "attack", "power": 11.0, "hits": 2, "energy": 6.0, "hint": "Jump in, hit twice"},
+			"back": {"name": "Brace", "kind": "guard", "guard": 0.35, "counter": 8.0, "energy": 2.0, "hint": "Block most of the next blow, bonk back"},
+		}},
 	"cutter": {"name": "Cutter", "effect": "cut", "power": 26.0, "energy": 2.0, "range": 2.0,
 		"cooldown": 0.4, "colour": Color(0.4, 0.9, 1.0),
-		"description": "A spinning blade strip. Clears brambles and thin trunks."},
+		"description": "A spinning blade strip. Clears brambles and thin trunks.",
+		"moves": {
+			"": {"name": "Slice", "kind": "attack", "power": 7.0, "hits": 2, "energy": 2.0, "hint": "Two quick cuts"},
+			"forward": {"name": "Whirl", "kind": "attack", "power": 6.0, "hits": 3, "energy": 4.0, "hint": "Spin: three cuts"},
+			"back": {"name": "Parry", "kind": "guard", "guard": 0.5, "counter": 12.0, "energy": 2.0, "hint": "Catch the next blow on the blade"},
+		}},
+	"laser": {"name": "Laser", "effect": "burn", "power": 30.0, "energy": 4.0, "range": 14.0,
+		"cooldown": 0.8, "colour": Color(1.0, 0.35, 0.3), "ranged": true,
+		"description": "A lens, a board and a coil: a beam that burns vines and ropes from far away.",
+		"moves": {
+			"": {"name": "Zap", "kind": "attack", "power": 12.0, "hits": 1, "energy": 4.0, "hint": "A quick beam"},
+			"forward": {"name": "Charged beam", "kind": "attack", "power": 24.0, "hits": 1, "energy": 8.0, "hint": "Charge up, one huge beam"},
+			"back": {"name": "Dazzle", "kind": "stun", "energy": 3.0, "hint": "Flash its eye: it misses its next turn"},
+		}},
+}
+
+## Used when the fight kit is empty (it can't be, once the smasher exists, but never soft-lock a fight).
+const TREAD_MOVES := {
+	"": {"name": "Ram", "kind": "attack", "power": 6.0, "hits": 1, "energy": 0.0, "hint": "Drive into it"},
+	"forward": {"name": "Ram", "kind": "attack", "power": 6.0, "hits": 1, "energy": 0.0, "hint": "Drive into it"},
+	"back": {"name": "Duck", "kind": "guard", "guard": 0.6, "counter": 0.0, "energy": 0.0, "hint": "Keep your head down"},
+}
+
+## The robot's integrity in a fight (separate from the battery; refilled every fight).
+const PLAYER_HEALTH := 50.0
+
+## Enemies. Attacks come round in order; wind_up is how long the timing ring
+## takes to close at normal speed (Settings scales it); hits > 1 = one dodge per hit.
+const ENEMIES := {
+	"hill_sentry": {"name": "Hill Sentry", "health": 60.0, "tutorial": true, "reward": {"capacitor": 1},
+		"attacks": [
+			{"name": "Clamp", "power": 10.0, "hits": 1, "wind_up": 1.3},
+			{"name": "Double swipe", "power": 7.0, "hits": 2, "wind_up": 1.1},
+			{"name": "Clamp", "power": 10.0, "hits": 1, "wind_up": 1.3},
+			{"name": "Charge", "power": 16.0, "hits": 1, "wind_up": 1.8},
+		]},
 }
 
 const RECIPES := {
@@ -50,6 +97,9 @@ const RECIPES := {
 	"cutter": {"name": "Cutter", "tool": "cutter",
 		"needs": {"servo_motor": 1, "gear_train": 1, "blade_strip": 1, "power_cell": 1},
 		"description": "A servo spins a blade strip. Needs a cell of its own."},
+	"laser": {"name": "Laser", "tool": "laser",
+		"needs": {"optic_lens": 1, "circuit_board": 1, "antenna_coil": 1},
+		"description": "The lens focuses, the board fires, the coil charges. Burns from far away."},
 	"blade_strip": {"name": "Blade strip", "gives": {"blade_strip": 1},
 		"needs": {"scrap_metal": 2},
 		"description": "Fold and grind scrap into an edge."},
@@ -60,3 +110,8 @@ func item_name(id: String) -> String:
 
 func tool_name(id: String) -> String:
 	return String(TOOLS.get(id, {}).get("name", id))
+
+## A tool's fight move for "", "forward" or "back" (the treads' moves for "").
+func move(tool_id: String, direction: String) -> Dictionary:
+	var moves: Dictionary = TOOLS.get(tool_id, {}).get("moves", TREAD_MOVES)
+	return moves.get(direction, moves[""])

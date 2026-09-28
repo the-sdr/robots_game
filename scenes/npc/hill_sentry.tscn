@@ -1,0 +1,301 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/hill_sentry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/inspectable.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_paint"]
+albedo_color = Color(0.9, 0.52, 0.12, 1)
+metallic = 0.35
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_black"]
+albedo_color = Color(0.06, 0.06, 0.07, 1)
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="Mat_rust"]
+albedo_color = Color(0.45, 0.25, 0.14, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.22, 0.23, 0.25, 1)
+metallic = 0.75
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_rubber"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_steel"]
+albedo_color = Color(0.72, 0.74, 0.77, 1)
+metallic = 0.85
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_eye"]
+albedo_color = Color(1, 0.35, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.35, 0.1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_tip"]
+albedo_color = Color(1, 0.2, 0.15, 1)
+emission_enabled = true
+emission = Color(1, 0.2, 0.15, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="BoxMesh" id="Mesh_tread"]
+material = SubResource("Mat_rubber")
+size = Vector3(0.34, 0.42, 1.05)
+
+[sub_resource type="CylinderMesh" id="Mesh_wheel"]
+material = SubResource("Mat_steel")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.36
+radial_segments = 14
+
+[sub_resource type="BoxMesh" id="Mesh_hip"]
+material = SubResource("Mat_dark")
+size = Vector3(0.7, 0.22, 0.55)
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+material = SubResource("Mat_paint")
+size = Vector3(1, 0.95, 0.72)
+
+[sub_resource type="BoxMesh" id="Mesh_stripe"]
+material = SubResource("Mat_black")
+size = Vector3(0.12, 1.0, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_rust"]
+material = SubResource("Mat_rust")
+size = Vector3(0.22, 0.15, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_grille"]
+material = SubResource("Mat_dark")
+size = Vector3(0.5, 0.03, 0.03)
+
+[sub_resource type="BoxMesh" id="Mesh_head"]
+material = SubResource("Mat_dark")
+size = Vector3(0.62, 0.42, 0.52)
+
+[sub_resource type="CylinderMesh" id="Mesh_eye"]
+material = SubResource("Mat_eye")
+top_radius = 0.16
+bottom_radius = 0.16
+height = 0.06
+radial_segments = 20
+
+[sub_resource type="CylinderMesh" id="Mesh_rim"]
+material = SubResource("Mat_black")
+top_radius = 0.2
+bottom_radius = 0.2
+height = 0.04
+radial_segments = 20
+
+[sub_resource type="BoxMesh" id="Mesh_visor"]
+material = SubResource("Mat_paint")
+size = Vector3(0.68, 0.07, 0.14)
+
+[sub_resource type="CylinderMesh" id="Mesh_antenna"]
+material = SubResource("Mat_steel")
+top_radius = 0.012
+bottom_radius = 0.018
+height = 0.36
+
+[sub_resource type="SphereMesh" id="Mesh_tip"]
+material = SubResource("Mat_tip")
+radius = 0.045
+height = 0.09
+radial_segments = 10
+rings = 5
+
+[sub_resource type="CylinderMesh" id="Mesh_shoulder"]
+material = SubResource("Mat_dark")
+top_radius = 0.13
+bottom_radius = 0.13
+height = 0.22
+radial_segments = 12
+
+[sub_resource type="BoxMesh" id="Mesh_shield"]
+material = SubResource("Mat_steel")
+size = Vector3(0.1, 0.8, 0.66)
+
+[sub_resource type="BoxMesh" id="Mesh_shield_band"]
+material = SubResource("Mat_paint")
+size = Vector3(0.12, 0.12, 0.68)
+
+[sub_resource type="BoxMesh" id="Mesh_upper"]
+material = SubResource("Mat_paint")
+size = Vector3(0.15, 0.46, 0.15)
+
+[sub_resource type="BoxMesh" id="Mesh_forearm"]
+material = SubResource("Mat_dark")
+size = Vector3(0.13, 0.13, 0.46)
+
+[sub_resource type="BoxMesh" id="Mesh_prong"]
+material = SubResource("Mat_steel")
+size = Vector3(0.05, 0.06, 0.26)
+
+[sub_resource type="CapsuleShape3D" id="Shape_body"]
+radius = 0.7
+height = 2.1
+
+[sub_resource type="SphereShape3D" id="Shape_trigger"]
+radius = 4.5
+
+[sub_resource type="SphereShape3D" id="Shape_inspect"]
+radius = 2.0
+
+[node name="HillSentry" type="StaticBody3D"]
+script = ExtResource("1")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+shape = SubResource("Shape_body")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="TreadLeft" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0.21, 0)
+mesh = SubResource("Mesh_tread")
+
+[node name="TreadRight" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.21, 0)
+mesh = SubResource("Mesh_tread")
+
+[node name="WheelLF" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.5, 0.2, -0.35)
+mesh = SubResource("Mesh_wheel")
+
+[node name="WheelLB" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.5, 0.2, 0.35)
+mesh = SubResource("Mesh_wheel")
+
+[node name="WheelRF" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.5, 0.2, -0.35)
+mesh = SubResource("Mesh_wheel")
+
+[node name="WheelRB" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.5, 0.2, 0.35)
+mesh = SubResource("Mesh_wheel")
+
+[node name="Hip" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, 0)
+mesh = SubResource("Mesh_hip")
+
+[node name="Body" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+mesh = SubResource("Mesh_body")
+
+[node name="StripeA" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.82, -0.57, 0, 0.57, 0.82, 0, 0, 0, 1, -0.22, 1.1, -0.365)
+mesh = SubResource("Mesh_stripe")
+
+[node name="StripeB" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.82, -0.57, 0, 0.57, 0.82, 0, 0, 0, 1, 0.18, 1.1, -0.365)
+mesh = SubResource("Mesh_stripe")
+
+[node name="RustA" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.34, 0.78, -0.367)
+mesh = SubResource("Mesh_rust")
+
+[node name="RustB" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.94, 0.34, 0, -0.34, 0.94, 0, 0, 0, 1, -0.36, 1.42, -0.367)
+mesh = SubResource("Mesh_rust")
+
+[node name="GrilleA" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -0.37)
+mesh = SubResource("Mesh_grille")
+
+[node name="GrilleB" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.82, -0.37)
+mesh = SubResource("Mesh_grille")
+
+[node name="Head" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+
+[node name="HeadBox" type="MeshInstance3D" parent="Visual/Head"]
+mesh = SubResource("Mesh_head")
+
+[node name="Rim" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.02, -0.25)
+mesh = SubResource("Mesh_rim")
+
+[node name="Eye" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.02, -0.28)
+mesh = SubResource("Mesh_eye")
+surface_material_override/0 = SubResource("Mat_eye")
+
+[node name="Visor" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22, -0.24)
+mesh = SubResource("Mesh_visor")
+
+[node name="Antenna" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.39, 0.08)
+mesh = SubResource("Mesh_antenna")
+
+[node name="AntennaTip" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.59, 0.08)
+mesh = SubResource("Mesh_tip")
+
+[node name="ShieldArm" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.62, 1.35, 0)
+
+[node name="Shoulder" type="MeshInstance3D" parent="Visual/ShieldArm"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_shoulder")
+
+[node name="Shield" type="MeshInstance3D" parent="Visual/ShieldArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, -0.35, -0.12)
+mesh = SubResource("Mesh_shield")
+
+[node name="ShieldBand" type="MeshInstance3D" parent="Visual/ShieldArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, -0.35, -0.12)
+mesh = SubResource("Mesh_shield_band")
+
+[node name="PincerArm" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62, 1.35, 0)
+
+[node name="Shoulder" type="MeshInstance3D" parent="Visual/PincerArm"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_shoulder")
+
+[node name="Upper" type="MeshInstance3D" parent="Visual/PincerArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.25, 0)
+mesh = SubResource("Mesh_upper")
+
+[node name="Forearm" type="MeshInstance3D" parent="Visual/PincerArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.48, -0.2)
+mesh = SubResource("Mesh_forearm")
+
+[node name="ProngA" type="MeshInstance3D" parent="Visual/PincerArm"]
+transform = Transform3D(0.966, 0, 0.259, 0, 1, 0, -0.259, 0, 0.966, 0.07, -0.48, -0.52)
+mesh = SubResource("Mesh_prong")
+
+[node name="ProngB" type="MeshInstance3D" parent="Visual/PincerArm"]
+transform = Transform3D(0.966, 0, -0.259, 0, 1, 0, 0.259, 0, 0.966, 0.17, -0.48, -0.52)
+mesh = SubResource("Mesh_prong")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.65, 0)
+billboard = 1
+pixel_size = 0.004
+modulate = Color(1, 0.72, 0.5, 1)
+outline_size = 10
+outline_modulate = Color(0.15, 0.08, 0.04, 1)
+text = "Hill Sentry"
+font_size = 48
+
+[node name="Trigger" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, -4)
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Trigger"]
+shape = SubResource("Shape_trigger")
+
+[node name="Inspect" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("2")
+beat = "sentry_down"
+
+[node name="Shape" type="CollisionShape3D" parent="Inspect"]
+shape = SubResource("Shape_inspect")

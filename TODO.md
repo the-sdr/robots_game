@@ -23,7 +23,15 @@ headless tests pass; pull the branch to playtest any of them.
       own little model (servo, lens, power cell, circuit board, gear train,
       antenna coil, hammer head, actuator arm, scrap, key, card, solar cell...).
       Do they read at a glance, day and night? Anything too small or too shiny?
-- [ ] Phase 4: combat, hill sentry, laser.
+- [x] Phase 4: combat, hill sentry, laser. **Playtest (try Easy first, then
+      Medium and Hard):** build the Laser (Tab) from the optic lens + circuit
+      board + antenna coil. Tab shows the "Fight kit" row: click a slot to
+      change its tool. Walk up the hill: the Hill Sentry rolls in. Your turn:
+      1/2/3 (hold W or S for other moves); press Space when the ring closes.
+      Its turn: Space as its ring closes = dodge. Win → capacitor, the sentry
+      sits beside the path. On Medium/Hard losing rolls you back down the hill.
+      Is Easy easy enough for a six-year-old? Is the camera framing OK? Laser:
+      does the beam read? (Nothing burnable yet: vines come with the Agora.)
 - [ ] Phase 5: charger upgrades, solar HUD, segmented charge bar.
 - [ ] Phase 6: opening cutscene.
 - [ ] Phase 7: relay vault dungeon, Pythia, hover.

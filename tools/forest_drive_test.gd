@@ -56,6 +56,7 @@ func _initialize() -> void:
 		await physics_frame
 	p = world.get_node("Player")
 	p.set_physics_process(false)
+	root.get_node("Game").set_flag("defeated:hill_sentry")     # routes over the crest must not start the tutorial fight
 	var ok := true
 
 	var routes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROUTES))

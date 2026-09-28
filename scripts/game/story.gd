@@ -61,6 +61,10 @@ const BEATS := {
 		"ZAP! Everything is suddenly enormous. You are tiny for two days. Tiny robots use less power... and fit through tiny holes."},
 	"tiny_over": {"title": "Pop!", "text":
 		"Back to full size. Maybe don't poke him next time. Or maybe do."},
+	"sentry_won": {"title": "Sentry down", "text":
+		"The sentry sits down with a clunk. Its big eye blinks... and turns green. Friendly now. In its chest: a capacitor bank. The way to the city is open."},
+	"sentry_down": {"title": "The Hill Sentry", "text":
+		"It sits beside the path, humming to itself. When you roll past, its green eye follows you. It seems happier this way."},
 	"shutdown": {"title": "Power lost", "text":
 		"Systems shutting down. The last copy of you waits at the charger."},
 }

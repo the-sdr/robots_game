@@ -90,6 +90,25 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   snaps the Angry Zombie, the shelf's solar cell, the wardrobe-nook sun tracker,
   lights and chimney smoke to those markers. Walls/furniture changed in the
   tool → update the design's `solids` too.
+- **Combat (sprint 2)**: turn-based, three layers. Data: `Catalog.TOOLS[id]["moves"]`
+  ("" / "forward" / "back" = key alone / W+key / S+key), `Catalog.ENEMIES`,
+  `Catalog.PLAYER_HEALTH`; difficulty from `Settings.tuning()`. Rules:
+  `scripts/combat/combat_state.gd` (RefCounted, no nodes: timing quality,
+  damage, guard/counter, stun, evade, Easy's knockout floor) — test it in
+  loops. Screen: `scripts/combat/combat.gd` (UI built in code, timing ring,
+  turns as coroutines, `phase` + `input_move()` / `input_timing()` /
+  `seconds_to_beat()` for tests; pauses with the tree). Enemy actors provide
+  `arena_player_position`, `step_to_arena` (awaitable), `wind_up`, `strike`,
+  `flinch`, `defeat`, `reset`, `retreat_position` — see `hill_sentry.gd`.
+  `player.in_combat` freezes driving/tools/interact. The fight kit is
+  `Game.loadout()` (3 slots, Tab screen row). Keys: `combat_slot_1..3`
+  (1/2/3, pad X/Y/B), `combat_timing` (Space, pad A).
+- **The Hill Sentry** (3, −90), placed by the forest design's `scenes`; its
+  trigger covers the crest (0, −86). Beaten → flag `defeated:hill_sentry`,
+  capacitor, sits by the path. The drive test sets that flag first so routes
+  over the crest don't start a fight.
+- **Laser**: ranged tool (`"ranged": true`): nearest `apply()` body in a long
+  aim box with a clear line of sight; burns `Breakable` effect "burn".
 - **Part models (sprint 2)**: `tools/item_models_bake.gd` builds one small model
   per Catalog item from Godot primitives (+ real toothed gears), merged per
   material, glowing accent in the item's Catalog colour, ~0.4-0.5 m across,

@@ -102,6 +102,39 @@ func _initialize() -> void:
 	menu.free()
 	settings.set_difficulty(owner_level)
 
+	print("== fight rules (combat_state.gd)")
+	var State: Script = load("res://scripts/combat/combat_state.gd")
+	var fight = State.new()
+	var sentry_def: Dictionary = Catalog.ENEMIES["hill_sentry"]
+	var smash: Dictionary = Catalog.move("smasher", "")
+	fight.start(sentry_def, easy, Catalog.PLAYER_HEALTH)
+	check(fight.enemy_max == 42.0 and fight.quality(0.3) == "good" and fight.quality(-0.1) == "perfect" and fight.quality(0.5) == "miss", "Easy: sentry 42 HP, wide timing windows")
+	check(fight.player_move(smash, ["miss"])["damage"] == 14, "Easy: a missed press still hits full")
+	check(fight.enemy_move(["miss"])["damage"] == 5, "Easy: the clamp hurts half")
+	fight.player_hp = 3.0
+	fight.enemy_move(["miss", "miss"])
+	check(fight.player_hp == 1.0 and fight.outcome == "", "Easy tutorial: the robot can't be knocked out")
+	fight.start(sentry_def, medium, Catalog.PLAYER_HEALTH)
+	check(fight.player_move(smash, ["perfect"])["damage"] == 21 and fight.player_move(smash, ["good"])["damage"] == 14 and fight.player_move(smash, ["miss"])["damage"] == 8, "Medium: perfect 21, good 14, miss 8")
+	check(fight.enemy_move(["good"])["damage"] == 5 and fight.enemy_move(["perfect", "perfect"])["damage"] == 0, "blocking halves a blow, dodging takes none")
+	fight.player_move(Catalog.move("smasher", "back"), [])
+	var braced: Dictionary = fight.enemy_move(["good"])
+	check(braced["damage"] == 2 and braced["countered"] == 8, "Brace: a third of a blocked clamp lands, and it bonks back (%s)" % [braced])
+	fight.player_move(Catalog.move("laser", "back"), [])
+	check(fight.next_attack().is_empty() and fight.enemy_move([])["skipped"], "Dazzle: the sentry loses its turn")
+	fight.player_hp = 3.0
+	fight.enemy_move(["miss", "miss"])
+	check(fight.outcome == "lost", "Medium: the tutorial can be lost")
+	for level in ["easy", "hard"]:
+		fight.start(sentry_def, settings.DIFFICULTY[level], Catalog.PLAYER_HEALTH)
+		var turns := 0
+		while fight.outcome == "" and turns < 30:
+			fight.player_move(smash, ["miss"])
+			if fight.outcome == "":
+				fight.enemy_move(["miss", "miss"])
+			turns += 1
+		check(fight.outcome == ("won" if level == "easy" else "lost"), "%s, pressing nothing at all: %s in %d turns" % [level, fight.outcome, turns])
+
 	print("== inventory and crafting")
 	Game.delete_save()
 	Game.new_game()
@@ -117,6 +150,17 @@ func _initialize() -> void:
 	for id in ["servo_motor", "gear_train", "power_cell"]:
 		Game.add_item(id)
 	check(Game.craft("cutter") and Game.has_tool("cutter"), "cutter crafted from forest parts")
+	check(str(Game.loadout()) == str(["smasher", "cutter", ""]), "fight kit fills as tools are built (%s)" % [Game.loadout()])
+	for id in ["optic_lens", "circuit_board", "antenna_coil"]:
+		Game.add_item(id)
+	check(Game.craft("laser") and Game.has_tool("laser"), "laser crafted from the forest's other three parts")
+	check(str(Game.loadout()) == str(["smasher", "cutter", "laser"]), "three tools: a full fight kit")
+	Game.cycle_loadout_slot(0)
+	check(Game.loadout()[0] == "", "a kit slot can be emptied")
+	Game.cycle_loadout_slot(0)
+	check(Game.loadout()[0] == "smasher", "and filled again (no tool twice)")
+	Game.data["loadout"] = []
+	check(str(Game.loadout()) == str(["smasher", "cutter", "laser"]), "an old save without a kit gets the first three tools")
 
 	print("== clock and sun")
 	Clock.time = 0.5
@@ -437,6 +481,102 @@ func _initialize() -> void:
 	for i in 90:
 		await physics_frame
 	check(await drive_to(player, Vector2(0.0, -134.0), 300), "drove into the tower")
+	player.set_physics_process(true)
+
+	print("== the laser")
+	for id in ["optic_lens", "circuit_board", "antenna_coil"]:
+		Game.add_item(id)
+	check(Game.craft("laser"), "laser built")
+	Game.data["equipped_tool"] = "laser"
+	Game.inventory_changed.emit()
+	await process_frame
+	player.set_physics_process(false)
+	player.global_position = Vector3(0.0, 0.3, -112.0)          # the Hub avenue, facing north
+	player.get_node("Visual").global_rotation.y = 0.0
+	var vines: StaticBody3D = breakable_script.new()
+	vines.name = "TestVines"
+	vines.set("effects", PackedStringArray(["burn"]))
+	vines.set("health", 50.0)
+	var vine_shape := CollisionShape3D.new()
+	var vine_box := BoxShape3D.new()
+	vine_box.size = Vector3(1.5, 2.0, 0.4)
+	vine_shape.shape = vine_box
+	vine_shape.position.y = 1.0
+	vines.add_child(vine_shape)
+	world.add_child(vines)
+	vines.global_position = Vector3(0.0, 0.0, -121.0)            # 9 m ahead
+	for i in 30:
+		await physics_frame
+	Energy.current = 60.0
+	check(rig.use() and absf(vines.health - 20.0) < 0.01, "the laser burns vines 9 m away (%.0f left)" % vines.health)
+	var wall := StaticBody3D.new()
+	var wall_shape := CollisionShape3D.new()
+	var wall_box := BoxShape3D.new()
+	wall_box.size = Vector3(3.0, 3.0, 0.3)
+	wall_shape.shape = wall_box
+	wall_shape.position.y = 1.5
+	wall.add_child(wall_shape)
+	world.add_child(wall)
+	wall.global_position = Vector3(0.0, 0.0, -116.0)
+	for i in 60:
+		await physics_frame
+	check(not rig.use() and absf(vines.health - 20.0) < 0.01, "but not through a wall")
+	wall.free()
+	vines.free()
+
+	print("== the Hill Sentry: the tutorial fight")
+	var sentry: Node3D = world.get_node("GeneratedLevel/Props/HillSentry")
+	check(sentry.global_position.distance_to(Vector3(3, sentry.global_position.y, -90)) < 0.1, "the sentry stands on the hill")
+	var owner_difficulty: String = settings.difficulty
+	settings.set_difficulty("easy")
+	Energy.current = 100.0
+	Game.data["loadout"] = ["smasher", "cutter", "laser"]
+	player.global_position = Vector3(0.0, 6.0, -79.0)
+	player.velocity = Vector3.ZERO
+	for i in 30:
+		await physics_frame                  # drop onto the hillside
+	for i in 400:                            # up the hill until the sentry stops us
+		if player.in_combat:
+			break
+		await drive_to(player, Vector2(0.0, -86.0), 1)
+	for i in 5:
+		await physics_frame
+	var combat: Node = sentry.get_node_or_null("Combat")
+	check(combat != null and player.in_combat, "walking up to the crest starts the fight")
+	var frames := 0
+	var presses := 0
+	while is_instance_valid(combat) and combat.phase != "done" and frames < 60 * 90:
+		if combat.phase == "choose":
+			combat.input_move(0, "")                      # 1: Smash
+		elif combat.phase == "timing" and combat.seconds_to_beat() <= 0.0:
+			combat.input_timing()                         # right on the beat
+			presses += 1
+		await process_frame
+		frames += 1
+	check(Game.get_flag("defeated:hill_sentry") and Game.count("capacitor") == 1, "Easy: won with good timing, the capacitor dropped (%d frames, %d presses)" % [frames, presses])
+	for i in 120:
+		await process_frame
+	check(not player.in_combat and player.camera.current and not is_instance_valid(combat), "the robot drives again with its own camera")
+	check(sentry.global_position.distance_to(Vector3(3, sentry.global_position.y, -90)) < 0.1 and sentry.inspect.enabled, "the sentry sits back down beside the path, inspectable")
+	# a lost fight on Hard (never pressing): back down the hill, and it can be tried again
+	Game.set_flag("defeated:hill_sentry", false)
+	sentry.reset()
+	settings.set_difficulty("hard")
+	Energy.current = 100.0
+	player.global_position = Vector3(0.0, 7.0, -86.0)
+	combat = sentry.start_fight(player)
+	frames = 0
+	while is_instance_valid(combat) and combat.phase != "done" and frames < 60 * 120:
+		if combat.phase == "choose":
+			combat.input_move(0, "")
+		await process_frame
+		frames += 1
+	for i in 150:
+		await process_frame
+	check(not Game.get_flag("defeated:hill_sentry") and player.global_position.z > -81.0 and not player.in_combat, "Hard, pressing nothing: lost, rolled back down the hill (z %.1f)" % player.global_position.z)
+	check(not sentry.fighting, "the sentry is ready for another try")
+	Game.set_flag("defeated:hill_sentry", true)
+	settings.set_difficulty(owner_difficulty)
 	player.set_physics_process(true)
 
 	print("== menus open and close from the keyboard while paused")
