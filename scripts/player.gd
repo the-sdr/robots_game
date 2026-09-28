@@ -26,6 +26,13 @@ const TINY_JUMP = 0.6
 const TINY_DRAIN = 0.5
 const TINY_ZOOM = 0.55
 const CAMERA_HEIGHT = 1.5
+# The eye lenses' irises: six blades in front of each lens (the opening
+# cutscene's last shot). 0 = shut, 1 = open (normal play).
+const IRIS_BLADES = 6
+const IRIS_SHUT_R = 0.013
+const IRIS_OPEN_R = 0.037
+const IRIS_BLADE_HALF_LENGTH = 0.026
+const IRIS_BLADE_HALF_WIDTH = 0.012
 
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
@@ -72,6 +79,7 @@ func _ready() -> void:
 	_tiny_shape = CapsuleShape3D.new()
 	_tiny_shape.radius = _normal_shape.radius * TINY_SCALE
 	_tiny_shape.height = _normal_shape.height * TINY_SCALE
+	_build_iris()
 	# Own copies of the shared materials so this robot can light up on its own.
 	_chest_material = StandardMaterial3D.new()
 	_chest_material.albedo_color = Color(0.1, 0.11, 0.12)
@@ -242,6 +250,55 @@ func _physics_process(delta: float) -> void:
 	_update_camera_distance(delta)
 	if not god_mode:
 		Energy.drain((Energy.DRIVE_DRAIN if move_dir.length() > 0.1 else Energy.IDLE_DRAIN) * delta * (TINY_DRAIN if tiny else 1.0))
+
+# --- the eye irises ------------------------------------------------------------------
+var iris_open := 1.0
+var _iris_meshes: Array[MeshInstance3D] = []
+var _iris_material: StandardMaterial3D
+
+func _build_iris() -> void:
+	_iris_material = StandardMaterial3D.new()
+	_iris_material.albedo_color = Color(0.1, 0.1, 0.11)
+	_iris_material.metallic = 0.8
+	_iris_material.roughness = 0.35
+	_iris_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	for lens in lenses:
+		var mi := MeshInstance3D.new()
+		mi.name = "Iris"
+		mi.material_override = _iris_material
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		# in front of the lens, facing out of the head (-Z)
+		mi.position = (lens as Node3D).position + Vector3(0, 0, -0.007)
+		lens.get_parent().add_child(mi)
+		_iris_meshes.append(mi)
+	set_iris(iris_open)
+
+## 0 = shut, 1 = open. Rebuilds the two small blade meshes (a cutscene animates it).
+func set_iris(amount: float) -> void:
+	iris_open = clampf(amount, 0.0, 1.0)
+	var r: float = lerpf(IRIS_SHUT_R, IRIS_OPEN_R, iris_open)
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var indices := PackedInt32Array()
+	for i in IRIS_BLADES:
+		var a := TAU * i / IRIS_BLADES + iris_open * 0.5          # the blades turn a little as they open
+		var radial := Vector3(cos(a), sin(a), 0)
+		var tangent := Vector3(-sin(a), cos(a), 0)
+		var centre := radial * r + Vector3(0, 0, -0.0004 * i)     # staggered: overlapping blades never flicker
+		var s := verts.size()
+		for corner in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+			verts.append(centre + tangent * IRIS_BLADE_HALF_LENGTH * corner.x + radial * IRIS_BLADE_HALF_WIDTH * corner.y)
+			normals.append(Vector3(0, 0, -1))
+		indices.append_array(PackedInt32Array([s, s + 1, s + 2, s, s + 2, s + 3]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	for mi in _iris_meshes:
+		mi.mesh = mesh
 
 # --- the tiny curse ------------------------------------------------------------------
 ## Shrinks when Game says the curse is on; regrows when it's over, but only once

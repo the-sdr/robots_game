@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.46, 0.4, 0.33, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood_dark"]
+albedo_color = Color(0.33, 0.27, 0.21, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="Mesh_plank"]
+material = SubResource("Mat_wood")
+size = Vector3(0.26, 0.05, 2.3)
+
+[sub_resource type="BoxMesh" id="Mesh_plank_dark"]
+material = SubResource("Mat_wood_dark")
+size = Vector3(0.26, 0.05, 2.22)
+
+[sub_resource type="BoxMesh" id="Mesh_batten"]
+material = SubResource("Mat_wood_dark")
+size = Vector3(1.4, 0.04, 0.1)
+
+[node name="FallenBoard" type="Node3D"]
+
+[node name="Plank1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.56, 0.025, -0.65)
+mesh = SubResource("Mesh_plank")
+
+[node name="Plank2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, 0.025, -0.61)
+mesh = SubResource("Mesh_plank_dark")
+
+[node name="Plank3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, -0.65)
+mesh = SubResource("Mesh_plank")
+
+[node name="Plank4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, 0.025, -0.69)
+mesh = SubResource("Mesh_plank_dark")
+
+[node name="Plank5" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.56, 0.025, -0.65)
+mesh = SubResource("Mesh_plank")
+
+[node name="BattenNorth" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, -1.4)
+mesh = SubResource("Mesh_batten")
+
+[node name="BattenSouth" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0.1)
+mesh = SubResource("Mesh_batten")

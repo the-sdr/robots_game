@@ -107,6 +107,17 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   trigger covers the crest (0, −86). Beaten → flag `defeated:hill_sentry`,
   capacitor, sits by the path. The drive test sets that flag first so routes
   over the crest don't start a fight.
+- **Opening cutscene (sprint 2)**: `scripts/cutscene/opening.gd` runs inside the
+  real world on New Game only (`Game.play_intro`, set by the main menu; tests
+  and Continue leave it off). Seven shots with Tweens and one Camera3D;
+  Space/Enter/Esc/click skips; `_finish()` puts everything where play expects
+  it (board on the ground south of the house, charger stored restored, iris
+  open, HUD/clock/camera back, flag `intro_seen`), then world.gd plays the
+  wake beat. Uses the robot's `shut_down` to keep it asleep until the face
+  shot. New fixed props in world.tscn: `RoofSolar` (on the flat roof, y 3.73,
+  tilted 30° south like the charger panels) and `FallenBoard`. The house has a
+  **flat roof** (deck y ≈ 3.73, rim top ≈ 4.02). The robot's lenses have an
+  iris (`player.set_iris(0..1)`, one small mesh per eye).
 - **Chargers (sprint 2)**: `charger.gd` adds upgrades ("panel" ×1.5 fill,
   "tracker" = full light whenever the sun is up + the panel turns to it,
   "battery" +60 capacity), fitted while docked via Catalog recipes with

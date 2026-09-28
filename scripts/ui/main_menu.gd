@@ -31,4 +31,5 @@ func _continue() -> void:
 
 func _new_game() -> void:
 	Game.new_game()
+	Game.play_intro = true
 	get_tree().change_scene_to_file(WORLD)

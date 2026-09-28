@@ -32,6 +32,10 @@
 
 [ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Floor_WoodDark.gltf" id="38"]
 
+[ext_resource type="PackedScene" path="res://scenes/props/roof_solar.tscn" id="roof_solar"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/fallen_board.tscn" id="fallen_board"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_house_floor"]
 size = Vector3(5.4, 0.06, 5.4)
 
@@ -162,6 +166,12 @@ transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -5.03)
 
 [node name="Tile_2_2" parent="HouseFloor" instance=ExtResource("38")]
 transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -3.23)
+
+[node name="RoofSolar" parent="." instance=ExtResource("roof_solar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 3.73, -3.55)
+
+[node name="FallenBoard" parent="." instance=ExtResource("fallen_board")]
+transform = Transform3D(-0.105, 0, 0.995, 0, 1, 0, -0.995, 0, -0.105, 1.45, 0.03, -1.4)
 
 [node name="HouseDoor" parent="." instance=ExtResource("34")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7.74)

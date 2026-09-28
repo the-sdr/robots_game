@@ -39,7 +39,12 @@ headless tests pass; pull the branch to playtest any of them.
       sentry), "Sun tracker" (from the crooked house's mouse hole) and "Panel
       extension" (2 solar cells: one on the crooked house shelf, the second
       comes with the relay vault) fit to that charger and show on it.
-- [ ] Phase 6: opening cutscene.
+- [x] Phase 6: opening cutscene. **Playtest:** New Game (not Continue) plays it
+      (~21 s): forest from above → the roof, a robin lands on the board → it
+      wobbles → close-up, it flies off → the board slides off, the solar panel
+      glints → the dock's bar lights, one ring blinking → the robot's eye, the
+      iris opens a little. Space/Esc skips. Check the camera framing in each
+      shot, and the frame rate of the first (over the forest) on the laptop.
 - [ ] Phase 7: relay vault dungeon, Pythia, hover.
 - [ ] Phase 8: the Agora district, fabricator.
 

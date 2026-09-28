@@ -688,8 +688,52 @@ func _initialize() -> void:
 	check(Energy.current > 0.0 and not player.shut_down, "rebooted with emergency energy (%.0f)" % Energy.current)
 	check(player.global_position.distance_to(charger.global_position) < 2.5, "rebooted beside the last charger")
 	check(Game.count(pickup_item) == 1, "inventory kept through the shutdown")
-
 	world.free()
+
+	print("== the opening cutscene (New Game only)")
+	for run in ["watch", "skip"]:
+		Game.new_game()
+		Game.play_intro = true
+		world = load("res://scenes/world.tscn").instantiate()
+		root.add_child(world)
+		for i in 5:
+			await process_frame
+		player = world.get_node("Player")
+		charger = world.get_node("HouseCharger")
+		var intro: Node = world.get_node_or_null("OpeningCutscene")
+		var board: Node3D = world.get_node("FallenBoard")
+		check(intro != null and not Game.play_intro, "%s: New Game starts the cutscene" % run)
+		check(player.shut_down and not world.get_node("HUD").visible and not player.camera.current, "%s: the robot sleeps, HUD hidden, a film camera" % run)
+		check(board.global_position.y > 3.9 and player.iris_open == 0.0, "%s: a board lies across the roof, the iris is shut" % run)
+		var saw_bird := false
+		var saw_blink := false
+		var intro_frames := 0
+		if run == "skip":
+			for i in 90:
+				await process_frame
+			var skip_ev := InputEventAction.new()
+			skip_ev.action = "pause"
+			skip_ev.pressed = true
+			Input.parse_input_event(skip_ev)
+		while is_instance_valid(intro) and not intro.done and intro_frames < 60 * 40:
+			saw_bird = saw_bird or is_instance_valid(intro.bird)
+			saw_blink = saw_blink or str(charger.bar_state()) == str([0, 0])
+			await process_frame
+			intro_frames += 1
+		if run == "watch":
+			check(saw_bird and saw_blink, "watch: the bird came, the charge bar showed one blinking ring (%d frames, %.1f s)" % [intro_frames, intro_frames / 60.0])
+		else:
+			check(intro_frames < 30, "skip: Esc ends it at once (%d frames)" % intro_frames)
+		for i in 70:
+			await process_frame
+		check(board.global_position.y < 0.2 and board.global_position.distance_to(Vector3(1.45, 0.03, -1.4)) < 0.05, "%s: the board ends on the ground by the south wall" % run)
+		check(not player.shut_down and player.camera.current and world.get_node("HUD").visible and Clock.running, "%s: control back: robot awake, own camera, HUD, clock" % run)
+		check(absf(charger.stored - 60.0) < 1.0 and player.iris_open > 0.99 and Game.get_flag("intro_seen"), "%s: charger as the game expects, iris open, flag set" % run)
+		check(not is_instance_valid(intro) and world.get_node_or_null("OpeningCutscene") == null, "%s: the cutscene is gone" % run)
+		for i in 60:
+			await process_frame
+		check(Game.beat_seen("wake"), "%s: then the wake-up message" % run)
+		world.free()
 	Game.delete_save()
 	print("RESULT: %s (%d failures)" % ["OK" if failures == 0 else "PROBLEMS FOUND", failures])
 	quit(0 if failures == 0 else 1)

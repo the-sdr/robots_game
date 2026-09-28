@@ -18,6 +18,9 @@ const SAVE_VERSION := 1
 var data: Dictionary = {}
 ## Set by the main menu: the world scene applies the save when it is ready.
 var pending_load := false
+## Set by the main menu's New Game: the world plays the opening cutscene first.
+## (Not saved; tests and Continue leave it off.)
+var play_intro := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS    # fullscreen toggle works in menus and while paused

@@ -1,0 +1,108 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_cell"]
+albedo_color = Color(0.06, 0.1, 0.28, 1)
+metallic = 0.6
+roughness = 0.12
+emission_enabled = true
+emission = Color(1, 0.95, 0.8, 1)
+emission_energy_multiplier = 0.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_frame"]
+albedo_color = Color(0.72, 0.74, 0.77, 1)
+metallic = 0.85
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="Mesh_cell"]
+material = SubResource("Mat_cell")
+size = Vector3(1.8, 0.04, 1.1)
+
+[sub_resource type="BoxMesh" id="Mesh_line_x"]
+material = SubResource("Mat_frame")
+size = Vector3(1.8, 0.045, 0.012)
+
+[sub_resource type="BoxMesh" id="Mesh_line_z"]
+material = SubResource("Mat_frame")
+size = Vector3(0.012, 0.045, 1.1)
+
+[sub_resource type="BoxMesh" id="Mesh_edge_x"]
+material = SubResource("Mat_frame")
+size = Vector3(1.84, 0.06, 0.04)
+
+[sub_resource type="BoxMesh" id="Mesh_edge_z"]
+material = SubResource("Mat_frame")
+size = Vector3(0.04, 0.06, 1.14)
+
+[sub_resource type="BoxMesh" id="Mesh_leg_back"]
+material = SubResource("Mat_frame")
+size = Vector3(0.05, 0.62, 0.05)
+
+[sub_resource type="BoxMesh" id="Mesh_leg_front"]
+material = SubResource("Mat_frame")
+size = Vector3(0.05, 0.1, 0.05)
+
+[node name="RoofSolar" type="Node3D"]
+
+[node name="LegBackLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.31, -0.45)
+mesh = SubResource("Mesh_leg_back")
+
+[node name="LegBackRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.31, -0.45)
+mesh = SubResource("Mesh_leg_back")
+
+[node name="LegFrontLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.05, 0.45)
+mesh = SubResource("Mesh_leg_front")
+
+[node name="LegFrontRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.05, 0.45)
+mesh = SubResource("Mesh_leg_front")
+
+[node name="Panel" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866, -0.5, 0, 0.5, 0.866, 0, 0.35, 0)
+
+[node name="Cells" type="MeshInstance3D" parent="Panel"]
+mesh = SubResource("Mesh_cell")
+
+[node name="LineA" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.003, -0.275)
+mesh = SubResource("Mesh_line_x")
+
+[node name="LineB" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.003, 0)
+mesh = SubResource("Mesh_line_x")
+
+[node name="LineC" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.003, 0.275)
+mesh = SubResource("Mesh_line_x")
+
+[node name="LineD" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0.003, 0)
+mesh = SubResource("Mesh_line_z")
+
+[node name="LineE" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.003, 0)
+mesh = SubResource("Mesh_line_z")
+
+[node name="EdgeNorth" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.57)
+mesh = SubResource("Mesh_edge_x")
+
+[node name="EdgeSouth" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.57)
+mesh = SubResource("Mesh_edge_x")
+
+[node name="EdgeWest" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.92, 0, 0)
+mesh = SubResource("Mesh_edge_z")
+
+[node name="EdgeEast" type="MeshInstance3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.92, 0, 0)
+mesh = SubResource("Mesh_edge_z")
+
+[node name="GlintLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0.5)
+light_color = Color(1, 0.95, 0.8, 1)
+light_energy = 0.0
+omni_range = 4.0

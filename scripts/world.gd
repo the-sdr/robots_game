@@ -7,6 +7,7 @@ extends Node3D
 const REBOOT_ENERGY := 30.0
 const WAKE_ENERGY := 28.0        # a new game starts nearly flat: dock first, then smash
 const SHUTDOWN_SECONDS := 2.5
+const INTRO := preload("res://scenes/cutscene/opening.tscn")
 
 @onready var player: CharacterBody3D = $Player
 @onready var hud: CanvasLayer = $HUD
@@ -33,7 +34,14 @@ func _start_new_game() -> void:
 	Energy.current = WAKE_ENERGY
 	Energy.changed.emit(Energy.current, Energy.MAX)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	get_tree().create_timer(1.2).timeout.connect(func() -> void: Story.play("wake"))
+	if Game.play_intro:
+		Game.play_intro = false
+		var intro: Node = INTRO.instantiate()
+		add_child(intro)
+		intro.finished.connect(func() -> void: get_tree().create_timer(0.8).timeout.connect(func() -> void: Story.play("wake")))
+		intro.play(self)
+	else:
+		get_tree().create_timer(1.2).timeout.connect(func() -> void: Story.play("wake"))
 
 func _on_flag_changed(flag: String, value: bool) -> void:
 	if flag == "house_door_broken" and value:
