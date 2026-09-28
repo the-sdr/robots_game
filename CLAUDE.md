@@ -162,6 +162,8 @@ Easy/Medium/Hard, the crooked house + Angry Zombie + tiny curse, real part
 models, turn-based timing combat + the Hill Sentry, laser, charger upgrades +
 solar HUD, the opening cutscene, the Relay Vault + Pythia + hover pack, the
 Agora + fabricator. `TODO.md` has a playtest note per phase.
+**Next session: start at `TODO.md` → "Start here"** — the playtest questions
+for the owner are in `playtest/sprint2_feedback.md`.
 
 ### Sprint 1 (2026-09-27)
 The vertical slice is built and headlessly verified, not yet played by the

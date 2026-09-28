@@ -268,6 +268,9 @@ independent so they land in any order. Owner decisions:
 - Setup once: `bash tools/cloud_setup.sh`. Loop: cloud builds/verifies/pushes →
   owner pulls, playtests locally, sends F4/F3 results (or pushes
   `playtest/*.md`, now tracked) → cloud reads them.
+- **Each playtest round is played from the sprint branch until the owner
+  merges it** (owner yes, 2026-09-28): sprint 2 is
+  `claude/sync-local-fixes-b85lpn`; fixes from its playtest go on that branch.
 - Local-only (not reachable from the cloud): the Godot program on the laptop,
   Godot's run logs (`%APPDATA%\Godotpp_userdata\Robots_game_godotfile\logs\`
   — a local session has standing read-only access), `C:\projects\Global_assets`
@@ -567,6 +570,9 @@ Newest first. Session ID links follow the
   curated; true randomness does not, except for background atmosphere.
 - Keep pre-tool-call narration to one short, plain sentence about the
   immediate next action — no bundled "I'll do X, then Y, then Z."
+- **New districts sit side by side and check each other's walls** (owner yes,
+  2026-09-28): list each other in `"neighbours"`, share a wall with a gated
+  gap, and copy the Agora (`level_design/agora_design.json`) as the template.
 
 ## User preferences
 

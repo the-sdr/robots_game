@@ -1,5 +1,17 @@
 # TODO — next session
 
+## Start here: the owner's sprint 2 playtest (feedback + bug fixes)
+1. Open `playtest/sprint2_feedback.md`. If the owner hasn't filled it in, go
+   through it with them one question at a time (most important first) and
+   write each answer on its `Answer:` line. Also read new entries in
+   `playtest/perf.md` / `playtest/saves.md` (F4/F3) and note the machine.
+2. List the bugs and wanted changes from the answers here, most serious first,
+   and confirm the order with the owner before fixing.
+3. Work on `claude/sync-local-fixes-b85lpn` (playtests run from it until the
+   owner merges it into `main`). After each fix run the matching pipeline and
+   tests (`CLAUDE.md` → Level pipeline / Verify); commit and push only when
+   the owner asks.
+
 ## Sprint 2 (cloud, started 2026-09-28) — branch `claude/sync-local-fixes-b85lpn`
 Plan approved by the owner: crooked house + Angry Zombie + tiny curse, the hill
 sentry tutorial fight (turn-based, 3-tool loadout), Easy/Medium/Hard, real part
