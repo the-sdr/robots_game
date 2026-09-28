@@ -37,6 +37,10 @@ const BEATS := {
 		"A parked machine, a tarp, a box of cards for doors that no longer exist. One card is for a door that does."},
 	"relay": {"title": "The relay", "text":
 		"The card reads. The door slides. Inside: a lift going down into the dark, and a hum coming up from below. Your standing order says report to the relay. The relay is down there."},
+	"agora": {"title": "The Agora", "text":
+		"A market square. Stalls, wagons, crates of nothing. Everyone left in a hurry and the vines moved in. In the far corner a workshop, its shutter jammed shut."},
+	"printer_shop": {"title": "The printer shop", "text":
+		"A matter printer, taken apart on the floor. Its core still hums. With a nozzle it could print metal out of scrap: parts, panels, even a ramp."},
 	"vault": {"title": "The Relay Vault", "text":
 		"Cold air, humming cables, lamps that somebody kept burning. The relay is not a radio mast after all. It's a place."},
 	"mirrors": {"title": "The mirror hall", "text":

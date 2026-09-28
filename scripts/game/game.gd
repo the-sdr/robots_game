@@ -163,6 +163,8 @@ func craft_blocker(recipe_id: String) -> String:
 		return "Unknown recipe"
 	if recipe.has("requires_flag") and not get_flag(recipe["requires_flag"]):
 		return "Not understood yet"
+	if recipe.has("requires_tool") and not has_tool(recipe["requires_tool"]):
+		return "Not understood yet"
 	if recipe.has("tool") and has_tool(recipe["tool"]):
 		return "Already built"
 	if recipe.has("upgrade"):

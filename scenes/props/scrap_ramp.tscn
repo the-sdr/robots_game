@@ -1,0 +1,160 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interact/buildable.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/interactable.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_deck"]
+albedo_color = Color(0.46, 0.4, 0.35, 1)
+metallic = 0.6
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="Mat_rail"]
+albedo_color = Color(0.3, 0.3, 0.32, 1)
+metallic = 0.8
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Mat_ghost"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.3, 1, 0.85, 0.28)
+emission_enabled = true
+emission = Color(0.3, 1, 0.85, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="BoxMesh" id="Mesh_deck"]
+size = Vector3(4.776, 0.2, 2)
+
+[sub_resource type="BoxMesh" id="Mesh_rail"]
+size = Vector3(4.776, 0.12, 0.08)
+
+[sub_resource type="BoxMesh" id="Mesh_slat"]
+size = Vector3(0.1, 0.03, 1.9)
+
+[sub_resource type="BoxMesh" id="Mesh_leg_high"]
+size = Vector3(0.15, 1.3, 0.15)
+
+[sub_resource type="BoxMesh" id="Mesh_leg_mid"]
+size = Vector3(0.15, 0.59, 0.15)
+
+[sub_resource type="BoxShape3D" id="Shape_deck"]
+size = Vector3(4.776, 0.2, 2)
+
+[sub_resource type="SphereShape3D" id="Shape_use"]
+radius = 1.6
+
+[node name="ScrapRamp" type="Node3D"]
+script = ExtResource("1")
+display_name = "the scrap ramp"
+cost = {
+"scrap_metal": 2
+}
+flag = "built:scrap_ramp"
+
+[node name="Ghost" type="Node3D" parent="."]
+
+[node name="Deck" type="MeshInstance3D" parent="Ghost"]
+transform = Transform3D(0.94218, -0.335, 0, 0.335, 0.94218, 0, 0, 0, 1, -0.3665, 0.7058, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_deck")
+surface_material_override/0 = SubResource("Mat_ghost")
+
+[node name="RailN" type="MeshInstance3D" parent="Ghost/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, -0.96)
+cast_shadow = 0
+mesh = SubResource("Mesh_rail")
+surface_material_override/0 = SubResource("Mat_ghost")
+
+[node name="RailS" type="MeshInstance3D" parent="Ghost/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0.96)
+cast_shadow = 0
+mesh = SubResource("Mesh_rail")
+surface_material_override/0 = SubResource("Mat_ghost")
+
+[node name="LegHighN" type="MeshInstance3D" parent="Ghost"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0.65, -0.8)
+cast_shadow = 0
+mesh = SubResource("Mesh_leg_high")
+surface_material_override/0 = SubResource("Mat_ghost")
+
+[node name="LegHighS" type="MeshInstance3D" parent="Ghost"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0.65, 0.8)
+cast_shadow = 0
+mesh = SubResource("Mesh_leg_high")
+surface_material_override/0 = SubResource("Mat_ghost")
+
+[node name="Solid" type="StaticBody3D" parent="."]
+
+[node name="Model" type="Node3D" parent="Solid"]
+
+[node name="Deck" type="MeshInstance3D" parent="Solid/Model"]
+transform = Transform3D(0.94218, -0.335, 0, 0.335, 0.94218, 0, 0, 0, 1, -0.3665, 0.7058, 0)
+mesh = SubResource("Mesh_deck")
+surface_material_override/0 = SubResource("Mat_deck")
+
+[node name="RailN" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, -0.96)
+mesh = SubResource("Mesh_rail")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="RailS" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0.96)
+mesh = SubResource("Mesh_rail")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="Slat1" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.115, 0)
+mesh = SubResource("Mesh_slat")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="Slat2" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0.115, 0)
+mesh = SubResource("Mesh_slat")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="Slat3" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.115, 0)
+mesh = SubResource("Mesh_slat")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="Slat4" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.115, 0)
+mesh = SubResource("Mesh_slat")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="Slat5" type="MeshInstance3D" parent="Solid/Model/Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.115, 0)
+mesh = SubResource("Mesh_slat")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="LegHighN" type="MeshInstance3D" parent="Solid/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0.65, -0.8)
+mesh = SubResource("Mesh_leg_high")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="LegHighS" type="MeshInstance3D" parent="Solid/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0.65, 0.8)
+mesh = SubResource("Mesh_leg_high")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="LegMidN" type="MeshInstance3D" parent="Solid/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.295, -0.8)
+mesh = SubResource("Mesh_leg_mid")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="LegMidS" type="MeshInstance3D" parent="Solid/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.295, 0.8)
+mesh = SubResource("Mesh_leg_mid")
+surface_material_override/0 = SubResource("Mat_rail")
+
+[node name="Collision" type="CollisionShape3D" parent="Solid"]
+transform = Transform3D(0.94218, -0.335, 0, 0.335, 0.94218, 0, 0, 0, 1, -0.3665, 0.7058, 0)
+shape = SubResource("Shape_deck")
+
+[node name="Interactable" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 0.6, 0)
+script = ExtResource("2")
+prompt = "Print the scrap ramp"
+
+[node name="Shape" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("Shape_use")

@@ -8,6 +8,7 @@ Usage (from the project root):
 Each route follows the design's own path curves (shortest way through the path
 graph), sampled every few metres, so the robot drives exactly what was designed.
 A route to a node with "behind" names the blocker that must be cleared first.
+Nodes with "requires" (an ability such as hover) get no route.
 """
 import heapq
 import json
@@ -62,7 +63,8 @@ def main():
                 dense.append((a[0] + (b[0] - a[0]) * k / steps, a[1] + (b[1] - a[1]) * k / steps))
         return [[round(x, 2), round(z, 2)] for x, z in dense]
 
-    targets = [n for n, v in design.nodes.items() if v["kind"] not in ("blocker", "start")]
+    # places that need an ability ("requires": "hover") aren't drivable; systems_test.gd covers them
+    targets = [n for n, v in design.nodes.items() if v["kind"] not in ("blocker", "start") and not v.get("requires")]
     routes = {t: {"points": route(t), "behind": design.nodes[t].get("behind")} for t in targets}
     routes["_start"] = {"node": start_node, "pos": design.nodes[start_node]["pos"]}
     os.makedirs(os.path.dirname(out), exist_ok=True)

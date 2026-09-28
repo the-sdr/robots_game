@@ -149,6 +149,29 @@ func _initialize() -> void:
 				for rock in o.get("rocks", []):
 					r += 1
 					_instance(rock["path"], body, "Rock_%d" % r, _transform(rock))
+			"gate_vines":
+				# Old vines over a gap in a wall: a Breakable the laser burns.
+				var body := _static_body(props, "Gate_%s" % o["id"], xf)
+				body.set_script(load(BREAKABLE_SCRIPT))
+				body.set("effects", PackedStringArray(["burn"]))
+				body.set("health", float(o.get("health", 60)))
+				body.set("break_flag", "cleared:%s" % o["id"])
+				body.set("display_name", "the vines")
+				body.set("hit_notice", "Old vines, tough as rope. Something hot would burn through them.")
+				body.set("debris_colour", Color(0.2, 0.28, 0.1))
+				body.set("debris_count", 50)
+				var size := Vector3(o["size"][0], o["size"][1], o["size"][2])
+				_box_collision(body, size, Vector3(0, size.y * 0.5, 0))
+				var v := 0
+				for piece in o.get("pieces", []):
+					v += 1
+					_instance(piece["path"], body, "Vine_%d" % v, _transform(piece))
+				var b := 0
+				for bush in o.get("bushes", []):
+					b += 1
+					var node := _instance(bush["path"], body, "Bush_%d" % b, _transform(bush))
+					node.set_script(load(BUSH_SCRIPT))
+					node.set("leaf_tint", Color(bush["tint"][0], bush["tint"][1], bush["tint"][2]))
 			"gate_locked":
 				var body := _static_body(props, "Gate_%s" % o["id"], xf)
 				body.set_script(load(LOCKED_GATE_SCRIPT))
@@ -181,6 +204,8 @@ func _initialize() -> void:
 	_build_merged(far, "InteriorForestFar", 24.0, 2, true)
 	_build_merged(data.get("undergrowth", []), "Undergrowth", 16.0, 0, false)
 	_build_merged(data.get("background", []), "BackgroundForest", BACKGROUND_CHUNK, BACKGROUND_LOD, false)
+	# A district's walls merged into chunk meshes (merge_walls), each piece keeping its box collision.
+	_build_merged(data.get("merged_walls", []), "Walls", 16.0, 0, true, true)
 
 	var packed := PackedScene.new()
 	var err := packed.pack(_root)
@@ -319,7 +344,7 @@ const TRUNK_HEIGHT := 2.5      # matches solid_tree.gd
 # per material), optionally with a trunk capsule per tree for collision.
 # Leaf surfaces use the batched tinted material with each item's tint in the
 # vertex colour. (Never MultiMesh: a headless bake saves those empty.)
-func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int, collision: bool) -> void:
+func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int, collision: bool, shadows := false) -> void:
 	if items.is_empty():
 		return
 	var group := _group(group_name)
@@ -363,12 +388,25 @@ func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int
 				acc[2].append_array(surf["uvs"])
 				for index in surf["indices"]:
 					acc[4].append(base + index)
+			if collision and (o.has("trunk") or o.has("box")) and body == null:
+				body = StaticBody3D.new()
+				body.name = "Collision_%s" % cell.replace(",", "_").replace("-", "m")
+				group.add_child(body)
+				body.owner = _root
+			if collision and o.has("box"):
+				# [sx, sy, sz, cx, cy, cz]: a box in the piece's own space (one shared shape per size)
+				var bx: Array = o["box"]
+				var bkey := "box|%s" % str(bx)
+				if not capsules.has(bkey):
+					var box := BoxShape3D.new()
+					box.size = Vector3(bx[0], bx[1], bx[2])
+					capsules[bkey] = box
+				var bcol := CollisionShape3D.new()
+				bcol.shape = capsules[bkey]
+				bcol.transform = xf * Transform3D(Basis(), Vector3(bx[3], bx[4], bx[5]))
+				body.add_child(bcol)
+				bcol.owner = _root
 			if collision and o.has("trunk"):
-				if body == null:
-					body = StaticBody3D.new()
-					body.name = "Collision_%s" % cell.replace(",", "_").replace("-", "m")
-					group.add_child(body)
-					body.owner = _root
 				var radius: float = o["trunk"][0]
 				if not capsules.has(radius):
 					var cap := CapsuleShape3D.new()
@@ -396,7 +434,7 @@ func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int
 		var mi := MeshInstance3D.new()
 		mi.name = "Chunk_%s" % cell.replace(",", "_").replace("-", "m")
 		mi.mesh = _save_external(mesh, folder + "chunk_%s.res" % cell.replace(",", "_"))
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		group.add_child(mi)
 		mi.owner = _root
 	# chunks from an earlier bake that no cell uses any more would linger in git unreferenced
@@ -408,7 +446,7 @@ func _build_merged(items: Array, group_name: String, chunk_size: float, lod: int
 		if file.begins_with("chunk_") and file.ends_with(".res") and not written.has(file):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(folder + file))
 			stale += 1
-	print("%s: %d items in %d chunks, %d triangles%s%s" % [group_name, items.size(), chunks.size(), triangles, ", with trunk collision" if collision else "",
+	print("%s: %d items in %d chunks, %d triangles%s%s" % [group_name, items.size(), chunks.size(), triangles, ", with collision" if collision else "",
 		", %d stale chunk files removed" % stale if stale else ""])
 
 # One model's surfaces at a given detail level, compacted to the vertices that

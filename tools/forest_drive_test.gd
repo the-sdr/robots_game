@@ -66,12 +66,14 @@ func _initialize() -> void:
 		var sp: Array = routes["_start"]["pos"]
 		start_pos = Vector3(sp[0], 0.3, sp[1])
 		routes.erase("_start")
+	var cleared := {}          # blockers an earlier route already cleared (several places can sit behind one)
 	for name in routes:
 		var points: Array = routes[name]["points"]
 		var behind: Variant = routes[name]["behind"]
 		# A place behind a blocker: the blocker must stop the robot first, then
 		# clearing it (what the cutter does) must open the way.
-		if behind != null:
+		if behind != null and not cleared.has(behind):
+			cleared[behind] = true
 			var reached_early := await drive_route(points)
 			if reached_early:
 				failures += 1
@@ -103,6 +105,7 @@ func _initialize() -> void:
 	if district != "":
 		print("RESULT: %s" % ("OK" if ok else "PROBLEMS FOUND"))
 		quit(0 if ok else 1)
+		return
 
 	# No individual tree may reach inside a house: [centre x, z, then box x0, z0, x1, z1, below height].
 	var houses := {"the house": [0.0, -5.0, -2.99, -8.04, 2.99, -2.01, 4.3],

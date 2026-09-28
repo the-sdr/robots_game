@@ -8,6 +8,14 @@ grid with the robot as a circle; buildings, wall pieces, gates, chargers,
 solids and the forest's own border trees (from build/level.json) are solid.
 Places with "behind" must be sealed until their blocker is cleared, and
 reachable once it is. Ground reachable away from any street is a leak.
+Districts that share a wall list each other in "neighbours": the neighbour's
+built walls, buildings and gates (always closed) are solid here too, and its
+streets count as allowed ground. Places with "requires" (e.g. hover) are only
+reachable with that ability; the route and drive tests skip them and
+systems_test.gd covers them. "sealed_south": the district's front wall seals
+it from the hill, so ground south of it is not automatically allowed.
+"open_ground": rects [x0, z0, x1, z1] of intended open ground (a market
+square) that count as allowed even away from any street.
 """
 import json
 import os
@@ -55,6 +63,20 @@ def main(name="hub"):
             circle(*data)
         elif kind == "segment":
             segment(*data)
+    neighbour_designs = []
+    for nb in d.get("neighbours", []):
+        nb_path = os.path.join(lc.ROOT, "level_design", "build", "%s.json" % nb)
+        if not os.path.exists(nb_path):
+            print("  (neighbour %s not built yet: python tools/district_build.py %s)" % (nb, nb))
+            continue
+        for kind, data in json.load(open(nb_path))["blockers"]:     # its gates stay shut in both floods
+            if kind == "box":
+                box(*data)
+            elif kind == "circle":
+                circle(*data)
+            elif kind == "segment":
+                segment(*data)
+        neighbour_designs.append(Design(os.path.join(lc.ROOT, "level_design", "%s_design.json" % nb)))
     trees = 0
     for o in forest["objects"] + forest["interior"]:        # the forest's border rows seal the district
         if o["kind"] == "tree" and x0 <= o["origin"][0] <= x1 and z0 <= o["origin"][2] <= z1:
@@ -97,7 +119,7 @@ def main(name="hub"):
     seen_open = flood(open_blocked, start)
 
     allowed = np.zeros_like(seen)
-    for p in design.paths.values():
+    for p in [p for des in [design] + neighbour_designs for p in des.paths.values()]:
         curve = p["curve"]
         dmin = np.full(GX.shape, np.inf)
         for (ax, az), (bx, bz) in zip(curve[:-1], curve[1:]):
@@ -106,9 +128,12 @@ def main(name="hub"):
             t = np.clip(((GX - ax) * dx + (GZ - az) * dz) / L, 0, 1)
             dmin = np.minimum(dmin, np.hypot(GX - (ax + t * dx), GZ - (az + t * dz)))
         allowed |= dmin < p["width"] / 2 + LEAK_MARGIN
-    for n in design.nodes.values():
+    for n in [n for des in [design] + neighbour_designs for n in des.nodes.values()]:
         allowed |= np.hypot(GX - n["pos"][0], GZ - n["pos"][1]) < n.get("radius", 2.0) + LEAK_MARGIN
-    allowed |= GZ > b["z_max"]                    # the open hill south of the district
+    for rx0, rz0, rx1, rz1 in d.get("open_ground", []):    # a plaza: open ground on purpose
+        allowed |= (GX >= rx0) & (GX <= rx1) & (GZ >= rz0) & (GZ <= rz1)
+    if not d.get("sealed_south"):
+        allowed |= GZ > b["z_max"]                # the open hill south of the district
     leaks = seen_open & ~allowed
     print("%s: border trees %d | reachable ground %.0f m2 (all gates open %.0f) | leak cells %d" % (
         name, trees, seen.sum() * CELL * CELL, seen_open.sum() * CELL * CELL, leaks.sum()))
@@ -117,8 +142,11 @@ def main(name="hub"):
         pts = sorted({(round(GX[i, j]), round(GZ[i, j])) for i, j in zip(li, lj)})
         print("  leaks near:", pts[:: max(1, len(pts) // 12)])
     ok = not leaks.any()
-    plain = gated = 0
+    plain = gated = skipped = 0
     for nm, n in design.nodes.items():
+        if n.get("requires"):
+            skipped += 1                          # needs an ability (hover...): systems_test.gd covers it
+            continue
         if n.get("behind"):
             gated += 1
             if near(seen, *n["pos"]):
@@ -132,7 +160,8 @@ def main(name="hub"):
         if not near(seen, *n["pos"]):
             ok = False
             print("  NOT REACHABLE: %s at %s" % (nm, n["pos"]))
-    print("  %d open places reachable, %d sealed behind gates until cleared: %s" % (plain, gated, "yes" if ok else "NO"))
+    print("  %d open places reachable, %d sealed behind gates until cleared: %s%s" % (plain, gated, "yes" if ok else "NO",
+          " (%d need an ability, not checked here)" % skipped if skipped else ""))
     print("RESULT:", "OK - sealed and completable" if ok else "PROBLEMS FOUND")
     if "--map" in sys.argv:
         from PIL import Image

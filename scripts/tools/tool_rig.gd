@@ -17,6 +17,7 @@ const TINY_POWER := 0.5
 const RANGED_AIM_WIDTH := 1.6
 const RANGED_AIM_HEIGHT := 2.0
 const HAMMER_MODEL := "res://scenes/props/items/hammer_head.res"
+const NOZZLE_MODEL := "res://scenes/props/items/nozzle.res"
 
 @onready var player: CharacterBody3D = owner as CharacterBody3D
 @onready var visual: Node3D = get_node("../..")          # Visual, whose -Z is the robot's facing
@@ -83,6 +84,8 @@ func use() -> bool:
 	if def.get("effect", "") == "hover":
 		get_tree().call_group("hud", "show_notice", "The hover pack works on its own: jump, then hold Space in the air.")
 		return false
+	if def.get("effect", "") == "make":
+		return _print_nearby(def)
 	var cost: float = def["energy"]
 	if Energy.current < cost:
 		get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % def["name"])
@@ -107,6 +110,33 @@ func use() -> bool:
 		var tween := create_tween()
 		tween.tween_property(_flash, "light_energy", 0.0, 0.18)
 	return applied
+
+## The fabricator in the world: prints the nearest ghost outline in reach
+## (group "buildable", scripts/interact/buildable.gd); parts are printed in Tab.
+func _print_nearby(def: Dictionary) -> bool:
+	var best: Node3D = null
+	var best_d := INF
+	for b in get_tree().get_nodes_in_group("buildable"):
+		var node := b as Node3D
+		if node == null or node.get("built"):
+			continue
+		var d := player.global_position.distance_to(node.call("focus_position"))
+		if d <= float(def["range"]) and d < best_d:
+			best_d = d
+			best = node
+	if best == null:
+		get_tree().call_group("hud", "show_notice", "Nothing here to print. Parts are printed from scrap in Tab.")
+		return false
+	var cost: float = def["energy"]
+	if Energy.current < cost:
+		get_tree().call_group("hud", "show_notice", "Not enough energy to print")
+		return false
+	_cooldown_left = def["cooldown"]
+	_recoil()
+	var built: bool = best.call("build", player)
+	if built:
+		Energy.spend(cost)
+	return built
 
 ## The nearest thing in reach that a tool can act on: any body with
 ## apply(effect, power, from) -> bool (a Breakable, the Angry Zombie...).
@@ -287,6 +317,33 @@ func _build_head(def: Dictionary) -> Node3D:
 			lens.material_override = glow
 			lens.position = Vector3(0, 0, -0.13)
 			head.add_child(lens)
+		"make":
+			# the print nozzle, pointing forward, with a glowing tip
+			if ResourceLoader.exists(NOZZLE_MODEL):
+				mi.mesh = load(NOZZLE_MODEL)
+				mi.scale = Vector3.ONE * 0.7
+				mi.rotation.x = PI * 0.5          # the model's tip points down (-Y); turn it forward (-Z)
+			else:
+				var cone := CylinderMesh.new()
+				cone.top_radius = 0.02
+				cone.bottom_radius = 0.07
+				cone.height = 0.16
+				mi.mesh = cone
+				mi.rotation.x = -PI * 0.5
+				mi.material_override = material
+			var tip := MeshInstance3D.new()
+			var dot := SphereMesh.new()
+			dot.radius = 0.025
+			dot.height = 0.05
+			tip.mesh = dot
+			var glow := StandardMaterial3D.new()
+			glow.albedo_color = def.get("colour", Color.CYAN)
+			glow.emission_enabled = true
+			glow.emission = def.get("colour", Color.CYAN)
+			glow.emission_energy_multiplier = 2.5
+			tip.material_override = glow
+			tip.position = Vector3(0, 0, -0.15)
+			head.add_child(tip)
 		_:
 			if ResourceLoader.exists(HAMMER_MODEL):     # the hammer head the smasher is built from
 				mi.mesh = load(HAMMER_MODEL)

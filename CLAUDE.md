@@ -89,13 +89,21 @@ python tools/forest_routes.py --design hub --start hub_entry --out hub_routes.js
 godot --headless --path . -s tools/level_bake.gd ++ hub                              # -> scenes/level_hub/generated_hub.tscn
 godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd ++ hub        # routes; gates hold, then open with their key/tool
 ```
+The Agora (the second district, `agora_design.json`, east of the Hub; build the Hub first, they check each other's walls):
+```
+python tools/district_build.py agora && python tools/district_verify.py agora --map
+python tools/forest_routes.py --design agora --start agora_entry --out agora_routes.json
+godot --headless --path . -s tools/level_bake.gd ++ agora                            # -> scenes/level_agora/generated_agora.tscn
+godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd ++ agora
+```
 Game systems (no level change needed):
 ```
-godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, crafting, save/load, sun, energy, docking, tools, house, hub, reboot
+godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, crafting, save/load, sun, energy, docking, tools, house, hub, fights, vault, agora, cutscene, reboot
 ```
 - `scenes/world.tscn` holds only fixed things (house + door + crates + parts,
   player, HouseCharger, environment, DayNight, story triggers, HUD) and
-  instances `scenes/level/generated_level.tscn` and `scenes/level_hub/generated_hub.tscn`.
+  instances `scenes/level/generated_level.tscn`, `scenes/level_hub/generated_hub.tscn`,
+  `scenes/level_agora/generated_agora.tscn` and the Relay Vault.
 - **Never hand-edit** `generated_*.tscn` or `scenes/level*/**/chunk_*.res` —
   rebuilt every bake. Change the design file or the tools.
 - Design grammar shared by both: `nodes` (kind, pos, radius, `reward`,
@@ -104,7 +112,10 @@ godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, c
   district: `rubble` → Breakable "smash", `locked` → LockedGate with `key`),
   `chargers`, `scenes` (hand-made scenes; in the forest with a tree-exclusion
   `footprint`) and `solids` (verify-only boxes for their collision). The Hub adds
-  `walls.segments` (2 m pieces), `buildings`, `collectibles`, `props`.
+  `walls.segments` (2 m pieces: keep lengths multiples of 2), `buildings`,
+  `collectibles`, `props`. The Agora adds `vines` blockers (Breakable "burn"),
+  `neighbours`, `merge_walls`, `sealed_south`, `open_ground`, props with
+  `"solid": true` and nodes with `"requires"` (see CLAUDE_NOTES.md).
 - Generated props: `godot --headless --path . -s tools/crooked_house_build.gd`
   rebuilds the crooked house shell (`scenes/props/crooked_house/generated_*`);
   `tools/relay_vault_build.gd` rebuilds the Relay Vault's shell from
@@ -144,7 +155,15 @@ godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, c
 - Headless proves logic and collision, never looks or frame rate. The owner
   measures with F4 and reports; read `playtest/perf.md`.
 
-## Current state (2026-09-27, end of sprint 1 — awaiting the owner's playtest)
+## Current state (2026-09-28, end of sprint 2 — awaiting the owner's playtest)
+Sprint 2 (for the owner's six-year-old son) is built on
+`claude/sync-local-fixes-b85lpn` and headlessly verified, not yet played:
+Easy/Medium/Hard, the crooked house + Angry Zombie + tiny curse, real part
+models, turn-based timing combat + the Hill Sentry, laser, charger upgrades +
+solar HUD, the opening cutscene, the Relay Vault + Pythia + hover pack, the
+Agora + fabricator. `TODO.md` has a playtest note per phase.
+
+### Sprint 1 (2026-09-27)
 The vertical slice is built and headlessly verified, not yet played by the
 owner: opening menu → wake at the house charger → find the hammer head and
 actuator arm, build the Smasher (Tab, craft anywhere) → smash the door →

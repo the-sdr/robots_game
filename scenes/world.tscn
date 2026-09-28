@@ -4,6 +4,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/level_hub/generated_hub.tscn" id="gen_hub"]
 
+[ext_resource type="PackedScene" path="res://scenes/level_agora/generated_agora.tscn" id="gen_agora"]
+
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
 
 [ext_resource type="PackedScene" uid="uid://cufb1p8kwmkno" path="res://assets/quaternius_buildings/Finished Textured Buildings/FBX/1Story.fbx" id="2"]
@@ -342,6 +344,22 @@ beat = "west_yard"
 [node name="Shape" type="CollisionShape3D" parent="StoryTriggers/WestYard"]
 shape = SubResource("SphereShape3D_trigger3")
 
+[node name="Agora" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 1, -114)
+script = ExtResource("37")
+beat = "agora"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Agora"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="PrinterShop" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 1, -121)
+script = ExtResource("37")
+beat = "printer_shop"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/PrinterShop"]
+shape = SubResource("SphereShape3D_trigger3")
+
 [node name="HUD" parent="." instance=ExtResource("31")]
 
 [node name="CoordOverlay" parent="." instance=ExtResource("30")]
@@ -349,6 +367,8 @@ shape = SubResource("SphereShape3D_trigger3")
 [node name="GeneratedLevel" parent="." instance=ExtResource("gen")]
 
 [node name="GeneratedHub" parent="." instance=ExtResource("gen_hub")]
+
+[node name="GeneratedAgora" parent="." instance=ExtResource("gen_agora")]
 
 [node name="RelayVault" parent="." instance=ExtResource("relay_vault")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -30, -140)

@@ -169,7 +169,7 @@
   }
  ],
  "walls": {
-  "_note": "Segments [[x0,z0],[x1,z1]] built from 2 m Wall_UnevenBrick_Straight pieces; they seal the streets. Buildings behind them seal sight. The first two are the city's front wall along z -95, either side of the avenue mouth.",
+  "_note": "Segments [[x0,z0],[x1,z1]] built from 2 m Wall_UnevenBrick_Straight pieces; they seal the streets. Buildings behind them seal sight. The first two are the city's front wall along z -95, either side of the avenue mouth. The east yard's east wall has a 4 m gap (z -112..-116): the vine gate to the Agora (agora_design.json).",
   "segments": [
    [
     [
@@ -275,6 +275,16 @@
     [
      28.0,
      -110.0
+    ],
+    [
+     28.0,
+     -112.0
+    ]
+   ],
+   [
+    [
+     28.0,
+     -116.0
     ],
     [
      28.0,
@@ -618,5 +628,8 @@
    ],
    "heading": 200
   }
+ ],
+ "neighbours": [
+  "agora"
  ]
 }

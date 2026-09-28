@@ -1,0 +1,71 @@
+{
+ "_about": "The Agora: the market district east of the Hub (the second Hub district). Same grammar as hub_design.json, built by tools/district_build.py agora. Its gate is a vine-choked gap in the Hub's east yard wall (x 28): the laser burns it open. The forest design's open_extra 'agora' rect opens the ground and seals the east and north sides with tree rows; the walls here seal the west (against the Hub) and the south (the front wall along z -100). World metres: X east (+), Z north (-).",
+ "version": 1,
+ "bounds": {"x_min": 28, "x_max": 62, "z_min": -128, "z_max": -100},
+ "start": "agora_entry",
+ "neighbours": ["hub"],
+ "sealed_south": true,
+ "open_ground": [[28, -128, 62, -100]],
+ "merge_walls": true,
+ "nodes": {
+  "agora_entry": {"pos": [25.5, -114], "kind": "start", "note": "In the Hub's east yard, in front of the vines"},
+  "agora_gate": {"pos": [31, -114], "kind": "junction", "behind": "agora_vines", "note": "Just through the burnt vines"},
+  "agora_square": {"pos": [43, -114], "kind": "clearing", "radius": 5, "behind": "agora_vines", "note": "The market square: stalls, wagons, a charger"},
+  "agora_north": {"pos": [43, -121], "kind": "junction", "behind": "agora_vines"},
+  "printer_shop": {"pos": [55, -121], "kind": "dead_end", "radius": 2, "behind": "shop_shutter", "reward": "printer_core, nozzle", "note": "A walled yard behind a jammed shutter (smash it): the matter printer's parts"},
+  "agora_south": {"pos": [43, -106], "kind": "junction", "behind": "agora_vines"},
+  "ramp_foot": {"pos": [46.5, -106], "kind": "dead_end", "radius": 1.5, "behind": "agora_vines", "note": "At the foot of the high ledge: hover up, or print a ramp"},
+  "ledge_top": {"pos": [54, -106], "kind": "dead_end", "requires": "hover", "note": "On the 1.6 m ledge: a scrap cache. Hover up (or build the scrap ramp with the fabricator)."}
+ },
+ "paths": [
+  {"id": "gate_way", "kind": "main", "width": 2.4, "points": ["agora_entry", "agora_gate", "agora_square"]},
+  {"id": "north_lane", "kind": "side", "width": 2.4, "points": ["agora_square", "agora_north", [48, -121], "printer_shop"]},
+  {"id": "south_lane", "kind": "side", "width": 2.4, "points": ["agora_square", "agora_south", "ramp_foot"]}
+ ],
+ "blockers": [
+  {"id": "agora_vines", "kind": "vines", "from": [27.4, -116.0], "to": [28.6, -112.0], "health": 60, "note": "A curtain of old vines in the gap of the east yard's wall. Burn it (laser)."},
+  {"id": "shop_shutter", "kind": "rubble", "from": [49.4, -122.2], "to": [50.6, -119.8], "health": 90, "drops": {"scrap_metal": 2}, "note": "A jammed shutter and its fallen frame. Smash it."}
+ ],
+ "walls": {
+  "_note": "2 m brick pieces (merged into chunk meshes: merge_walls). West wall on x 28 (the Hub's yard wall fills z -110..-118 with a 4 m vine gap at z -112..-116), the front wall along z -100, a short wall where the Agora meets the Hub's back lots, and the printer yard (x 50..58, z -118..-124, doorway on its west side).",
+  "segments": [
+   [[28.0, -100.0], [28.0, -110.0]],
+   [[28.0, -118.0], [28.0, -128.0]],
+   [[28.0, -100.0], [62.0, -100.0]],
+   [[28.0, -128.0], [36.0, -128.0]],
+   [[50.0, -118.0], [58.0, -118.0]],
+   [[58.0, -118.0], [58.0, -124.0]],
+   [[58.0, -124.0], [50.0, -124.0]],
+   [[50.0, -124.0], [50.0, -122.0]],
+   [[50.0, -120.0], [50.0, -118.0]]
+  ]
+ },
+ "solids": {"_note": "Verification-only: the hover ledge's platform (scenes/props/hover_ledge.tscn).", "boxes": [[51.35, -108.65, 56.65, -103.35]]},
+ "scenes": [
+  {"id": "hover_ledge", "path": "res://scenes/props/hover_ledge.tscn", "pos": [54, -106], "heading": 0, "note": "A 1.6 m stone platform with a scrap cache on top"},
+  {"id": "scrap_ramp", "path": "res://scenes/props/scrap_ramp.tscn", "pos": [49.5, -106], "heading": 0, "note": "A ghost ramp up to the ledge: the fabricator prints it from scrap"}
+ ],
+ "chargers": [
+  {"id": "agora", "name": "AgoraCharger", "pos": [36, -107], "heading": 90, "capacity": 140, "panel_rate": 0.6, "stored": 70, "note": "In the market square's sunny corner"}
+ ],
+ "collectibles": [
+  {"item": "printer_core", "name": "Printer core", "pos": [52.8, -120.5], "colour": [0.3, 1.0, 0.85]},
+  {"item": "nozzle", "name": "Print nozzle", "pos": [55, -121.4], "colour": [1.0, 0.5, 0.2]},
+  {"item": "scrap_metal", "name": "Scrap metal", "pos": [43, -108.5], "colour": [0.6, 0.62, 0.65]},
+  {"item": "scrap_metal", "name": "Scrap metal", "pos": [46, -121.2], "colour": [0.6, 0.62, 0.65]}
+ ],
+ "props": [
+  {"asset": "Prop_Wagon", "pos": [37, -119.5], "heading": 30, "solid": true},
+  {"asset": "Prop_Wagon", "pos": [58.5, -113], "heading": 170, "solid": true},
+  {"asset": "Prop_Crate", "pos": [36.5, -110], "heading": 15},
+  {"asset": "Prop_Crate", "pos": [34.5, -118.5], "heading": 40},
+  {"asset": "Prop_Crate", "pos": [52, -111], "heading": 70},
+  {"asset": "Prop_WoodenFence_Single", "pos": [39.5, -110.8], "heading": 0, "solid": true},
+  {"asset": "Prop_WoodenFence_Single", "pos": [46.5, -110.8], "heading": 0, "solid": true},
+  {"asset": "Prop_WoodenFence_Single", "pos": [39.5, -117.2], "heading": 0, "solid": true},
+  {"asset": "Prop_WoodenFence_Single", "pos": [46.5, -117.2], "heading": 0, "solid": true},
+  {"asset": "Prop_Planter_Single", "pos": [33, -110.5], "heading": 0, "solid": true},
+  {"asset": "Prop_Planter_Single", "pos": [33, -117.5], "heading": 0, "solid": true},
+  {"asset": "DeadTree_1", "pos": [52.5, -114.5], "heading": 120}
+ ]
+}

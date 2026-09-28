@@ -54,7 +54,20 @@ headless tests pass; pull the branch to playtest any of them.
       the second solar cell is in her room. Build the hover pack (Tab): jump
       and hold Space in the air to hover up to ~2.5 m. Is the puzzle clear
       enough for a six-year-old? Does the vault feel sealed and lit well?
-- [ ] Phase 8: the Agora district, fabricator.
+- [x] Phase 8: the Agora district, fabricator. **Playtest:** in the Hub's east
+      yard (behind the rubble) the east wall has a 4 m curtain of vines at
+      (28, −114): the smasher bounces off, the laser burns it (2 zaps). The
+      Agora (x 28…62, z −128…−100): a market square with wagons, fences,
+      crates and the Agora charger (36, −107). North lane → the printer shop's
+      jammed shutter (50, −121): smash it (3 hits, 2 scrap) → printer core +
+      nozzle → Tab: Fabricator. With it, Tab also lists "Print a power cell /
+      solar cell / capacitor bank" from scrap. South-east: a 1.6 m stone ledge
+      (54, −106) with a scrap cache: hover up from any side, or stand at its
+      west foot (46.5, −106) and press E (or click with the fabricator) at the
+      glowing ghost ramp → it prints for 2 scrap → drive up. Fight kit: the
+      fabricator's moves are Patch up (heal) / Plate / Sticky blob. Do the
+      vines read as burnable? Is the ghost ramp obvious? Frame rate in the
+      square (its walls are merged: 6 draws instead of 44)?
 
 Written 2026-09-27 at the end of sprint 1 (cloud). Newest priorities first.
 
@@ -102,23 +115,25 @@ coordinates and F4 perf logs as before. Checklist:
   (`SAVE_VERSION` in game.gd) — bump it when the format changes.
 
 ## 2. Next sprint candidates (owner picks)
-- **The relay tower as dungeon 1** (interior, sealed shell, a puzzle, the first
-  NPC robot / consciousness-copy story beat).
-- **More tools** on the framework: hover/fly (energy per second while airborne),
-  laser (ranged "burn"), matter generation (turn scrap into parts). Each is a
-  Catalog entry + one effect in `tool_rig.gd` / a `Breakable` effect name.
-- **Charger upgrades** (capacity, panel tilt/size) and a solar readout on the HUD.
-- **Combat** prototype: robot vs robot, turn-based (Stick of Truth / Clair Obscur).
+Sprint 2 built the relay vault + Pythia, laser/hover/fabricator, charger
+upgrades + solar HUD, combat + the hill sentry, the zombie and the Agora.
+Still open:
 - **Cuttable trees** (owner decision which), dead-end props (spring pipe, hatch).
-- **The zombie Easter egg** (annoy it → shrunk for two days).
-- More Hub districts: each new `<name>_design.json` unlocks from the Hub.
+- **More fights**: a second enemy (the Agora? the vault?), enemy moves that use
+  the timing ring differently, a rematch arena.
+- **More districts**: each `<name>_design.json` (see the Agora) opens from the
+  Hub or the Agora; the forest's `open_extra` rects extend the ground.
+- **More buildables** (`scripts/interact/buildable.gd`): bridges, ladders,
+  a printed charger panel.
+- The consciousness-copy story (Pythia's lines are placeholders).
 
 ## 3. Performance (still the open problem until measured)
 - Perf pass 1 applied (project.godot, world.tscn, solid_tree.gd). Next levers if
   needed: fewer individual trees (`INDIVIDUAL_REACH` 3.0 → 1.5 in forest_build.py,
   needs a re-bake), thinner pine leaf cards, sparser pines on paths.
-- Watch draw calls in the Hub: 118 wall pieces are 118 draws; merge them into
-  chunks like trees if F4 says so.
+- Watch draw calls in the Hub: 116 wall pieces are 116 draws. The Agora merges
+  its walls into chunk meshes (`"merge_walls": true`, 44 pieces → 6 draws);
+  set the same flag in `hub_design.json` and re-bake if F4 says so.
 
 ## 4. Textures / look (unchanged from before the sprint)
 - Owner collecting Poly Haven sets locally; wanted: mossy meadow ground,

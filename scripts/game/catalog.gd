@@ -75,6 +75,16 @@ const TOOLS := {
 			"forward": {"name": "Dive", "kind": "attack", "power": 9.0, "hits": 2, "energy": 5.0, "hint": "Swoop down on it twice"},
 			"back": {"name": "Hover guard", "kind": "guard", "guard": 0.5, "counter": 0.0, "energy": 2.0, "hint": "Float back: half the next blow"},
 		}},
+	# matter generation: prints parts from scrap (recipes with "requires_tool") and
+	# prints ghost outlines (scripts/interact/buildable.gd) into real things
+	"fabricator": {"name": "Fabricator", "effect": "make", "power": 0.0, "energy": 4.0, "range": 4.0,
+		"cooldown": 0.6, "colour": Color(0.3, 1.0, 0.85),
+		"description": "A matter printer on your arm. Turns scrap into parts, and ghost outlines into real things.",
+		"moves": {
+			"": {"name": "Patch up", "kind": "repair", "heal": 14.0, "energy": 4.0, "hint": "Print patches over your dents"},
+			"forward": {"name": "Plate", "kind": "guard", "guard": 0.3, "counter": 4.0, "energy": 3.0, "hint": "Print a shield: most of the next blow bounces off"},
+			"back": {"name": "Sticky blob", "kind": "stun", "energy": 3.0, "hint": "Glue its feet: it misses its next turn"},
+		}},
 }
 
 ## Used when the fight kit is empty (it can't be, once the smasher exists, but never soft-lock a fight).
@@ -125,6 +135,19 @@ const RECIPES := {
 	"blade_strip": {"name": "Blade strip", "gives": {"blade_strip": 1},
 		"needs": {"scrap_metal": 2},
 		"description": "Fold and grind scrap into an edge."},
+	"fabricator": {"name": "Fabricator", "tool": "fabricator",
+		"needs": {"printer_core": 1, "nozzle": 1},
+		"description": "A printer core and a nozzle on your arm: it prints metal from scrap."},
+	# printed with the fabricator (hidden until it is built: "requires_tool")
+	"print_power_cell": {"name": "Print a power cell", "requires_tool": "fabricator", "gives": {"power_cell": 1},
+		"needs": {"scrap_metal": 3},
+		"description": "Scrap in, a full power cell out."},
+	"print_solar_cell": {"name": "Print a solar cell", "requires_tool": "fabricator", "gives": {"solar_cell": 1},
+		"needs": {"scrap_metal": 2},
+		"description": "Scrap in, a square of dark glass out."},
+	"print_capacitor": {"name": "Print a capacitor bank", "requires_tool": "fabricator", "gives": {"capacitor": 1},
+		"needs": {"scrap_metal": 4},
+		"description": "Scrap in, a capacitor bank out."},
 }
 
 func item_name(id: String) -> String:

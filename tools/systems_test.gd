@@ -717,6 +717,124 @@ func _initialize() -> void:
 	Clock.time = 0.5
 	player.set_physics_process(true)
 
+	print("== the Agora: vines, shutter, fabricator, printing, the ledge, charger")
+	var agora: Node = world.get_node("GeneratedAgora")
+	var agora_vines: StaticBody3D = agora.get_node("Props/Gate_agora_vines")
+	player.set_physics_process(false)
+	player.global_position = Vector3(24.5, 0.3, -114.0)          # the Hub's east yard, at the vines in its east wall
+	player.velocity = Vector3.ZERO
+	for i in 10:
+		await physics_frame
+	check(not await drive_to(player, Vector2(31.0, -114.0), 240), "the vines hold the way into the Agora")
+	player.get_node("Visual").global_rotation.y = -PI * 0.5      # facing east, at the vines
+	Game.data["equipped_tool"] = "smasher"
+	Game.inventory_changed.emit()
+	await process_frame
+	Energy.current = 90.0
+	var vine_health: float = agora_vines.health
+	rig.use()
+	check(is_equal_approx(agora_vines.health, vine_health), "the smasher bounces off the vines")
+	for i in 45:
+		await process_frame
+	Game.data["equipped_tool"] = "laser"
+	Game.inventory_changed.emit()
+	await process_frame
+	var shots := 0
+	while is_instance_valid(agora_vines) and not agora_vines.is_queued_for_deletion() and shots < 6:
+		rig.use()
+		shots += 1
+		for i in 60:
+			await process_frame
+	check(shots == 2 and Game.get_flag("cleared:agora_vines"), "the laser burns the vines away (%d shots)" % shots)
+	check(await drive_to(player, Vector2(31.0, -114.0), 300) and await drive_to(player, Vector2(43.0, -114.0), 400), "through the burnt gap into the market square")
+	check(await drive_to(player, Vector2(43.0, -121.0), 300) and await drive_to(player, Vector2(47.8, -121.0), 300), "up the north lane to the printer shop")
+	var shutter: StaticBody3D = agora.get_node("Props/Gate_shop_shutter")
+	check(not await drive_to(player, Vector2(53.0, -121.0), 200), "the jammed shutter holds")
+	player.get_node("Visual").global_rotation.y = -PI * 0.5
+	Game.data["equipped_tool"] = "smasher"
+	Game.inventory_changed.emit()
+	for i in 60:
+		await process_frame
+	var scrap_before: int = Game.count("scrap_metal")
+	var smashes := 0
+	while is_instance_valid(shutter) and not shutter.is_queued_for_deletion() and smashes < 8:
+		rig.use()
+		smashes += 1
+		for i in 40:
+			await process_frame
+	check(smashes == 3 and Game.count("scrap_metal") == scrap_before + 2, "the shutter gives way to the third smash and drops 2 scrap (%d smashes)" % smashes)
+	check(await drive_to(player, Vector2(52.8, -120.8), 300) and await drive_to(player, Vector2(55.0, -121.2), 300), "into the printer shop")
+	for i in 5:
+		await physics_frame
+	check(Game.count("printer_core") == 1 and Game.count("nozzle") == 1, "the printer core and the nozzle are on the shop floor")
+	check(Game.beat_seen("agora") and Game.beat_seen("printer_shop"), "story cards for the square and the shop")
+	check(Game.craft_blocker("print_power_cell") == "Not understood yet", "scrap printing stays hidden until the fabricator exists")
+	check(Game.craft("fabricator") and Game.has_tool("fabricator"), "fabricator built")
+	Game.add_item("scrap_metal", 12)
+	var power_cells_before: int = Game.count("power_cell")
+	var scrap_now: int = Game.count("scrap_metal")
+	check(Game.craft("print_power_cell") and Game.count("power_cell") == power_cells_before + 1 and Game.count("scrap_metal") == scrap_now - 3,
+		"the fabricator prints a power cell from 3 scrap")
+	check(Game.craft("print_solar_cell") and Game.craft("print_capacitor"), "and a solar cell, and a capacitor bank")
+	check(Catalog.move("fabricator", "")["kind"] == "repair", "its fight moves: Patch up heals")
+	# the ledge: 1.6 m, too high to drive; hover up (real input), or print the ramp
+	var ramp: Node3D = agora.get_node("Props/ScrapRamp")
+	player.global_position = Vector3(54.0, 0.3, -111.0)          # north of the ledge
+	player.velocity = Vector3.ZERO
+	for i in 10:
+		await physics_frame
+	check(not await drive_to(player, Vector2(54.0, -106.0), 200) and player.global_position.y < 0.5, "the ledge is too high to drive up")
+	player.global_position = Vector3(54.0, 0.3, -111.0)
+	player.velocity = Vector3.ZERO
+	player.camera_rig.global_rotation.y = PI                    # the camera looks south: forward = +Z, towards the ledge
+	player.set_physics_process(true)
+	for i in 10:
+		await physics_frame
+	var scrap_ledge: int = Game.count("scrap_metal")
+	Energy.current = 90.0
+	Input.action_press("jump")
+	for i in 90:
+		await physics_frame
+	Input.action_press("move_forward")
+	for i in 80:
+		await physics_frame
+	Input.action_release("move_forward")
+	Input.action_release("jump")
+	for i in 90:
+		await physics_frame
+	var landed: Vector3 = player.global_position
+	check(landed.y > 1.5 and landed.z > -108.6 and landed.z < -103.4 and landed.x > 51.4 and landed.x < 56.6, "hover up and over: the robot lands on the ledge (%s)" % landed)
+	player.set_physics_process(false)
+	await drive_to(player, Vector2(52.8, -107.0), 200)
+	await drive_to(player, Vector2(54.6, -107.5), 200)
+	for i in 5:
+		await physics_frame
+	check(Game.count("scrap_metal") == scrap_ledge + 2, "the scrap cache on top (%d)" % (Game.count("scrap_metal") - scrap_ledge))
+	player.global_position = Vector3(45.8, 0.3, -106.0)          # the ramp's foot, west of the ledge
+	player.velocity = Vector3.ZERO
+	player.get_node("Visual").global_rotation.y = -PI * 0.5
+	for i in 10:
+		await physics_frame
+	check(not ramp.built and ramp.get_node("Solid").collision_layer == 0, "the ramp is only a ghost outline")
+	Game.data["equipped_tool"] = "fabricator"
+	Game.inventory_changed.emit()
+	await process_frame
+	Game.remove_item("scrap_metal", Game.count("scrap_metal"))
+	Game.add_item("scrap_metal", 1)
+	check(not rig.use() and not ramp.built, "one scrap is not enough to print it")
+	for i in 45:
+		await process_frame
+	Game.add_item("scrap_metal", 1)
+	check(rig.use() and ramp.built and Game.get_flag("built:scrap_ramp") and Game.count("scrap_metal") == 0, "the fabricator prints the ramp from 2 scrap")
+	for i in 70:
+		await process_frame
+	check(await drive_to(player, Vector2(53.5, -106.0), 400) and player.global_position.y > 1.5, "drove up the printed ramp onto the ledge (y %.2f)" % player.global_position.y)
+	var agora_charger: Node = agora.get_node_or_null("Props/AgoraCharger")
+	check(agora_charger != null and agora_charger.is_in_group("charger") and is_equal_approx(float(agora_charger.capacity), 140.0), "the Agora charger stands in the square")
+	Game.data["equipped_tool"] = "laser"
+	Game.inventory_changed.emit()
+	player.set_physics_process(true)
+
 	print("== menus open and close from the keyboard while paused")
 	var panel: Control = world.get_node("HUD/InventoryPanel")
 	var pause_menu: CanvasLayer = world.get_node("HUD/PauseMenu")

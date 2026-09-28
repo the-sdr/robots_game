@@ -20,6 +20,8 @@ __pycache__/
 /level_design/build/routes.json
 /level_design/build/hub.json
 /level_design/build/hub_routes.json
+/level_design/build/agora.json
+/level_design/build/agora_routes.json
 
 # Exported apps (tools/export: build/)
 /build/

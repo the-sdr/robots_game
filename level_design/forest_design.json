@@ -1103,6 +1103,17 @@
     "radius": 7,
     "blend": 6,
     "note": "Level ground under the crooked house and its yard (the house itself is what's crooked)."
+   },
+   {
+    "kind": "flat",
+    "name": "agora pad",
+    "pos": [
+     45,
+     -114
+    ],
+    "radius": 16,
+    "blend": 6,
+    "note": "Level ground for the Agora district (agora_design.json)."
    }
   ]
  },
@@ -1131,7 +1142,12 @@
   "x_max": 36,
   "z_min": -140,
   "z_max": -78,
-  "note": "Hill and city: open ground, sealed by tree rows along its west, east and north edges."
+  "note": "Hill and city: open ground, sealed by tree rows along its west, east and north edges.",
+  "sealed": [
+   "west",
+   "east",
+   "north"
+  ]
  },
  "city_shift_z": -28,
  "chargers": [
@@ -1260,5 +1276,19 @@
     -89.3
    ]
   ]
- }
+ },
+ "open_extra": [
+  {
+   "id": "agora",
+   "x_min": 28,
+   "x_max": 62,
+   "z_min": -128,
+   "z_max": -100,
+   "sealed": [
+    "east",
+    "north"
+   ],
+   "note": "The Agora (agora_design.json), east of the Hub. Tree rows seal its east and north sides; its own walls seal west (against the Hub, with the vine gate) and south (the front wall along z -100)."
+  }
+ ]
 }

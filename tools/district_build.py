@@ -25,6 +25,8 @@ WALL_PIECE = "Wall_UnevenBrick_Straight"
 WALL_LEN = 2.0
 ROCKS = ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
 FENCE = "Prop_MetalFence_Simple"
+VINES = ["Prop_Vine1", "Prop_Vine2"]
+WALL_BOX = [2.0, 3.12, 0.41, 0.0, 1.56, -0.11]    # collision size + centre of a wall piece (as level_bake.gd's WALL_SIZE/WALL_CENTRE)
 
 
 def load_design(name):
@@ -56,6 +58,7 @@ def main(name="hub"):
         return [float(v) for v in lc.heading_to_basis(heading)]
 
     objects, blockers, behind_boxes = [], [], {}
+    merged_walls = []       # merge_walls: wall pieces baked into chunk meshes + box collision (few draw calls)
 
     for b in d.get("buildings", []):
         x, z = b["pos"]
@@ -70,8 +73,13 @@ def main(name="hub"):
         for k in range(n):
             t = (k + 0.5) / n
             x, z = x0 + (x1 - x0) * t, z0 + (z1 - z0) * t
-            objects.append({"code": "WUB", "asset": WALL_PIECE, "kind": "wall", "path": assets[WALL_PIECE]["path"],
-                            "basis": basis(heading), "origin": [x, ground(x, z), z]})
+            piece = {"code": "WUB", "asset": WALL_PIECE, "kind": "wall", "path": assets[WALL_PIECE]["path"],
+                     "basis": basis(heading), "origin": [x, ground(x, z), z]}
+            if d.get("merge_walls"):
+                piece["box"] = WALL_BOX
+                merged_walls.append(piece)
+            else:
+                objects.append(piece)
         blockers.append(("segment", [x0, z0, x1, z1, 0.25]))
 
     for box in d.get("solids", {}).get("boxes", []):
@@ -97,6 +105,31 @@ def main(name="hub"):
                               "basis": [v * sc for v in lc.heading_to_basis((h >> 3) % 360)],
                               "origin": [rx - cx, -0.2, rz - cz]})
             o["rocks"] = rocks
+        elif g["kind"] == "vines":
+            # A curtain of hanging vines over a few bushes: a Breakable the laser burns.
+            o["health"] = g.get("health", 60)
+            along_x = (x1 - x0) >= (z1 - z0)
+            span = (x1 - x0) if along_x else (z1 - z0)
+            n = max(2, int(math.ceil(span / 1.1)))
+            pieces = []
+            for row, (y, off) in enumerate(((2.15, -0.12), (2.95, 0.12))):    # the vine hangs 2.1 m below its origin
+                for k in range(n + row):
+                    t = (k + 0.5) / n if row == 0 else k / n
+                    along = (x0 + (x1 - x0) * t - cx) if along_x else (z0 + (z1 - z0) * t - cz)
+                    asset = VINES[(k + row) % 2]
+                    flip = 180 if (k + row) % 3 == 0 else 0
+                    pieces.append({"asset": asset, "path": assets[asset]["path"],
+                                   "basis": basis((0 if along_x else 90) + flip),
+                                   "origin": [along if along_x else off, y, off if along_x else along]})
+            bushes = []
+            for k in range(n):
+                t = (k + 0.5) / n
+                along = (x0 + (x1 - x0) * t - cx) if along_x else (z0 + (z1 - z0) * t - cz)
+                sc = 0.55 + 0.1 * (k % 2)
+                bushes.append({"asset": "Bush_Common", "path": assets["Bush_Common"]["path"],
+                               "basis": [v * sc for v in lc.heading_to_basis(37 * k)],
+                               "origin": [along if along_x else 0.0, -0.05, 0.0 if along_x else along], "tint": [0.22, 0.30, 0.12]})
+            o["pieces"], o["bushes"] = pieces, bushes
         else:
             o["key"] = g["key"]
             along_x = (x1 - x0) >= (z1 - z0)          # the fence runs across the street
@@ -137,7 +170,11 @@ def main(name="hub"):
         asset = pr["asset"]
         o = {"code": "PRP", "asset": asset, "kind": "prop", "path": assets[asset]["path"],
              "basis": basis(pr.get("heading", 0)), "origin": [x, ground(x, z) + pr.get("y_offset", 0.0), z]}
-        if asset.startswith("DeadTree") or asset.startswith("Prop_Crate"):
+        if pr.get("solid"):
+            # wagons, fences...: model + box collision (the bake's "building" path)
+            o["kind"] = "building"
+            blockers.append(("box", list(footprint(asset, assets, x, z, pr.get("heading", 0)))))
+        elif asset.startswith("DeadTree") or asset.startswith("Prop_Crate"):
             o["kind"] = "tree" if asset.startswith("DeadTree") else "crate"
             if o["kind"] == "tree":
                 o["tint"] = [0.4, 0.4, 0.3]
@@ -147,12 +184,13 @@ def main(name="hub"):
                 blockers.append(("circle", [x, z, 0.76]))
         objects.append(o)
 
-    level = {"district": name, "objects": objects, "blockers": blockers, "behind_boxes": behind_boxes}
+    level = {"district": name, "objects": objects, "blockers": blockers, "behind_boxes": behind_boxes,
+             "merged_walls": merged_walls}
     json.dump(level, open(os.path.join(BUILD_DIR, "%s.json" % name), "w"))
     kinds = {}
     for o in objects:
         kinds[o["kind"]] = kinds.get(o["kind"], 0) + 1
-    print("%s: %s" % (name, kinds))
+    print("%s: %s%s" % (name, kinds, ", %d wall pieces merged" % len(merged_walls) if merged_walls else ""))
 
 
 if __name__ == "__main__":

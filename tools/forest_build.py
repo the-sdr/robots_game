@@ -100,12 +100,28 @@ class Forest:
         # hand-made scenes (the crooked house...): trees keep clear of each footprint box
         self.scenes = self.d.get("scenes", [])
         self.footprints = [s["footprint"] for s in self.scenes if "footprint" in s]
+        # open ground north of the forest: the hill + Hub, and districts beyond it (the Agora)
+        self.open_areas = [self.north] + self.d.get("open_extra", [])
         # giant frame
         g = next(l for l in self.d["landmarks"] if l["id"] == "giant")
         (ax, az), (bx, bz) = g["body"]
         L = math.dist((ax, az), (bx, bz))
         self.giant_axis = ((bx - ax) / L, (bz - az) / L)
         self.giant_mid = ((ax + bx) / 2, (az + bz) / 2)
+
+    def open_depth(self, x, z):
+        """How far (x, z) is inside the open ground, measured to the nearest *sealed*
+        side (tree rows grow within 3 m of those); negative = outside, by that much."""
+        best = -1e9
+        for r in self.open_areas:
+            inside = r["x_min"] <= x <= r["x_max"] and r["z_min"] <= z <= r["z_max"]
+            if not inside:
+                best = max(best, -lc.box_distance(x, z, (r["x_min"], r["z_min"]), (r["x_max"], r["z_max"])))
+                continue
+            sealed = r.get("sealed", ["west", "east", "north", "south"])
+            gaps = {"west": x - r["x_min"], "east": r["x_max"] - x, "north": z - r["z_min"], "south": r["z_max"] - z}
+            best = max(best, min([gaps[s] for s in sealed] or [1e9]))
+        return best
 
     # --- geometry helpers --------------------------------------------------------
     def giant_to_world(self, lx, lz):
@@ -156,14 +172,24 @@ class Forest:
         xs = np.arange(TERRAIN["x0"], TERRAIN["x1"] + 1)
         zs = np.arange(TERRAIN["z0"], TERRAIN["z1"] + 1)
         X, Z = np.meshgrid(xs, zs)
-        rx0, rx1 = self.fb["x_min"], self.fb["x_max"]
-        rz0, rz1 = self.north["z_min"], self.fb["z_max"]
-        cx, cz = np.clip(X, rx0, rx1), np.clip(Z, rz0, rz1)
-        inner_xs = np.arange(rx0, rx1 + 1)
-        inner_zs = np.arange(rz0, rz1 + 1)
-        inner = self.design.heights(inner_xs, inner_zs)
-        base = inner[(cz - rz0).astype(int), (cx - rx0).astype(int)]
-        d_out = np.hypot(X - cx, Z - cz)
+        # Design heights inside the forest and every open area; outside them the
+        # ground rises away. Inside a region its own heights are used as they are;
+        # outside, the regions' edge heights blend (no steps in the background).
+        regions = [(self.fb["x_min"], self.fb["x_max"], self.north["z_min"], self.fb["z_max"])]
+        regions += [(r["x_min"], r["x_max"], r["z_min"], r["z_max"]) for r in self.d.get("open_extra", [])]
+        bases, dists = [], []
+        for rx0, rx1, rz0, rz1 in regions:
+            cx, cz = np.clip(X, rx0, rx1), np.clip(Z, rz0, rz1)
+            inner = self.design.heights(np.arange(rx0, rx1 + 1), np.arange(rz0, rz1 + 1))
+            bases.append(inner[(cz - rz0).astype(int), (cx - rx0).astype(int)])
+            dists.append(np.hypot(X - cx, Z - cz))
+        bases, dists = np.stack(bases), np.stack(dists)
+        d_out = dists.min(axis=0)
+        first_inside = np.argmax(dists == 0, axis=0)
+        inside_base = np.take_along_axis(bases, first_inside[None], axis=0)[0]
+        weights = np.exp(-(dists - d_out[None]) / 4.0)
+        blended = (weights * bases).sum(axis=0) / weights.sum(axis=0)
+        base = np.where(d_out == 0, inside_base, blended)
         rolling = 0.8 * np.sin(0.13 * X + 0.4) * np.cos(0.11 * Z + 1.1) + 0.5 * np.sin(0.23 * X - 0.19 * Z)
         rise = 7.0 * lc.smoothstep(0.0, 45.0, d_out) + rolling * lc.smoothstep(0.0, 15.0, d_out)
         return {"x0": int(TERRAIN["x0"]), "z0": int(TERRAIN["z0"]), "nx": len(xs), "nz": len(zs),
@@ -220,6 +246,8 @@ class Forest:
             mud = np.maximum(mud, inside * bias[1])
             moss = np.maximum(moss, inside * bias[2])
         open_north = (Z < self.fb["z_min"] - 1) & (np.abs(X) <= self.north["x_max"])
+        for r in self.d.get("open_extra", []):
+            open_north |= (X >= r["x_min"]) & (X <= r["x_max"]) & (Z >= r["z_min"]) & (Z <= r["z_max"])
         moss = np.maximum(moss, open_north * 1.0)
         moss *= 1 - dirt
         mud *= 1 - dirt
@@ -414,14 +442,17 @@ def main():
     tree_models = sorted({m for a in f.areas.values() for m in a["trees"]})
     trees_individual = trees_merged = skipped = 0
     fbx0, fbx1, fbz0, fbz1 = f.fb["x_min"], f.fb["x_max"], f.north["z_min"], f.fb["z_max"]
-    for x in range(fbx0, fbx1 + 1):
+    open_x1 = int(max([fbx1] + [r["x_max"] + 6 for r in f.open_areas]))
+    for x in range(fbx0, open_x1 + 1):
         for z in range(fbz0, fbz1 + 1):
             if (x + z) % 2:
                 continue
-            in_forest = z >= f.fb["z_min"]
-            if not in_forest:                                     # hill/city: only sealed border rows
-                n = f.north
-                if not (x <= n["x_min"] + 3 or x >= n["x_max"] - 3 or z <= n["z_min"] + 3):
+            in_forest = z >= f.fb["z_min"] and x <= fbx1
+            if not in_forest:
+                if z >= f.fb["z_min"]:
+                    continue                                      # east of the forest: background only
+                depth = f.open_depth(x, z)                        # hill, Hub, districts: sealed border rows
+                if depth > 3 or depth < -6:
                     continue
             clearance = f.corridor_clearance(x, z)
             reach = f.reach_distance(x, z)
@@ -526,6 +557,8 @@ def main():
             if dd < 1.2 or dd > BACKGROUND_DEPTH or rng.random() > keep:
                 continue
             if any(x0 - 2 <= x <= x1 + 2 and z0 - 2 <= z <= z1 + 2 for x0, z0, x1, z1 in footprints):
+                continue
+            if f.open_depth(x, z) > -2:                                  # never in the open districts
                 continue
             model = rng.choices([m for m, _ in bg_models], [w for _, w in bg_models])[0]
             sc = rng.uniform(0.85, 1.25)

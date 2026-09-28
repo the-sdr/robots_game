@@ -171,13 +171,38 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   flag) and `LockedGate` (key item, flag, rises when opened) are the two
   obstacle components; both stay cleared across saves via flags. Pickups
   (`collectible_part.gd`) add Catalog items and remember being taken.
-- **Hub pipeline**: `tools/district_build.py` + `district_verify.py` +
+- **Hub pipeline** (the same for the Agora, `agora`): `tools/district_build.py` + `district_verify.py` +
   `forest_routes.py --design hub` + `level_bake.gd ++ hub` + drive test
   `++ hub`. A district has no terrain: the forest design carries a `flat`
   feature (`hub pad`, blend 14 m) for it, and the forest's `open_north` tree
   rows seal it. Walls are 2 m brick pieces along design segments; buildings
   are the city kit with measured footprints (`level_design/build/assets.json`,
   `tools/level_measure_assets.gd`).
+- **The Agora (second district, sprint 2)**: `level_design/agora_design.json`,
+  x 28…62, z −128…−100, east of the Hub. The forest design's `open_extra`
+  (list of extra open rects beside `open_north`, each with its own `sealed`
+  sides) opens the ground and seals its east/north with tree rows; the
+  `agora pad` flat feature levels it. Entry: a `vines` blocker (Breakable
+  "burn", laser) in a 4 m gap of the Hub's east-yard wall (28, −114).
+  District grammar added for it (all in `district_build.py` /
+  `district_verify.py` / `level_bake.gd`):
+  `"neighbours"` (the other district's built walls/gates are solid here, gates
+  always shut; its streets are allowed ground — hub ↔ agora list each other),
+  `"merge_walls"` (wall pieces baked into chunk meshes, `Walls/` group, one
+  shared BoxShape per piece: 44 pieces → 6 draws), `"sealed_south"` (don't
+  treat ground south of the district as the open hill), `"open_ground"` (plaza
+  rects that aren't leaks), props with `"solid": true` (model + box collision
+  via the bake's "building" path), and nodes with `"requires": "hover"` (no
+  route, not verified in 2D; systems_test covers them).
+- **Fabricator (matter generation)**: tool "fabricator" (printer core +
+  nozzle, effect "make"). Recipes with `"requires_tool"` stay hidden ("Not
+  understood yet") until it exists: scrap → power cell (3) / solar cell (2) /
+  capacitor (4). In the world a click prints the nearest ghost outline in
+  reach (group "buildable"). `scripts/interact/buildable.gd`: Ghost (see-through
+  meshes), Solid (StaticBody3D, collision layer 0 until built, its `Model`
+  grows in), Interactable ("Print … (N scrap)"); flag remembers it. First
+  one: `scenes/props/scrap_ramp.tscn` up to `scenes/props/hover_ledge.tscn`
+  (1.6 m, scrap cache) in the Agora.
 - **`house_setup.gd`-style fixup scripts**: attached to imported building
   models to override materials (imported FBX materials can silently fail)
   and force double-sided rendering — a repeatable pattern for any future
@@ -260,6 +285,19 @@ independent so they land in any order. Owner decisions:
   wording) and wait for a yes. Established 2026-09-27; the last
   Claude-authored version is the one committed that day.
 - **Always ask before copying external assets into the project directory.**
+- **District wall segments must be whole 2 m pieces** (length a multiple of
+  2). A 2.8 m stub gets one centred 2 m piece and leaves 0.4 m slits at its
+  ends: too narrow for the robot, wide enough for the tiny one. Cut gaps on
+  the 2 m grid (the Agora's vine gap is z −112…−116).
+- **One blocker can guard several places.** The drive test clears a blocker
+  on the first route behind it and remembers it; without that, every later
+  route behind the same vines reads "reached too early".
+- **Every district pickup must lie on a route** (the drive test wants
+  "collectibles left: 0"): put parts on the lanes or at the route's end node.
+- **`quit()` doesn't end a `-s` script's function**: code after it keeps
+  running until the next await. `return` right after it.
+- **Don't scale a physics body to animate it** (the printed ramp): grow its
+  `Model` child and leave the collision at full size.
 - **Always state clearly when running an executable outside the project
   folder** (the Godot binary lives at `C:\Godot_v4.7.2-stable_win64.exe\`).
 - **Never trust auto-generated collision on imported meshes** for anything
@@ -458,6 +496,18 @@ independent so they land in any order. Owner decisions:
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-09-28 (cloud, sprint 2)** — `session_01DsHmEwKjUMUq5G2CSr25sj`.
+  The owner's big build-out, for their six-year-old son, in 8 pushed phases:
+  Easy/Medium/Hard (fights; Easy can't be lost); the crooked house, Angry
+  Zombie and tiny curse (mouse hole → sun tracker); real models for every
+  part; turn-based timing combat with a 3-tool fight kit and the Hill Sentry
+  tutorial; the laser; charger upgrades, 5-ring charge bar, solar HUD; the
+  opening cutscene built in Godot (bird, board, roof solar panel, iris); the
+  Relay Vault (mirror puzzle, Pythia, hover pack); the Agora district
+  (vines, printer shop, fabricator, printable ramp, hover ledge). All
+  headless tests green at every push (forest 24 routes, hub 7, agora 6,
+  systems 300+ checks). Nothing playtested by the owner yet.
 
 - **2026-09-28 (local, Surface Pro)** — first session on the owner's second
   machine (ARM64, Adreno X1-45; native ARM64 Godot 4.7.2). Merged the cloud
