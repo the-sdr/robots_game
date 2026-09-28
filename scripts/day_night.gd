@@ -24,13 +24,22 @@ const DAWN_COLOUR := Color(1.0, 0.62, 0.38)
 const MOON_COLOUR := Color(0.55, 0.65, 0.95)
 const SUN_ENERGY := 1.2
 const MOON_ENERGY := 0.16
+const INTERIOR_AMBIENT := Color(0.07, 0.075, 0.085)
 
 @onready var sun: DirectionalLight3D = get_node(sun_path)
 @onready var environment: Environment = (get_node(environment_path) as WorldEnvironment).environment
 @onready var clouds: Node = get_node_or_null(clouds_path)
 @onready var sky: ProceduralSkyMaterial = environment.sky.sky_material
 
+## Underground (the Relay Vault): no sun or sky light, only the rooms' own lamps.
+var interior := false
+
+func set_interior(on: bool) -> void:
+	interior = on
+	update()
+
 func _ready() -> void:
+	add_to_group("day_night")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_energy = 1.0
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
@@ -76,5 +85,9 @@ func update() -> void:
 	environment.fog_light_color = horizon
 	environment.ambient_light_color = NIGHT_AMBIENT.lerp(DAY_AMBIENT, d).lerp(DUSK_HORIZON * 0.6, glow * 0.4)
 
+	if interior:
+		sun.light_energy = 0.0
+		environment.ambient_light_color = INTERIOR_AMBIENT
+		environment.fog_light_color = INTERIOR_AMBIENT
 	if clouds != null and clouds.has_method("set_brightness"):
 		clouds.set_brightness(Color(0.22, 0.25, 0.38).lerp(Color(1.0, 0.99, 0.96), d).lerp(DUSK_HORIZON, glow * 0.7))

@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeons/relay_vault.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/level_vault/generated_vault_shell.tscn" id="2"]
+
+[node name="RelayVault" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Shell" parent="." instance=ExtResource("2")]

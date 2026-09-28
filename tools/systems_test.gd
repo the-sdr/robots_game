@@ -627,6 +627,96 @@ func _initialize() -> void:
 	settings.set_difficulty(owner_difficulty)
 	player.set_physics_process(true)
 
+	print("== the relay vault: lift, sealed rooms, mirror puzzle, Pythia, hover")
+	var vault: Node3D = world.get_node("RelayVault")
+	var vo: Vector3 = vault.global_position                 # the vault's frame: rooms are relative to it
+	var day_night_node: Node = world.get_node("DayNight")
+	Game.data["tiny_until"] = 0.0          # this test sets the clock back to midnight, which would revive the zombie's curse
+	player.set_tiny(false, false)
+	world.get_node("GeneratedHub/Props/RelayTower/LiftDown").travel(player)
+	for i in 45:
+		await process_frame
+	check(player.global_position.distance_to(Vector3(0, -29.9, -140.8)) < 0.4, "the tower's lift goes down to the vault (%s)" % player.global_position)
+	for i in 5:
+		await physics_frame
+	check(day_night_node.interior and (world.get_node("DirectionalLight3D") as DirectionalLight3D).light_energy == 0.0, "underground: no sun, the vault's own lamps")
+	player.set_physics_process(false)
+	var escaped := []
+	for k in 8:
+		var a := TAU * k / 8.0
+		player.global_position = vo + Vector3(0, 0.1, 0)
+		player.velocity = Vector3.ZERO
+		await physics_frame
+		await drive_to(player, Vector2(vo.x + cos(a) * 40.0, vo.z + sin(a) * 40.0), 300)
+		var q := player.global_position - vo
+		if absf(q.x) > 7.0 or q.z > 3.0 or q.z < -32.0 or q.y < -0.5 or q.y > 5.0:
+			escaped.append(q)
+	check(escaped.is_empty(), "sealed: driving flat out in 8 directions never leaves the vault (%s)" % [escaped])
+	check(not vault.trace()["lit"], "the mirrors start the wrong way round")
+	for id in ["m1", "m2", "m3"]:
+		vault.mirrors[id].flip()
+	var solved: Dictionary = vault.trace()
+	check(solved["lit"] and solved["points"].size() == 5, "all three turned: the beam reaches the receiver (%s)" % [solved["points"]])
+	Clock.time = 0.0
+	for i in 10:
+		await process_frame
+	check(not vault.sun_on_source() and not Game.get_flag("vault_lit"), "at night the shaft is dark: no beam, nothing opens")
+	Game.data["equipped_tool"] = "laser"
+	Game.inventory_changed.emit()
+	player.global_position = vo + Vector3(-3.5, 0.1, -10.0)
+	player.get_node("Visual").global_rotation.y = PI * 0.5       # facing west, at the port
+	for i in 60:
+		await physics_frame
+	Energy.current = 80.0
+	check(rig.use() and vault.laser_left > 0.0, "the laser powers the port")
+	for i in 10:
+		await process_frame
+	check(Game.get_flag("vault_lit"), "the beam reaches the lens: the hall is lit")
+	for i in 150:
+		await process_frame
+	await drive_to(player, Vector2(vo.x, vo.z - 18.0), 400)
+	check(await drive_to(player, Vector2(vo.x, vo.z - 26.0), 400), "the door is open: into Pythia's chamber")
+	var pythia: Node = vault.get_node("Pythia")
+	var hud_v: CanvasLayer = world.get_node("HUD")
+	pythia.talk(player)
+	check(hud_v.dialogue_open(), "Pythia talks")
+	for i in 4:
+		hud_v.advance_dialogue()
+	check(not hud_v.dialogue_open() and Game.count("lift_fan") == 2 and Game.count("gyro") == 1, "after her four lines: two lift fans and a gyro")
+	var cell_spot := vo + Vector3(3.6, 0, -29.6)
+	var cells_before: int = Game.count("solar_cell")
+	await drive_to(player, Vector2(cell_spot.x, cell_spot.z), 300)
+	for i in 5:
+		await physics_frame
+	check(Game.count("solar_cell") == cells_before + 1, "the solar cell behind the door")
+	check(Game.craft("hover_pack") and Game.has_tool("hover"), "hover pack built")
+	player.global_position = vo + Vector3(-2.0, 0.2, -27.0)
+	player.velocity = Vector3.ZERO
+	player.set_physics_process(true)
+	for i in 30:
+		await physics_frame
+	var floor_y: float = player.global_position.y
+	var energy_before: float = Energy.current
+	Input.action_press("jump")
+	var top := floor_y
+	for i in 150:
+		await physics_frame
+		top = maxf(top, player.global_position.y)
+	check(top - floor_y > 2.0 and top - floor_y < 2.9, "hovering climbs to about 2.5 m and holds (%.2f m)" % (top - floor_y))
+	check(energy_before - Energy.current > 5.0, "hovering drinks energy (%.1f in 2.5 s)" % (energy_before - Energy.current))
+	Input.action_release("jump")
+	for i in 90:
+		await physics_frame
+	check(player.global_position.y - floor_y < 0.1, "let go: back down on the floor")
+	vault.get_node("LiftUp").travel(player)
+	for i in 45:
+		await process_frame
+	for i in 5:
+		await physics_frame
+	check(player.global_position.distance_to(Vector3(0, 0.1, -133.2)) < 0.5 and not day_night_node.interior, "the lift goes back up to the tower, and daylight returns")
+	Clock.time = 0.5
+	player.set_physics_process(true)
+
 	print("== menus open and close from the keyboard while paused")
 	var panel: Control = world.get_node("HUD/InventoryPanel")
 	var pause_menu: CanvasLayer = world.get_node("HUD/PauseMenu")

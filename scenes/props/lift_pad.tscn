@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interact/lift_pad.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/interactable.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_plate"]
+albedo_color = Color(0.25, 0.26, 0.28, 1)
+metallic = 0.7
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_ring"]
+albedo_color = Color(0.35, 0.9, 1, 1)
+emission_enabled = true
+emission = Color(0.35, 0.9, 1, 1)
+emission_energy_multiplier = 1.2
+
+[sub_resource type="CylinderMesh" id="Mesh_plate"]
+top_radius = 0.9
+bottom_radius = 0.95
+height = 0.06
+radial_segments = 24
+
+[sub_resource type="TorusMesh" id="Mesh_ring"]
+inner_radius = 0.72
+outer_radius = 0.8
+rings = 32
+ring_segments = 6
+
+[sub_resource type="SphereShape3D" id="Shape_use"]
+radius = 1.3
+
+[node name="LiftPad" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Plate" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("Mesh_plate")
+surface_material_override/0 = SubResource("Mat_plate")
+
+[node name="Ring" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.065, 0)
+mesh = SubResource("Mesh_ring")
+material_override = SubResource("Mat_ring")
+
+[node name="Interactable" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+script = ExtResource("2")
+
+[node name="Shape" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("Shape_use")

@@ -142,6 +142,96 @@ func show_message(title: String, text: String) -> void:
 	message_panel.visible = true
 	_message_time = MESSAGE_SECONDS + text.length() * 0.03
 
+# --- dialogue (Pythia and later NPC robots) ------------------------------------------------
+signal dialogue_finished(speaker: String)
+
+var _dialogue: PanelContainer
+var _dialogue_name: Label
+var _dialogue_text: Label
+var _pages: Array = []
+var _page := 0
+var _speaker := ""
+
+## Shows lines one at a time at the bottom of the screen; E moves on.
+func show_dialogue(speaker: String, pages: Array) -> void:
+	if _dialogue == null:
+		_build_dialogue()
+	_speaker = speaker
+	_pages = pages
+	_page = 0
+	_dialogue_name.text = speaker
+	_dialogue_text.text = String(_pages[0])
+	_dialogue.visible = true
+
+func dialogue_open() -> bool:
+	return _dialogue != null and _dialogue.visible
+
+func advance_dialogue() -> void:
+	if not dialogue_open():
+		return
+	_page += 1
+	if _page >= _pages.size():
+		_dialogue.visible = false
+		dialogue_finished.emit(_speaker)
+		return
+	_dialogue_text.text = String(_pages[_page])
+
+# The HUD sits after the player in the world, so it sees E first while talking.
+func _unhandled_input(event: InputEvent) -> void:
+	if dialogue_open() and event.is_action_pressed("interact"):
+		advance_dialogue()
+		get_viewport().set_input_as_handled()
+
+func _build_dialogue() -> void:
+	_dialogue = PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.03, 0.05, 0.07, 0.88)
+	style.set_corner_radius_all(10)
+	style.set_content_margin_all(16)
+	_dialogue.add_theme_stylebox_override("panel", style)
+	_dialogue.anchor_left = 0.5
+	_dialogue.anchor_right = 0.5
+	_dialogue.anchor_top = 1.0
+	_dialogue.anchor_bottom = 1.0
+	_dialogue.offset_left = -380
+	_dialogue.offset_right = 380
+	_dialogue.offset_top = -250
+	_dialogue.offset_bottom = -100
+	var box := VBoxContainer.new()
+	_dialogue.add_child(box)
+	_dialogue_name = Label.new()
+	_dialogue_name.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
+	_dialogue_name.add_theme_font_size_override("font_size", 20)
+	box.add_child(_dialogue_name)
+	_dialogue_text = Label.new()
+	_dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_dialogue_text.custom_minimum_size = Vector2(720, 0)
+	_dialogue_text.add_theme_font_size_override("font_size", 19)
+	box.add_child(_dialogue_text)
+	var hint := Label.new()
+	hint.text = "[E] next"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hint.add_theme_color_override("font_color", Color(0.6, 0.62, 0.65))
+	box.add_child(hint)
+	$Root.add_child(_dialogue)
+
+# --- fades (the lift) --------------------------------------------------------------------------
+var _fade_rect: ColorRect
+
+## Fades to black, runs `action` (a teleport), fades back.
+func fade_through(action: Callable, seconds: float = 0.35) -> void:
+	if _fade_rect == null:
+		_fade_rect = ColorRect.new()
+		_fade_rect.color = Color(0, 0, 0, 0)
+		_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fade_rect.anchor_right = 1.0
+		_fade_rect.anchor_bottom = 1.0
+		$Root.add_child(_fade_rect)
+	var t := create_tween()
+	t.tween_property(_fade_rect, "color:a", 1.0, seconds)
+	t.tween_callback(action)
+	t.tween_property(_fade_rect, "color:a", 0.0, seconds)
+
 func toggle_pause() -> void:
 	pause_menu.toggle()
 

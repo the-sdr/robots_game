@@ -80,6 +80,9 @@ func use() -> bool:
 	if _cooldown_left > 0.0 or player.docked or player.shut_down:
 		return false
 	var def := definition()
+	if def.get("effect", "") == "hover":
+		get_tree().call_group("hud", "show_notice", "The hover pack works on its own: jump, then hold Space in the air.")
+		return false
 	var cost: float = def["energy"]
 	if Energy.current < cost:
 		get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % def["name"])
@@ -162,7 +165,12 @@ func _find_ranged_target(reach: float) -> Node3D:
 			return body
 	return null
 
+## Where to aim at a body: the centre of its first collision shape (a door's
+## box, a lens in a wall), or a little above its origin if it has none.
 func _aim_point(body: Node3D) -> Vector3:
+	for child in body.get_children():
+		if child is CollisionShape3D and not (child as CollisionShape3D).disabled:
+			return (child as CollisionShape3D).global_position
 	return body.global_position + Vector3(0, 0.8, 0)
 
 ## The laser's beam: a thin glowing rod from the arm to what it hit (or as far as it reaches).
@@ -243,6 +251,14 @@ func _build_head(def: Dictionary) -> Node3D:
 			disc.radial_segments = 12
 			mi.mesh = disc
 			mi.rotation.x = PI * 0.5
+			mi.material_override = material
+		"hover":
+			var fan := CylinderMesh.new()
+			fan.top_radius = 0.13
+			fan.bottom_radius = 0.13
+			fan.height = 0.05
+			fan.radial_segments = 14
+			mi.mesh = fan
 			mi.material_override = material
 		"burn":
 			# an emitter barrel with a glowing lens at the tip

@@ -107,6 +107,26 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   trigger covers the crest (0, −86). Beaten → flag `defeated:hill_sentry`,
   capacitor, sits by the path. The drive test sets that flag first so routes
   over the crest don't start a fight.
+- **The Relay Vault (dungeon 1, sprint 2)**: underground at world (0, −30, −140),
+  instanced in world.tscn. The relay tower's base room has a lift pad
+  (`scenes/props/lift_pad.tscn`: fade, teleport, facing) down to it and back.
+  Shell: `tools/relay_vault_build.gd` from `relay_vault_design.json` (spaces as
+  rects; openings where they touch, lintels above lower passages; the same
+  boxes are mesh and collision, so it's sealed by construction; markers carry
+  the puzzle data because level_design/ isn't exported). Gameplay:
+  `scripts/dungeons/relay_vault.gd` — the mirror hall (grid beam trace
+  `trace()`, mirrors flip "/" ↔ "\" with E, powered by the sun shaft while
+  `Clock.sun_direction().y > 0.15` or for 20 s after the laser hits the port),
+  flag `vault_lit` opens the door to Pythia (`scenes/npc/pythia.tscn`: HUD
+  dialogue, gives 2 lift fans + gyro once, flag `pythia_gift`), the second
+  solar cell, lamps, story triggers, and `DayNight.set_interior()` while the
+  robot is inside (sun and sky light off). No charger underground (no sun).
+- **HUD dialogue and fades**: `hud.show_dialogue(speaker, pages)` (E advances,
+  `dialogue_finished`), `hud.fade_through(callable)`.
+- **Hover pack** (tool "hover", from Pythia's parts): not an arm action; once
+  built, holding Space in the air lifts the robot to 2.5 m above the ground
+  (×size_scale), 3 energy/s, glowing fans. Fight moves too.
+- **Laser aim** targets the centre of the body's first collision shape.
 - **Opening cutscene (sprint 2)**: `scripts/cutscene/opening.gd` runs inside the
   real world on New Game only (`Game.play_intro`, set by the main menu; tests
   and Continue leave it off). Seven shots with Tweens and one Camera3D;

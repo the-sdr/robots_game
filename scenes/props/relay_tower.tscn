@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/beacon_blink.gd" id="blink"]
 
+[ext_resource type="PackedScene" path="res://scenes/props/lift_pad.tscn" id="lift"]
+
 [sub_resource type="StandardMaterial3D" id="Mat_concrete"]
 albedo_color = Color(0.52, 0.5, 0.47, 1)
 roughness = 0.9
@@ -123,3 +125,8 @@ shape = SubResource("Shape_front")
 [node name="ColRoof" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -3.5)
 shape = SubResource("Shape_roof")
+
+[node name="LiftDown" parent="." instance=ExtResource("lift")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.6)
+prompt = "Go down: the relay vault"
+target = Vector3(0, -29.9, -140.8)

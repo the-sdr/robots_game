@@ -80,6 +80,7 @@ func _ready() -> void:
 	_tiny_shape.radius = _normal_shape.radius * TINY_SCALE
 	_tiny_shape.height = _normal_shape.height * TINY_SCALE
 	_build_iris()
+	_build_hover_fx()
 	# Own copies of the shared materials so this robot can light up on its own.
 	_chest_material = StandardMaterial3D.new()
 	_chest_material.albedo_color = Color(0.1, 0.11, 0.12)
@@ -195,6 +196,7 @@ func _process(delta: float) -> void:
 	var dark: float = 1.0 - smoothstep(-0.05, 0.12, Clock.sun_direction().y)
 	headlight.light_energy = 0.0 if shut_down else 3.0 * dark
 	_lens_material.emission_energy_multiplier = 0.0 if shut_down else 1.2 + 2.5 * dark
+	_hover_fx.visible = hovering
 	# Tread wheels turn with the ground speed (the tread bodies are boxes; the wheels sell it).
 	var ground_speed := Vector2(velocity.x, velocity.z).length()
 	if ground_speed > 0.05:
@@ -217,8 +219,12 @@ func _physics_process(delta: float) -> void:
 		var vertical: float = Input.get_action_strength("jump") - Input.get_action_strength("fly_down")
 		velocity.y = vertical * FLY_VERTICAL_SPEED
 	else:
+		hovering = false
 		if not is_on_floor():
-			velocity.y -= GRAVITY * delta
+			if Game.has_tool("hover") and Input.is_action_pressed("jump") and Energy.current > 0.0:
+				_hover(delta)
+			else:
+				velocity.y -= GRAVITY * delta
 		if Input.is_action_pressed("jump") and is_on_floor():
 			velocity.y = JUMP_VELOCITY * (TINY_JUMP if tiny else 1.0)
 
@@ -250,6 +256,54 @@ func _physics_process(delta: float) -> void:
 	_update_camera_distance(delta)
 	if not god_mode:
 		Energy.drain((Energy.DRIVE_DRAIN if move_dir.length() > 0.1 else Energy.IDLE_DRAIN) * delta * (TINY_DRAIN if tiny else 1.0))
+
+# --- the hover pack (Catalog tool "hover", from Pythia's lift fans and gyro) -----------
+const HOVER_LIFT = 2.2          # m/s up while below the ceiling height
+const HOVER_MAX_HEIGHT = 2.5    # metres above the ground it will climb to
+const HOVER_ACCEL = 14.0
+const HOVER_DRAIN = 3.0         # energy per second
+var hovering := false
+var _hover_fx: Node3D
+
+func _hover(delta: float) -> void:
+	hovering = true
+	var target: float = HOVER_LIFT if height_above_ground() < HOVER_MAX_HEIGHT * size_scale else -0.2
+	velocity.y = move_toward(velocity.y, target, HOVER_ACCEL * delta)
+	Energy.drain(HOVER_DRAIN * delta)
+
+func height_above_ground() -> float:
+	var ray := PhysicsRayQueryParameters3D.create(global_position + Vector3(0, 0.1, 0), global_position + Vector3(0, -20, 0))
+	ray.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(ray)
+	return global_position.y - (hit["position"] as Vector3).y if not hit.is_empty() else 20.0
+
+## Two little fans under the treads that glow while hovering.
+func _build_hover_fx() -> void:
+	_hover_fx = Node3D.new()
+	_hover_fx.name = "HoverFans"
+	_hover_fx.visible = false
+	visual.add_child(_hover_fx)
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = Color(0.55, 0.9, 1.0)
+	glow.emission_enabled = true
+	glow.emission = Color(0.55, 0.9, 1.0)
+	glow.emission_energy_multiplier = 2.5
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.12
+	disc.bottom_radius = 0.12
+	disc.height = 0.02
+	for x in [-0.25, 0.25]:
+		var fan := MeshInstance3D.new()
+		fan.mesh = disc
+		fan.material_override = glow
+		fan.position = Vector3(x, -0.02, 0)
+		_hover_fx.add_child(fan)
+	var light := OmniLight3D.new()
+	light.light_color = Color(0.55, 0.9, 1.0)
+	light.light_energy = 1.2
+	light.omni_range = 2.0
+	light.position = Vector3(0, -0.1, 0)
+	_hover_fx.add_child(light)
 
 # --- the eye irises ------------------------------------------------------------------
 var iris_open := 1.0

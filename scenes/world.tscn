@@ -36,6 +36,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/props/fallen_board.tscn" id="fallen_board"]
 
+[ext_resource type="PackedScene" path="res://scenes/dungeons/relay_vault.tscn" id="relay_vault"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_house_floor"]
 size = Vector3(5.4, 0.06, 5.4)
 
@@ -347,3 +349,6 @@ shape = SubResource("SphereShape3D_trigger3")
 [node name="GeneratedLevel" parent="." instance=ExtResource("gen")]
 
 [node name="GeneratedHub" parent="." instance=ExtResource("gen_hub")]
+
+[node name="RelayVault" parent="." instance=ExtResource("relay_vault")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -30, -140)

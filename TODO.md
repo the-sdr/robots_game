@@ -45,7 +45,15 @@ headless tests pass; pull the branch to playtest any of them.
       glints → the dock's bar lights, one ring blinking → the robot's eye, the
       iris opens a little. Space/Esc skips. Check the camera framing in each
       shot, and the frame rate of the first (over the forest) on the laptop.
-- [ ] Phase 7: relay vault dungeon, Pythia, hover.
+- [x] Phase 7: relay vault dungeon, Pythia, hover. **Playtest:** open the
+      tower door (relay card) → E on the glowing lift pad → the Relay Vault.
+      The mirror hall: E on a mirror turns it; by day sunlight comes down a
+      shaft onto the west lens (or zap that lens with the laser any time).
+      Steer the beam into the big lens on the north wall → the door opens →
+      Pythia talks (E for her next line) and gives 2 lift fans + a gyro;
+      the second solar cell is in her room. Build the hover pack (Tab): jump
+      and hold Space in the air to hover up to ~2.5 m. Is the puzzle clear
+      enough for a six-year-old? Does the vault feel sealed and lit well?
 - [ ] Phase 8: the Agora district, fabricator.
 
 Written 2026-09-27 at the end of sprint 1 (cloud). Newest priorities first.

@@ -36,7 +36,13 @@ const BEATS := {
 	"west_yard": {"title": "The west yard", "text":
 		"A parked machine, a tarp, a box of cards for doors that no longer exist. One card is for a door that does."},
 	"relay": {"title": "The relay", "text":
-		"The card reads. The door slides. Inside, something has been waiting to be asked a question. Your standing order is complete, and the city has just begun. [End of the vertical slice: the tower is the first dungeon.]"},
+		"The card reads. The door slides. Inside: a lift going down into the dark, and a hum coming up from below. Your standing order says report to the relay. The relay is down there."},
+	"vault": {"title": "The Relay Vault", "text":
+		"Cold air, humming cables, lamps that somebody kept burning. The relay is not a radio mast after all. It's a place."},
+	"mirrors": {"title": "The mirror hall", "text":
+		"Mirrors on stands, a dark lens in the far wall, and a lens in the west wall under a shaft to the sky. Light wants to get somewhere. Press E on a mirror to turn it."},
+	"vault_lit": {"title": "Light", "text":
+		"The beam finds the lens and the whole hall hums louder. At the far end, a heavy door grinds up."},
 	"brambles": {"title": "Thorns", "text":
 		"The stream leaves the forest under a wall of thorn. Something sharp and spinning would clear it."},
 	"spring": {"title": "The spring", "text":
