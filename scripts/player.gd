@@ -63,6 +63,9 @@ var shut_down := false
 var in_combat := false
 var _hud: CanvasLayer
 var _focus: Interactable = null
+## The right trigger is an axis: it sends a stream of values while held, so a
+## pull uses the tool once and the next pull needs a release first.
+var _tool_held := false
 ## True while the tiny curse has shrunk the robot (it can lag Game.is_tiny() while there's no room to regrow).
 var tiny := false
 ## 1.0 normally, TINY_SCALE while tiny: camera, tool reach and hit height follow it.
@@ -115,7 +118,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	if event.is_action_pressed("interact") and not shut_down and _focus != null:
 		_focus.interact(self)
-	if event.is_action_pressed("use_tool") and not shut_down:
+	if tool_pulled(event) and not shut_down:
 		tool_rig.use()
 	if event.is_action_pressed("cycle_tool") and not shut_down:
 		tool_rig.cycle()
@@ -204,7 +207,18 @@ func _process(delta: float) -> void:
 		for wheel in wheels:
 			(wheel as Node3D).rotate_x(-forward_sign * ground_speed / WHEEL_RADIUS * delta)
 
+## True once per click or trigger pull of use_tool.
+func tool_pulled(event: InputEvent) -> bool:
+	if _tool_held or not event.is_action_pressed("use_tool"):
+		return false
+	_tool_held = true
+	return true
+
 func _physics_process(delta: float) -> void:
+	# Re-arm from the input state, which is kept even while the game is paused
+	# (a trigger released during a menu or a fight still counts as released).
+	if _tool_held and not Input.is_action_pressed("use_tool"):
+		_tool_held = false
 	_update_focus()
 	_update_size(delta)
 	if shut_down or docked or in_combat:

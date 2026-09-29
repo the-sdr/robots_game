@@ -861,6 +861,39 @@ func _initialize() -> void:
 	await process_frame
 	check(not panel.visible and not paused, "Tab closes it again while paused")
 
+	print("== controller: A presses menu buttons, the right trigger uses the tool")
+	var pad_a := InputEventJoypadButton.new()
+	pad_a.button_index = JOY_BUTTON_A
+	pad_a.pressed = true
+	check(pad_a.is_action_pressed("ui_accept"), "A is ui_accept (presses the focused menu button)")
+	var trigger := InputEventJoypadMotion.new()
+	trigger.axis = JOY_AXIS_TRIGGER_RIGHT
+	trigger.axis_value = 0.8
+	check(trigger.is_action_pressed("use_tool"), "the right trigger is use_tool")
+	var rb := InputEventJoypadButton.new()
+	rb.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	rb.pressed = true
+	check(not rb.is_action("use_tool"), "RB no longer uses the tool")
+	Input.parse_input_event(ev2)
+	await process_frame
+	await process_frame
+	var focused := panel.get_viewport().gui_get_focus_owner()
+	check(focused is Button and panel.is_ancestor_of(focused), "the parts screen focuses a button when it opens (%s)" % [focused])
+	panel.toggle()
+	var pulls := 0
+	Input.action_press("use_tool")               # held state only; the events go straight to tool_pulled
+	for value in [0.6, 0.8, 1.0, 0.9]:          # one squeeze sends a stream of axis values
+		trigger.axis_value = value
+		pulls += int(player.tool_pulled(trigger))
+		await physics_frame
+	check(pulls == 1, "one trigger pull uses the tool once (%d)" % pulls)
+	Input.action_release("use_tool")
+	await physics_frame
+	await physics_frame
+	trigger.axis_value = 0.8
+	check(player.tool_pulled(trigger), "after a release the next pull works")
+	await physics_frame
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

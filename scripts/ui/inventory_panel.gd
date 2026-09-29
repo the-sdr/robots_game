@@ -45,6 +45,21 @@ func toggle() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible else Input.MOUSE_MODE_CAPTURED
 	if visible:
 		_refresh()
+		_focus_button()
+
+# A controller needs a focused button for A (ui_accept) to press. Prefers the
+# first buildable recipe, then the fight kit, then Close.
+func _focus_button() -> void:
+	var recipes: Array[Button] = []
+	for child in recipes_list.get_children():
+		if child is Button and not child.is_queued_for_deletion() and not (child as Button).disabled:
+			recipes.append(child)
+	if not recipes.is_empty():
+		recipes[0].grab_focus()
+	elif not kit_buttons.is_empty() and not kit_buttons[0].disabled:
+		kit_buttons[0].grab_focus()
+	else:
+		close_button.grab_focus()
 
 func _refresh() -> void:
 	var kit := Game.loadout()
@@ -86,11 +101,13 @@ func _refresh() -> void:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.pressed.connect(_craft.bind(recipe_id))
 		button.mouse_entered.connect(func() -> void: detail_label.text = String(recipe.get("description", "")))
+		button.focus_entered.connect(func() -> void: detail_label.text = String(recipe.get("description", "")))
 		recipes_list.add_child(button)
 
 func _craft(recipe_id: String) -> void:
 	if Game.craft(recipe_id):
 		var recipe: Dictionary = Catalog.RECIPES[recipe_id]
 		get_tree().call_group("hud", "show_notice", "Built: %s" % recipe["name"])
-		detail_label.text = "Built the %s." % recipe["name"]
 		_refresh()
+		_focus_button()      # the pressed button was rebuilt; keep A working
+		detail_label.text = "Built the %s." % recipe["name"]
