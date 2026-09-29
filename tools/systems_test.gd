@@ -931,6 +931,37 @@ func _initialize() -> void:
 		fall_frames += 1
 	check(player.global_position.distance_to(safe_spot) < 1.0, "a robot that falls out of the world is put back on solid ground after %d frames (%s)" % [fall_frames, player.global_position])
 
+	print("== the jump animation")
+	var fx: Node = player.get_node("JumpFx")
+	for i in 40:
+		await physics_frame
+	check((fx.squash as Vector3).distance_to(Vector3.ONE) < 0.02 and absf(player.visual.scale.y - player.visual_size) < 0.01, "at rest the body keeps its shape")
+	Input.action_press("jump")
+	await physics_frame
+	await physics_frame
+	Input.action_release("jump")
+	check(fx.squash.y > 1.05, "takeoff: the body stretches (%.2f)" % fx.squash.y)
+	var hop_landings: int = fx.landings
+	var hop_squash := 2.0
+	for i in 120:
+		await physics_frame
+		if fx.landings > hop_landings:
+			hop_squash = minf(hop_squash, fx.squash.y)
+	check(fx.landings == hop_landings + 1 and hop_squash < 0.92, "a hop lands with a squash (%.2f)" % hop_squash)
+	for i in 60:
+		await physics_frame
+	check((fx.squash as Vector3).distance_to(Vector3.ONE) < 0.02 and absf(player.visual.scale.y - player.visual_size) < 0.01, "then springs back to exactly its shape")
+	player.global_position += Vector3(0, 4.0, 0)
+	var drop_landings: int = fx.landings
+	var drop_squash := 2.0
+	for i in 150:
+		await physics_frame
+		if fx.landings > drop_landings:
+			drop_squash = minf(drop_squash, fx.squash.y)
+	check(fx.landings == drop_landings + 1 and drop_squash < hop_squash - 0.03, "a drop from 4 m squashes harder than a hop (%.2f vs %.2f)" % [drop_squash, hop_squash])
+	for i in 60:
+		await physics_frame
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

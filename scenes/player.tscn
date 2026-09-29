@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/tools/tool_rig.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/player_jump_fx.gd" id="3"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_metal"]
 albedo_color = Color(0.66, 0.68, 0.7, 1)
@@ -139,6 +140,21 @@ height = 1.2
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_probe"]
 radius = 1.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_dust"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.55, 0.46, 0.34, 1)
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="Mesh_dust"]
+material = SubResource("Mat_dust")
+size = Vector2(0.14, 0.14)
+
+[sub_resource type="Gradient" id="Gradient_dust"]
+colors = PackedColorArray(1, 1, 1, 0.75, 1, 1, 1, 0)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1")
@@ -345,3 +361,27 @@ transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0,
 [node name="Camera3D" type="Camera3D" parent="CameraRig/CameraArm"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
 current = true
+
+[node name="JumpFx" type="Node" parent="."]
+script = ExtResource("3")
+
+[node name="Dust" type="CPUParticles3D" parent="JumpFx"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+emitting = false
+amount = 12
+lifetime = 0.55
+one_shot = true
+explosiveness = 0.95
+mesh = SubResource("Mesh_dust")
+emission_shape = 1
+emission_sphere_radius = 0.3
+direction = Vector3(0, 1, 0)
+spread = 75.0
+gravity = Vector3(0, -2, 0)
+initial_velocity_min = 0.6
+initial_velocity_max = 1.4
+damping_min = 2.0
+damping_max = 2.0
+scale_amount_min = 0.7
+scale_amount_max = 1.4
+color_ramp = SubResource("Gradient_dust")

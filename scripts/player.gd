@@ -36,6 +36,8 @@ const IRIS_OPEN_R = 0.037
 const IRIS_BLADE_HALF_LENGTH = 0.026
 const IRIS_BLADE_HALF_WIDTH = 0.012
 
+signal jumped                        # the jump animation listens (player_jump_fx.gd)
+
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
 @onready var camera_arm: Node3D = $CameraRig/CameraArm
@@ -78,6 +80,9 @@ const FALL_RESCUE_SECONDS := 3.0     # a real fall, not a teleport (loading, reb
 ## True while the tiny curse has shrunk the robot (it can lag Game.is_tiny() while there's no room to regrow).
 var tiny := false
 ## 1.0 normally, TINY_SCALE while tiny: camera, tool reach and hit height follow it.
+## The model's size, animated towards size_scale by set_tiny(); JumpFx multiplies
+## its squash-and-stretch onto it and writes Visual.scale.
+var visual_size := 1.0
 var size_scale := 1.0
 var _normal_shape: CapsuleShape3D
 var _tiny_shape: CapsuleShape3D
@@ -265,6 +270,7 @@ func _physics_process(delta: float) -> void:
 				velocity.y -= GRAVITY * delta
 		if Input.is_action_pressed("jump") and is_on_floor():
 			velocity.y = JUMP_VELOCITY * (TINY_JUMP if tiny else 1.0)
+			jumped.emit()
 
 	var look_vec := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 	if look_vec.length() > 0.0:
@@ -434,8 +440,9 @@ func set_tiny(on: bool, animate: bool = true) -> void:
 	if _size_tween != null and _size_tween.is_valid():
 		_size_tween.kill()
 	if not animate or not is_inside_tree():
+		visual_size = size_scale
 		visual.scale = Vector3.ONE * size_scale
 		return
 	_size_tween = create_tween()
-	_size_tween.tween_property(visual, "scale", Vector3.ONE * size_scale * (0.8 if on else 1.15), 0.18)
-	_size_tween.tween_property(visual, "scale", Vector3.ONE * size_scale, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_size_tween.tween_property(self, "visual_size", size_scale * (0.8 if on else 1.15), 0.18)
+	_size_tween.tween_property(self, "visual_size", size_scale, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

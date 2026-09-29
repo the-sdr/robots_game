@@ -518,6 +518,13 @@ independent so they land in any order. Owner decisions:
   one). Drawn with an ImmediateMesh, rebuilt only while out. The charge bar
   blinks only while energy moves (docked: the ring being drawn from; else the
   ring the sun fills); steady = nothing moving.
+- **The player's jump animation** is `scripts/player_jump_fx.gd` (node
+  `Player/JumpFx`): it writes `Visual.scale` every physics frame as the
+  player's `visual_size` times its squash spring, and moves the treads, arm
+  `rotation.z`, head `rotation.x` and `CameraRig.position.y` as offsets from
+  rest. Don't set `Visual.scale` elsewhere: animate `visual_size` (set_tiny
+  does). The tool swing uses `ArmRight.rotation.x` and combat uses
+  `Visual.position`, so they don't collide.
 
 ## Session log
 

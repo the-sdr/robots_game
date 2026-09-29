@@ -26,6 +26,19 @@
 - [x] Battery by difficulty (evening playtest): a full battery lasts 15 / 10 / 5
       minutes of driving on Easy / Medium / Hard (was under 2 minutes).
       **Playtest:** does Easy feel relaxed now? Are chargers still worth finding?
+- [x] Jump kept (owner) and animated: stretch + tread push at takeoff, arms out
+      in the air, a squash sized by the fall on landing with a springy
+      recovery, a nod, dust and a small camera dip. **Playtest:** does it read
+      as a robot pushing off? Landing too much / too little? Tiny jump OK?
+- [ ] **Detector ("robot vision"), design in progress with the owner.** Owner's
+      direction so far: visual only (deaf-friendly: no beeps needed to play);
+      the overlay shows the robot's view - a grid with contours following the
+      terrain; far away, warm spots with randomness give a sense of direction,
+      getting less random as you close in; maybe the scan shows ~1 s out of
+      every 5. Finds are dug up or taken from containers that make sense in the
+      world (Detectorists as inspiration). Memories are computer parts it finds.
+      Open: where the detector comes from, the buttons, what is buried first,
+      and whether the labyrinth layout should open up (open world / hybrid).
 - [ ] **Design with the owner: content beyond the tree line for the tiny
       robot** (the escape stays: the owner likes it). Enough to fill a full
       charge. Question raised: procedural content from a point outward, to
