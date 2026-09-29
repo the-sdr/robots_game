@@ -331,6 +331,9 @@ def main():
                 draw.rectangle([x - 8, z - 8, x + 8, z + 8], fill=(150, 130, 110), outline=INK, width=2)
             elif o["kind"] == "collectible":
                 draw.regular_polygon((x, z, 8), 5, fill=(240, 180, 30), outline=INK)
+            elif o["kind"] == "buried":
+                draw.line([x - 6, z - 6, x + 6, z + 6], fill=(170, 60, 20), width=3)      # X marks the spot
+                draw.line([x - 6, z + 6, x + 6, z - 6], fill=(170, 60, 20), width=3)
         for x0_, z0_, x1_, z1_, hw in built.get("giant_segments", []):
             draw.line([px(x0_, z0_), px(x1_, z1_)], fill=(60, 30, 100, 160), width=int(hw * 2 * S))
 

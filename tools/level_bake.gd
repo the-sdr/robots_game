@@ -18,6 +18,7 @@ const ROCK_SCENE := "res://scenes/props/solid_rock.tscn"
 const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
 const GIANT_SCENE := "res://scenes/props/fallen_giant.tscn"
 const CRATE_SCENE := "res://scenes/props/crate.tscn"
+const BURIED_SCENE := "res://scenes/props/buried_find.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
 const BREAKABLE_SCRIPT := "res://scripts/interact/breakable.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
@@ -64,6 +65,7 @@ func _initialize() -> void:
 	var trees := _group("Trees")
 	var props := _group("Props")
 	var collectibles := _group("Collectibles")
+	var finds: Node3D = null            # made on first use: districts without finds don't get an empty group
 	var counts := {}
 	for o in data["objects"]:
 		var xf := _transform(o)
@@ -127,6 +129,12 @@ func _initialize() -> void:
 					part.set("item_id", o["item"])
 				part.set("part_name", info["name"])
 				part.set("color", info["color"])
+			"buried":
+				if finds == null:
+					finds = _group("Finds")
+				var find := _instance(BURIED_SCENE, finds, "Find_%s" % o["id"], xf)   # named by design id: its save flag is its path
+				find.set("item_id", o["item"])
+				find.set("amount", int(o.get("amount", 1)))
 			"crate":
 				_instance(CRATE_SCENE, props, node_name, xf)       # a smashable crate (drops scrap)
 			"scene":

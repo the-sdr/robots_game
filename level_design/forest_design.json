@@ -1178,6 +1178,77 @@
    "note": "Hidden behind the brambles. Reward for the cutter."
   }
  ],
+ "finds": {
+  "_about": "Things to recover that the detector finds (scripts/detector.gd). kind 'buried': a faint soil patch; the robot digs it up (interact). First set: a detector test near the start (owner, 2026-09-29).",
+  "items": [
+   {
+    "id": "gate_scrap",
+    "kind": "buried",
+    "pos": [
+     2.5,
+     -11.6
+    ],
+    "item": "scrap_metal",
+    "amount": 2,
+    "note": "Just inside the garden gate: the first sweep's strongest signal."
+   },
+   {
+    "id": "nook_scrap",
+    "kind": "buried",
+    "pos": [
+     7.4,
+     -10.4
+    ],
+    "item": "scrap_metal",
+    "amount": 1,
+    "note": "The garden nook, by the greenhouse."
+   },
+   {
+    "id": "fork_scrap",
+    "kind": "buried",
+    "pos": [
+     0.8,
+     -15.8
+    ],
+    "item": "scrap_metal",
+    "amount": 1,
+    "note": "On the path down to the fork."
+   },
+   {
+    "id": "clearing_gears",
+    "kind": "buried",
+    "pos": [
+     21.0,
+     -57.0
+    ],
+    "item": "gear_train",
+    "amount": 1,
+    "note": "The middle of the Dry Clearing: open sky, the detector's best stage."
+   },
+   {
+    "id": "clearing_scrap",
+    "kind": "buried",
+    "pos": [
+     25.5,
+     -53.5
+    ],
+    "item": "scrap_metal",
+    "amount": 2,
+    "note": "North-east edge of the Dry Clearing."
+   },
+   {
+    "id": "clearing_cell",
+    "kind": "buried",
+    "pos": [
+     18.5,
+     -59.0
+    ],
+    "item": "power_cell",
+    "amount": 1,
+    "note": "South-west edge of the Dry Clearing."
+   }
+  ]
+ },
  "scenes": [
   {
    "id": "crooked_house",

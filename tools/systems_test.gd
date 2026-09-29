@@ -962,6 +962,69 @@ func _initialize() -> void:
 	for i in 60:
 		await physics_frame
 
+	print("== the detector: sweeps, warm spots, digging")
+	var det: Node = player.get_node("Detector")
+	var terrain_mat: ShaderMaterial = load("res://materials/terrain_painterly.tres")
+	var fork_find: Node3D = world.get_node("GeneratedLevel/Finds/Find_fork_scrap")
+	var far_find: Node3D = world.get_node("GeneratedLevel/Finds/Find_clearing_gears")
+	check(fork_find.is_in_group("detectable") and not det.on, "buried finds are detectable; the detector starts off")
+	player.global_position = fork_find.global_position + Vector3(1.6, 0.3, -1.0)
+	for i in 10:
+		await physics_frame
+	var sweeps_before: int = det.sweeps
+	var det_ev := InputEventAction.new()
+	det_ev.action = "detector"
+	det_ev.pressed = true
+	Input.parse_input_event(det_ev)
+	for i in 4:                      # the key lands just before a frame's _process: give the detector a frame of its own
+		await process_frame
+	check(det.on and det.sweeps == sweeps_before + 1, "the detector key turns it on and a sweep goes out at once")
+	var near_spot: Dictionary = det.spots[0]
+	var far_spot: Dictionary = {}
+	for sp in det.spots:
+		if (sp["distance"] as float) > 40.0:
+			far_spot = sp
+	check(float(near_spot["distance"]) < 2.5 and (near_spot["pos"] as Vector3).distance_to(fork_find.global_position) < 0.01 and float(near_spot["radius"]) <= 0.5,
+		"close by (%.1f m) the fix is exact and tight" % float(near_spot["distance"]))
+	check(not far_spot.is_empty() and float(far_spot["radius"]) > 8.0, "far away (%.0f m) the warm spot is big and vague (radius %.1f)" % [float(far_spot.get("distance", 0.0)), float(far_spot.get("radius", 0.0))])
+	for i in 20:
+		await process_frame
+	check(float(terrain_mat.get_shader_parameter("scan_amount")) > 0.9 and float(terrain_mat.get_shader_parameter("scan_spots_on")) > 0.5, "during the sweep the ground shows the robot view and warm spots")
+	for i in 60 * 2:
+		await process_frame
+	check(float(terrain_mat.get_shader_parameter("scan_amount")) < 0.01, "between sweeps the normal look is back")
+	var far_pos_before: Vector3 = far_spot["pos"]
+	for i in 60 * 3:
+		await process_frame
+	check(det.sweeps == sweeps_before + 2, "the next sweep comes about five seconds later")
+	var far_again: Dictionary = {}
+	for sp in det.spots:
+		if (sp["distance"] as float) > 40.0:
+			far_again = sp
+	check(not far_again.is_empty() and (far_again["pos"] as Vector3).distance_to(far_pos_before) > 0.05, "a far fix lands somewhere a little different each sweep")
+	check(det.signal_bars == 5, "five signal bars right next to a find (%d)" % det.signal_bars)
+	var dig_scrap_before: int = Game.count("scrap_metal")
+	var dig_energy: float = Energy.current
+	player.global_position = fork_find.global_position + Vector3(0.4, 0.3, 0.0)
+	for i in 10:
+		await physics_frame
+	var dig_ev := InputEventAction.new()
+	dig_ev.action = "interact"
+	dig_ev.pressed = true
+	Input.parse_input_event(dig_ev)
+	for i in 4:
+		await process_frame
+	check(fork_find.dug and fork_find.get_node("Hole").visible and not fork_find.is_in_group("detectable"), "interact digs: a hole, and the detector stops sensing it")
+	for i in 90:
+		await process_frame
+	check(fork_find.recovered and Game.count("scrap_metal") == dig_scrap_before + 1 and dig_energy - Energy.current >= 0.99, "the find comes up into the inventory (digging costs a little energy)")
+	check(Game.get_flag("dug:" + String(fork_find.get_path()).trim_prefix("/root/")), "and it stays dug in the save")
+	Input.parse_input_event(det_ev)
+	await process_frame
+	for i in 60 * 4:
+		await process_frame
+	check(not det.on and float(terrain_mat.get_shader_parameter("scan_amount")) < 0.01 and float(terrain_mat.get_shader_parameter("scan_spots_on")) < 0.5, "switched off: the world looks normal again")
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

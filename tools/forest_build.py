@@ -386,6 +386,13 @@ def main():
         objects.append({"code": "CP%d" % i, "asset": "collectible", "kind": "collectible", "path": "",
                         "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1], "origin": [x, ground(x, z), z], "node": n})
 
+    # Finds for the detector (design "finds"): kind "buried" = a soil patch to dig up
+    for i, fd in enumerate(d.get("finds", {}).get("items", []), start=1):
+        x, z = fd["pos"]
+        objects.append({"code": "FIND%d" % i, "asset": "find", "kind": fd["kind"], "path": "",
+                        "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1], "origin": [x, ground(x, z), z],
+                        "id": fd["id"], "item": fd["item"], "amount": fd.get("amount", 1)})
+
     # Stream: rocks on the banks, flat stones in the bed
     curve = f.stream["curve"]
     total = polyline_length(curve)

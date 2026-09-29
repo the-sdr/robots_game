@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/tools/tool_rig.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/player_jump_fx.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/detector.gd" id="4"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_metal"]
 albedo_color = Color(0.66, 0.68, 0.7, 1)
@@ -385,3 +386,6 @@ damping_max = 2.0
 scale_amount_min = 0.7
 scale_amount_max = 1.4
 color_ramp = SubResource("Gradient_dust")
+
+[node name="Detector" type="Node" parent="."]
+script = ExtResource("4")

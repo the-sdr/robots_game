@@ -46,6 +46,7 @@ signal jumped                        # the jump animation listens (player_jump_f
 @onready var interact_probe: Area3D = $InteractProbe
 @onready var headlight: SpotLight3D = $Visual/Head/Headlight
 @onready var tool_rig: Node3D = $Visual/ArmRight/ToolRig
+@onready var detector: Node = $Detector
 @onready var wheels: Array[Node] = [$Visual/TreadLeft/WheelFront, $Visual/TreadLeft/WheelBack, $Visual/TreadRight/WheelFront, $Visual/TreadRight/WheelBack]
 @onready var chest_panel: MeshInstance3D = $Visual/ChestPanel
 @onready var lenses: Array[Node] = [$Visual/Head/LensLeft, $Visual/Head/LensRight]
@@ -136,6 +137,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		tool_rig.use()
 	if event.is_action_pressed("cycle_tool") and not shut_down:
 		tool_rig.cycle()
+	if event.is_action_pressed("detector") and not shut_down:
+		detector.toggle()
 	if event.is_action_pressed("zoom_in"):
 		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 	if event.is_action_pressed("zoom_out"):

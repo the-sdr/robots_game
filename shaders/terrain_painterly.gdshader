@@ -35,6 +35,18 @@ uniform float detail_softening : hint_range(0.0, 4.0) = 1.2;   // mip bias: high
 uniform float normal_strength : hint_range(0.0, 2.0) = 0.6;
 uniform float slope_darkening : hint_range(0.0, 1.0) = 0.25;
 
+// The detector's robot view (scripts/detector.gd sets these at runtime; they
+// stay at their defaults in the saved material, so the normal look is untouched).
+// Everything below is skipped while scan_amount and scan_spots_on are 0.
+group_uniforms detector;
+uniform float scan_amount = 0.0;            // 0 = normal look, 1 = full robot view (grid, contours)
+uniform float scan_spots_on = 0.0;          // 1 while any warm spot is still glowing
+uniform vec3 scan_origin = vec3(0.0);
+uniform float scan_wave = -100.0;           // distance of the sweep's bright front from the robot
+uniform float scan_range = 60.0;
+uniform vec4 scan_spots[12];                // xyz = centre (world), w = radius (0 = unused)
+uniform float scan_spot_heat[12];           // 0..1: how warm each spot glows right now
+
 varying vec3 world_pos;
 varying vec3 world_normal;
 
@@ -74,6 +86,39 @@ void fragment() {
 	}
 	col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, saturation);
 	col *= 1.0 - slope_darkening * (1.0 - clamp(world_normal.y, 0.0, 1.0)) * 2.0;
+
+	if (scan_amount > 0.001 || scan_spots_on > 0.5) {
+		float d = distance(world_pos.xz, scan_origin.xz);
+		// robot view: the ground goes dark and cool so the lines read
+		float lum_v = dot(col, vec3(0.299, 0.587, 0.114));
+		col = mix(col, vec3(lum_v) * vec3(0.3, 0.5, 0.55), scan_amount * 0.8);
+		// height contours every 0.5 m (major every 2.5 m) and a 2 m grid, antialiased
+		float c1 = world_pos.y / 0.5;
+		float contour = 1.0 - smoothstep(0.0, fwidth(c1) * 1.5, abs(fract(c1 - 0.5) - 0.5));
+		float c2 = world_pos.y / 2.5;
+		float major = 1.0 - smoothstep(0.0, fwidth(c2) * 2.0, abs(fract(c2 - 0.5) - 0.5));
+		vec2 g = world_pos.xz / 2.0;
+		vec2 gl = 1.0 - smoothstep(vec2(0.0), fwidth(g) * 1.2, abs(fract(g - 0.5) - 0.5));
+		float grid = max(gl.x, gl.y) * 0.45;
+		float near = 1.0 - smoothstep(scan_range * 0.5, scan_range, d);
+		float fd = (d - scan_wave) / 1.4;
+		float front = exp(-fd * fd);
+		float lines = max(max(contour * 0.6, major), grid) * near;
+		vec3 glow = vec3(0.35, 0.95, 1.0) * (lines * 0.7 + front * 1.4) * scan_amount;
+		// warm spots: a soft blob, plus a crisp ring once the fix is tight (radius under 1.5 m)
+		vec3 warm = vec3(0.0);
+		for (int i = 0; i < 12; i++) {
+			float r = scan_spots[i].w;
+			if (r > 0.0 && scan_spot_heat[i] > 0.0) {
+				float sd = distance(world_pos.xz, scan_spots[i].xz) / r;
+				float blob = exp(-sd * sd * 2.5);
+				float rd = (sd - 1.0) * 7.0;
+				float ring = exp(-rd * rd) * (1.0 - smoothstep(1.0, 1.5, r));
+				warm += mix(vec3(1.0, 0.35, 0.08), vec3(1.0, 0.8, 0.3), blob) * (blob * 0.9 + ring * 1.4) * scan_spot_heat[i];
+			}
+		}
+		EMISSION = glow + warm * 1.5;
+	}
 
 	ALBEDO = clamp(col, 0.0, 1.0);
 	NORMAL_MAP = nrm;

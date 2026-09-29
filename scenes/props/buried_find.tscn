@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interact/buried_find.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/interactable.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.2, 0.15, 0.1, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_hole"]
+albedo_color = Color(0.04, 0.03, 0.02, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Mesh_mound"]
+material = SubResource("Mat_soil")
+top_radius = 0.3
+bottom_radius = 0.4
+height = 0.05
+radial_segments = 12
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_hole"]
+material = SubResource("Mat_hole")
+top_radius = 0.3
+bottom_radius = 0.3
+height = 0.02
+radial_segments = 12
+rings = 1
+
+[sub_resource type="SphereShape3D" id="Shape_dig"]
+radius = 0.8
+
+[sub_resource type="BoxMesh" id="Mesh_clod"]
+material = SubResource("Mat_soil")
+size = Vector3(0.05, 0.05, 0.05)
+
+[node name="BuriedFind" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Mound" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("Mesh_mound")
+
+[node name="Hole" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012, 0)
+visible = false
+mesh = SubResource("Mesh_hole")
+
+[node name="Interactable" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+script = ExtResource("2")
+prompt = "Dig"
+
+[node name="Shape" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("Shape_dig")
+
+[node name="Dirt" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+emitting = false
+amount = 20
+lifetime = 0.8
+one_shot = true
+explosiveness = 0.9
+mesh = SubResource("Mesh_clod")
+emission_shape = 1
+emission_sphere_radius = 0.2
+direction = Vector3(0, 1, 0)
+spread = 35.0
+gravity = Vector3(0, -9.8, 0)
+initial_velocity_min = 2.0
+initial_velocity_max = 3.5
+angular_velocity_min = -360.0
+angular_velocity_max = 360.0
+scale_amount_min = 0.6
+scale_amount_max = 1.4

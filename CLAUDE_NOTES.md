@@ -525,6 +525,19 @@ independent so they land in any order. Owner decisions:
   rest. Don't set `Visual.scale` elsewhere: animate `visual_size` (set_tiny
   does). The tool swing uses `ArmRight.rotation.x` and combat uses
   `Visual.position`, so they don't collide.
+- **Detector** (`scripts/detector.gd`, node `Player/Detector`): senses the
+  group `detectable` (anything with `detect_position()`), sweeps every 5 s and
+  drives the terrain shader's `scan_*` uniforms on the shared
+  `materials/terrain_painterly.tres` at runtime (never saved; `_exit_tree`
+  resets them). Up to 12 spots (the shader's array size). Shaders can't be
+  checked headless: the owner's playtest is the first look.
+- **Finds** come from a design's `finds.items` (kind `buried` so far):
+  forest_build emits them, level_bake instances `scenes/props/buried_find.tscn`
+  under `GeneratedLevel/Finds` named `Find_<id>` (the save flag is the path, so
+  keep ids stable). A rebake re-serialises every chunk `.res` with no real
+  change: compare the scene's nodes, and if only the new nodes differ, restore
+  the chunk files (`git checkout -- scenes/level/<chunk dirs>`) before
+  committing; chunks are referenced by path, not uid.
 
 ## Session log
 

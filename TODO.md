@@ -30,6 +30,19 @@
       in the air, a squash sized by the fall on landing with a springy
       recovery, a nod, dust and a small camera dip. **Playtest:** does it read
       as a robot pushing off? Landing too much / too little? Tiny jump OK?
+- [x] **Phase A: detector test build.** R / pad Y toggles it; a sweep every 5 s
+      (1 s of robot view: grid + height contours on the ground, warm spots that
+      tighten as you close in, a warm haze above the trees for far ones, signal
+      bars bottom centre). Robot can always dig (E / pad X on the spot).
+      Six test finds: garden gate, garden nook, fork path, three in the Dry
+      Clearing (see the X marks on forest_map_v3_built.png). Pad remap: Menu =
+      crafting, View = pause, LB/RB = cycle tool, Y = detector.
+      **Playtest:** does the sweep rhythm feel good? Too bright / too faint?
+      Does the far haze help in the trees? Ground shader OK (not pink/black)?
+- [ ] Phase B: button pictures (keyboard/pad), tool cards, "Tools & controls" page.
+- [ ] Phase C: tools with their own feel (cutter hold/heat, smasher rapid, laser trace).
+- [ ] Phase D: find types - weeds (cut), containers (smash), wrecks (salvage; laser = better loot).
+- [ ] F3 also saves a screenshot next to its entry (owner, 2026-09-29).
 - [ ] **Detector ("robot vision"), design in progress with the owner.** Owner's
       direction so far: visual only (deaf-friendly: no beeps needed to play);
       the overlay shows the robot's view - a grid with contours following the
