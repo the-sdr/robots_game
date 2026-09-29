@@ -500,11 +500,36 @@ independent so they land in any order. Owner decisions:
   owner chose "F11 only" for now; a native ARM64 exe on D3D12 for the Surface
   is the parked option. Note: `--rendering-driver d3d12` alone also switches
   the renderer to Forward+; add `--rendering-method mobile` to keep Mobile.
+- **Build outputs are gitignored** (`level_design/build/*.json`, routes).
+  A machine that didn't run the pipeline has stale or missing ones: the drive
+  test then crashes (`'points' on Array`) or hangs on a JSON parse error.
+  Before drive tests on a fresh checkout run the Python chain: forest_build,
+  district_build hub, then agora (hub's verify reads agora's walls: build both
+  before trusting either verify), then the three forest_routes calls.
+- **Tiny curse is 0.04 scale** (owner, 2026-09-29: about 5 cm tall, 3 cm
+  wide); the mouse hole is 7 x 7 cm. Anything the tiny robot must touch needs
+  to reach the floor: pickups are upright cylinders from 0 to 1.2 m (a sphere
+  at 0.6 m was out of reach). The tiny robot slips between trees and out of
+  the world, and the owner likes that: don't seal it. Falling off the terrain
+  is caught by the player's fall rescue (3 s airborne and 30 m below the last
+  solid ground -> back there).
+- **Charger cable**: docking reels a cable from the post into the robot's
+  `ChargePort` marker (`Visual/ChargePort` on the player; give any new robot
+  one). Drawn with an ImmediateMesh, rebuilt only while out. The charge bar
+  blinks only while energy moves (docked: the ring being drawn from; else the
+  ring the sun fills); steady = nothing moving.
 
 ## Session log
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-09-29 (laptop)** — `session_01Qdya6t4SQXDkCa4BXV8AMD`. Owner's first
+  sprint 2 playtest notes (saves 6-8, perf 12-14). Controller: A = ui_accept,
+  right trigger = use_tool (once per pull), the parts screen takes focus.
+  Tiny curse 0.4 -> 0.04 with a 7 cm mouse hole, candle toned down, charge
+  bar blinks only while charging, dock cable, fall rescue. Systems + all
+  three drive tests green. Owner playtests next.
 
 - **2026-09-28 (cloud, sprint 2)** — `session_01DsHmEwKjUMUq5G2CSr25sj`.
   The owner's big build-out, for their six-year-old son, in 8 pushed phases:

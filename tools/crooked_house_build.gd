@@ -30,7 +30,7 @@ const WALL_OUT := 0.09
 
 # Wardrobe with the mouse hole in the south-west corner (see the tiny curse).
 const WARDROBE := {"x0": -1.69, "x1": -0.89, "z0": 1.2, "z1": 2.6, "height": 2.0, "shelf": 1.0,
-	"hole_half": 0.28, "hole_height": 0.62, "board": 0.04}
+	"hole_half": 0.035, "hole_height": 0.07, "board": 0.04}
 
 var _root: Node3D
 var _surfaces := {}           # model path -> surfaces
@@ -87,7 +87,9 @@ func _initialize() -> void:
 	var dark_wood := _mat("dark_wood", Color(0.18, 0.12, 0.08), 0.85)
 	var cloth := _mat("cloth", Color(0.28, 0.36, 0.22), 0.95)
 	var stone := _mat("hole", Color(0.02, 0.02, 0.02), 1.0)
-	var wax := _mat("wax", Color(0.95, 0.9, 0.7), 0.6, Color(1.0, 0.75, 0.35))
+	# the candle: plain wax with a small flame (a glowing stick read as a pickup, playtest 2026-09-29)
+	var wax := _mat("wax", Color(0.85, 0.8, 0.66), 0.7)
+	var flame := _mat("flame", Color(1.0, 0.8, 0.4), 1.0, Color(1.0, 0.65, 0.25))
 	# bed in the north-west corner
 	_box(wood, Vector3(-1.14, 0.2, -1.84), Vector3(1.0, 0.4, 1.7), true)
 	_box(cloth, Vector3(-1.14, 0.44, -1.74), Vector3(0.94, 0.1, 1.4), false)
@@ -102,6 +104,7 @@ func _initialize() -> void:
 	_shape(Vector3(1.05, 0.4, 2.05), Vector3(0.9, 0.8, 0.7))
 	_box(wood, Vector3(0.45, 0.22, 1.2), Vector3(0.34, 0.44, 0.34), true)
 	_box(wax, Vector3(1.2, 0.86, 2.15), Vector3(0.05, 0.12, 0.05), false)
+	_box(flame, Vector3(1.2, 0.935, 2.15), Vector3(0.012, 0.03, 0.012), false)
 	# plank ceiling under the roof (follows the lean), so indoors never shows the roof's underside
 	_box(dark_wood, Vector3(SHEAR_X * 3.08, 3.08, SHEAR_Z * 3.08), Vector3(HALF_W * 2 - 0.5, 0.04, HALF_L * 2 - 0.5), false)
 	# rug in the middle (no collision: the robot drives over it)

@@ -211,6 +211,9 @@ mesh = SubResource("Mesh_chest_panel")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0.15)
 mesh = SubResource("Mesh_backpack")
 
+[node name="ChargePort" type="Marker3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.76, 0.205)
+
 [node name="ArmLeft" type="Node3D" parent="Visual"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.27, 0.8, 0)
 

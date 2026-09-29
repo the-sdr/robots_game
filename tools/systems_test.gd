@@ -264,6 +264,9 @@ func _initialize() -> void:
 	check(str(charger.bar_state()) == str([0, 0]), "nearly empty: the first ring blinks (%s)" % [charger.bar_state()])
 	charger.stored = charger.effective_capacity() * 0.5
 	check(str(charger.bar_state()) == str([2, 2]), "half full: two rings lit, the third blinking (%s)" % [charger.bar_state()])
+	Clock.time = 0.0
+	check(str(charger.bar_state()) == str([2, -1]), "at night, nobody docked: steady, nothing blinks (%s)" % [charger.bar_state()])
+	Clock.time = 0.5
 	charger.stored = charger.effective_capacity()
 	for i in 2:
 		await process_frame
@@ -271,6 +274,9 @@ func _initialize() -> void:
 	check(str(charger.bar_state()) == str([5, -1]) and (top_ring.material_override as StandardMaterial3D).emission_energy_multiplier > 1.0, "full: all five rings glow")
 	Energy.current = 50.0
 	charger.dock(player)
+	for i in 2:
+		await process_frame
+	check(charger.bar_state()[1] == 4, "docked: the ring the robot is charging from blinks (%s)" % [charger.bar_state()])
 	Game.add_item("capacitor")
 	Game.add_item("solar_cell", 2)
 	Game.add_item("sun_tracker")
@@ -293,6 +299,12 @@ func _initialize() -> void:
 		await process_frame
 	check(hud_c.solar_label.text.begins_with("Sun ") and hud_c.charger_label.text.begins_with("House charger") and hud_c.charger_label.text.ends_with("charging you"),
 		"HUD: sunlight and the docked charger (%s | %s)" % [hud_c.solar_label.text, hud_c.charger_label.text])
+	for i in 40:
+		await process_frame
+	var cable_ends: Array = charger.cable_ends()
+	var port: Vector3 = player.get_node("Visual/ChargePort").global_position
+	check(cable_ends.size() == 2 and (cable_ends[1] as Vector3).distance_to(port) < 0.01 and charger.get_node("Cable").visible,
+		"docked: the cable reels out into the robot's charge port (%s)" % [cable_ends])
 	charger.undock()
 	charger.stored = 20.0
 	for i in 3:
@@ -303,6 +315,9 @@ func _initialize() -> void:
 		await process_frame
 	check(hud_c.solar_label.text.begins_with("Night") and hud_c.charger_label.text.ends_with("not filling"), "HUD at night: no sun, not filling")
 	Clock.time = 0.5
+	for i in 30:
+		await process_frame
+	check(charger.cable_ends().is_empty() and not charger.get_node("Cable").visible, "undocked: the cable reels back in")
 
 	print("== tools and breakables")
 	Game.new_game()
@@ -429,7 +444,7 @@ func _initialize() -> void:
 	check(Game.is_tiny() and absf(Game.tiny_days_left() - 2.0) < 0.05, "tiny for two days (%.2f left)" % Game.tiny_days_left())
 	for i in 40:
 		await physics_frame                  # the player's own physics step shrinks it
-	check(player.tiny and absf(player.get_node("Visual").scale.x - 0.4) < 0.02, "the robot shrank (scale %.2f)" % player.get_node("Visual").scale.x)
+	check(player.tiny and absf(player.get_node("Visual").scale.x - 0.04) < 0.005, "the robot shrank (scale %.2f)" % player.get_node("Visual").scale.x)
 	check((player.get_node("CollisionShape3D").shape as CapsuleShape3D).radius < 0.2, "its collision shrank too")
 	check(hud_node.curse_label.visible and hud_node.curse_label.text.begins_with("Tiny curse"), "HUD shows the curse (%s)" % hud_node.curse_label.text)
 	var until_before: float = Game.data["tiny_until"]
@@ -893,6 +908,20 @@ func _initialize() -> void:
 	trigger.axis_value = 0.8
 	check(player.tool_pulled(trigger), "after a release the next pull works")
 	await physics_frame
+
+	print("== falling off the edge of the world")
+	for i in 40:
+		await physics_frame
+	var safe_spot := player.global_position
+	player.global_position = safe_spot + Vector3(0, -45.0, 0)
+	await physics_frame
+	await physics_frame
+	check(player.global_position.y < safe_spot.y - 40.0, "not straight away (a teleport to lower ground is not a fall)")
+	var fall_frames := 0
+	while player.global_position.y < safe_spot.y - 10.0 and fall_frames < 60 * 6:
+		await physics_frame
+		fall_frames += 1
+	check(player.global_position.distance_to(safe_spot) < 1.0, "a robot that falls out of the world is put back on solid ground after %d frames (%s)" % [fall_frames, player.global_position])
 
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)

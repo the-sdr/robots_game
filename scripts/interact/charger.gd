@@ -10,8 +10,14 @@ extends StaticBody3D
 # with "upgrade"): "panel" (two more cells: fills 50 % faster), "tracker" (the
 # panel follows the sun: full light whenever the sun is up), "battery" (holds
 # BATTERY_BONUS more). They are saved with the charger and show on it.
-# The post carries a charge bar: BAR_SEGMENTS glowing rings; the one still
-# filling blinks.
+# The post carries a charge bar: BAR_SEGMENTS glowing rings. A blinking ring
+# means energy is moving: while a robot is docked, the ring it is drawing from;
+# otherwise the ring the sun is still filling. Steady rings: nothing moving
+# (full, or night with nobody docked).
+#
+# Docking reels a cable out of the post into the robot's "ChargePort" marker
+# (any robot type can carry one; without it the cable aims at the robot's
+# middle), and undocking reels it back in. Owner's playtest idea, 2026-09-29.
 
 signal docked(player: Node3D)
 signal undocked
@@ -24,6 +30,11 @@ const BATTERY_BONUS := 60.0
 const BAR_SEGMENTS := 5
 const BAR_ON := Color(0.35, 1.0, 0.55)
 const BAR_OFF := Color(0.07, 0.09, 0.1)
+const CABLE_SECONDS := 0.6          # reel out (in: two thirds of that)
+const CABLE_SOCKET_HEIGHT := 0.35   # where it leaves the post
+const CABLE_RADIUS := 0.022
+const CABLE_SEGMENTS := 14
+const CABLE_SIDES := 6
 
 @export var capacity: float = 120.0
 @export var panel_rate: float = 0.45          # energy per second at full sun on the panel
@@ -45,6 +56,12 @@ var _core_material: StandardMaterial3D
 var _bar_materials: Array[StandardMaterial3D] = []
 var _panel_rest: Transform3D
 var _time := 0.0
+var _cable: MeshInstance3D
+var _cable_mesh: ImmediateMesh
+var _cable_material: StandardMaterial3D
+var _plug: MeshInstance3D
+var _cable_robot: Node3D = null     # kept while reeling in after undocking
+var _cable_t := 0.0                 # 0 = in the post, 1 = plugged in
 
 func _ready() -> void:
 	add_to_group("charger")
@@ -54,6 +71,7 @@ func _ready() -> void:
 	core.set_surface_override_material(0, _core_material)
 	_panel_rest = panel.transform
 	_build_bar()
+	_build_cable()
 	_update_look()
 
 func _process(delta: float) -> void:
@@ -76,6 +94,7 @@ func _process(delta: float) -> void:
 			undock()
 	if has_upgrade("tracker"):
 		_face_sun()
+	_update_cable(delta)
 	_update_look()
 	interactable.prompt = "%s   charge %d%%" % ["Undock" if docked_player != null else "Dock", roundi(stored / cap * 100.0)]
 
@@ -111,6 +130,7 @@ func _on_interacted(player: Node3D) -> void:
 
 func dock(player: Node3D) -> void:
 	docked_player = player
+	_cable_robot = player
 	player.set("docked", true)
 	Game.save(player, name)
 	get_tree().call_group("hud", "show_notice", "Docked. Consciousness copied.")
@@ -200,6 +220,102 @@ func _face_sun() -> void:
 	var tilt := Basis() if axis.length() < 0.001 else Basis(axis.normalized(), Vector3.UP.angle_to(local_sun))
 	panel.transform = Transform3D(tilt, _panel_rest.origin)
 
+# --- the cable ----------------------------------------------------------------------------------
+func _build_cable() -> void:
+	_cable_material = StandardMaterial3D.new()
+	_cable_material.albedo_color = Color(0.07, 0.07, 0.08)
+	_cable_material.roughness = 0.75
+	_cable_mesh = ImmediateMesh.new()
+	_cable = MeshInstance3D.new()
+	_cable.name = "Cable"
+	_cable.mesh = _cable_mesh
+	_cable.top_level = true           # drawn in world space
+	_cable.visible = false
+	add_child(_cable)
+	var head := CylinderMesh.new()
+	head.top_radius = 1.0             # unit plug, scaled to the robot
+	head.bottom_radius = 1.0
+	head.height = 3.0
+	head.radial_segments = 8
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color(0.95, 0.5, 0.14)
+	metal.metallic = 0.6
+	metal.roughness = 0.35
+	_plug = MeshInstance3D.new()
+	_plug.name = "Plug"
+	_plug.mesh = head
+	_plug.material_override = metal
+	_plug.top_level = true
+	_plug.visible = false
+	add_child(_plug)
+
+## Where the cable plugs into a robot (world space).
+func _port_of(robot: Node3D) -> Vector3:
+	var port := robot.find_child("ChargePort", true, false) as Node3D
+	return port.global_position if port != null else robot.global_position + Vector3(0, 0.6, 0)
+
+## The cable's two ends while it is out: [post socket, plug]. Empty while reeled in.
+func cable_ends() -> Array[Vector3]:
+	if _cable_t <= 0.0 or not is_instance_valid(_cable_robot):
+		return []
+	var port := _port_of(_cable_robot)
+	var out := Vector3(port.x - global_position.x, 0.0, port.z - global_position.z)
+	out = out.normalized() if out.length() > 0.01 else global_transform.basis.z
+	var socket := global_position + Vector3(0, CABLE_SOCKET_HEIGHT, 0) + out * 0.15
+	return [socket, socket.lerp(port, ease(_cable_t, 0.4))]
+
+func _update_cable(delta: float) -> void:
+	var target := 1.0 if docked_player != null else 0.0
+	if _cable_t == target and target == 0.0:
+		return
+	var speed := 1.0 / CABLE_SECONDS * (1.0 if target > _cable_t else 1.5)
+	_cable_t = move_toward(_cable_t, target, speed * delta)
+	var ends := cable_ends()
+	_cable.visible = not ends.is_empty()
+	_plug.visible = _cable.visible
+	if ends.is_empty():
+		_cable_robot = null
+		return
+	var size: float = float(_cable_robot.get("size_scale")) if _cable_robot.get("size_scale") != null else 1.0
+	var r := CABLE_RADIUS * clampf(size, 0.15, 1.0)
+	var a: Vector3 = ends[0]
+	var b: Vector3 = ends[1]
+	# a quadratic curve that sags between the ends (never below the charger's base)
+	var sag := a.lerp(b, 0.5) - Vector3(0, 0.12 + 0.3 * a.distance_to(b), 0)
+	sag.y = maxf(sag.y, global_position.y + 0.05)
+	var points: Array[Vector3] = []
+	for i in CABLE_SEGMENTS + 1:
+		var t := float(i) / CABLE_SEGMENTS
+		points.append(a.lerp(sag, t).lerp(sag.lerp(b, t), t))
+	_cable_mesh.clear_surfaces()
+	_cable_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _cable_material)
+	var rings: Array = []
+	for i in points.size():
+		var along: Vector3 = (points[mini(i + 1, points.size() - 1)] - points[maxi(i - 1, 0)]).normalized()
+		var side := along.cross(Vector3.UP)
+		side = side.normalized() if side.length() > 0.01 else along.cross(Vector3.RIGHT).normalized()
+		var up := side.cross(along)
+		var ring: Array[Vector3] = []
+		for k in CABLE_SIDES:
+			var angle := TAU * k / CABLE_SIDES
+			ring.append(side * cos(angle) + up * sin(angle))
+		rings.append(ring)
+	for i in points.size() - 1:
+		for k in CABLE_SIDES:
+			var k2 := (k + 1) % CABLE_SIDES
+			var n0: Vector3 = rings[i][k]
+			var n1: Vector3 = rings[i][k2]
+			var m0: Vector3 = rings[i + 1][k]
+			var m1: Vector3 = rings[i + 1][k2]
+			for v in [[n0, points[i]], [m0, points[i + 1]], [n1, points[i]], [n1, points[i]], [m0, points[i + 1]], [m1, points[i + 1]]]:
+				_cable_mesh.surface_set_normal(v[0])
+				_cable_mesh.surface_add_vertex(v[1] + v[0] * r)
+	_cable_mesh.surface_end()
+	var tip: Vector3 = (points[-1] - points[-2]).normalized()
+	var tip_side := tip.cross(Vector3.UP)
+	tip_side = tip_side.normalized() if tip_side.length() > 0.01 else Vector3.RIGHT
+	_plug.global_transform = Transform3D(Basis(tip_side, tip, tip_side.cross(tip)).scaled(Vector3.ONE * r * 1.6), b - tip * r * 2.0)
+
 # --- the charge bar ---------------------------------------------------------------------------
 func _build_bar() -> void:
 	var ring := CylinderMesh.new()
@@ -221,11 +337,15 @@ func _build_bar() -> void:
 		add_child(mi)
 		_bar_materials.append(m)
 
-## [segments fully lit, index of the blinking (still filling) segment or -1].
+## [segments fully lit, index of the blinking segment or -1] (see the top comment).
 func bar_state() -> Array[int]:
 	var filled := stored / effective_capacity() * BAR_SEGMENTS
 	var lit := clampi(int(floor(filled + 0.001)), 0, BAR_SEGMENTS)
-	var blinking := lit if lit < BAR_SEGMENTS and filled - lit > 0.02 else -1
+	var blinking := -1
+	if docked_player != null and stored > 0.0:
+		blinking = clampi(int(ceil(filled - 0.001)) - 1, 0, BAR_SEGMENTS - 1)   # charging the robot
+	elif fill_rate() > 0.0 and lit < BAR_SEGMENTS and filled - lit > 0.02:
+		blinking = lit                                                         # the sun charging it
 	return [lit, blinking]
 
 func _update_look() -> void:

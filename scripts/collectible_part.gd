@@ -14,8 +14,10 @@ const MODEL := "res://scenes/props/items/%s.res"
 @export var item_id: String = ""
 @export var amount: int = 1
 @export var color: Color = Color(1.0, 0.7, 0.2)
-## Reach of the pickup sphere. Small for parts hidden in tight spots (the
-## crooked house's mouse-hole nook), so they can't be grabbed from outside.
+## Reach of the pickup: an upright cylinder from the ground to 1.2 m, so the
+## tiny-cursed robot (5 cm tall) reaches it as well as the full-size one. Small
+## for parts hidden in tight spots (the crooked house's mouse-hole nook), so
+## they can't be grabbed from outside.
 @export var pickup_radius: float = 0.9
 
 @onready var visual: Node3D = $Visual
@@ -53,10 +55,11 @@ func _ready() -> void:
 			(mesh_instance as MeshInstance3D).material_override = material
 	($Glow as OmniLight3D).light_color = color
 	var col: CollisionShape3D = pickup.get_node("CollisionShape3D")
-	if not is_equal_approx((col.shape as SphereShape3D).radius, pickup_radius):
-		var sphere := SphereShape3D.new()        # the scene's sphere is shared by every pickup
-		sphere.radius = pickup_radius
-		col.shape = sphere
+	if not is_equal_approx((col.shape as CylinderShape3D).radius, pickup_radius):
+		var cylinder := CylinderShape3D.new()    # the scene's shape is shared by every pickup
+		cylinder.radius = pickup_radius
+		cylinder.height = (col.shape as CylinderShape3D).height
+		col.shape = cylinder
 	pickup.body_entered.connect(_on_body_entered)
 
 func _process(delta: float) -> void:

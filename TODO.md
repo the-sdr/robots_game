@@ -13,6 +13,22 @@
    tests (`CLAUDE.md` → Level pipeline / Verify); commit and push only when
    the owner asks.
 
+## From the 2026-09-29 playtest (laptop)
+- [x] Controller: A presses menu buttons, right trigger uses the tool.
+      **Playtest:** menus, the Tab screen (build with A) and tool use with the pad.
+- [x] Tiny curse 10x smaller (0.04, about 5 cm) and a 7 cm mouse hole.
+      **Playtest:** does the world feel giant? Camera OK in the hole? Can
+      your son find the hole? (It is small: say if it needs a hint.)
+- [x] Candle: plain wax + small flame, no longer glows like a pickup.
+- [x] Charge bar: a ring blinks only while energy moves (docked, or sun filling).
+- [x] Dock cable: reels out of the post into the robot's back, and back in.
+- [x] Fall rescue: falling off the world puts the robot back on solid ground.
+- [ ] **Design with the owner: content beyond the tree line for the tiny
+      robot** (the escape stays: the owner likes it). Enough to fill a full
+      charge. Question raised: procedural content from a point outward, to
+      keep it light to run. Talk through options before building.
+- [ ] More controller polish if the playtest asks: zoom on the pad, B = back.
+
 ## Sprint 2 (cloud, started 2026-09-28) — branch `claude/sync-local-fixes-b85lpn`
 Plan approved by the owner: crooked house + Angry Zombie + tiny curse, the hill
 sentry tutorial fight (turn-based, 3-tool loadout), Easy/Medium/Hard, real part

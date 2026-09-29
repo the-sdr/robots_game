@@ -20,12 +20,14 @@ const FLY_SPEED = 10.0
 const FLY_VERTICAL_SPEED = 6.0
 const DOUBLE_TAP_TIME = 0.3
 # The Angry Zombie's tiny curse (Game.is_tiny): smaller, slower, thriftier, fits through mouse holes.
-const TINY_SCALE = 0.4
+const TINY_SCALE = 0.04     # owner, 2026-09-29: "10x smaller" (about 5 cm tall)
 const TINY_SPEED = 0.6
 const TINY_JUMP = 0.6
 const TINY_DRAIN = 0.5
-const TINY_ZOOM = 0.55
+const TINY_ZOOM = 0.15      # camera 0.3 m behind by default: the world looks enormous
 const CAMERA_HEIGHT = 1.5
+const CAMERA_NEAR = 0.05
+const TINY_NEAR = 0.2        # near plane 1 cm while tiny, so the camera can sit close in a mouse hole
 # The eye lenses' irises: six blades in front of each lens (the opening
 # cutscene's last shot). 0 = shut, 1 = open (normal play).
 const IRIS_BLADES = 6
@@ -66,6 +68,13 @@ var _focus: Interactable = null
 ## The right trigger is an axis: it sends a stream of values while held, so a
 ## pull uses the tool once and the next pull needs a release first.
 var _tool_held := false
+## Last solid ground (sampled while driving): a robot that falls off the edge
+## of the world (the tiny curse slips out through the trees) is put back here.
+var _last_safe := Vector3.ZERO
+var _safe_wait := 0.0
+var _air_time := 0.0
+const FALL_RESCUE_DEPTH := 30.0
+const FALL_RESCUE_SECONDS := 3.0     # a real fall, not a teleport (loading, reboot) to lower ground
 ## True while the tiny curse has shrunk the robot (it can lag Game.is_tiny() while there's no room to regrow).
 var tiny := false
 ## 1.0 normally, TINY_SCALE while tiny: camera, tool reach and hit height follow it.
@@ -205,7 +214,21 @@ func _process(delta: float) -> void:
 	if ground_speed > 0.05:
 		var forward_sign: float = signf(-visual.global_transform.basis.z.dot(Vector3(velocity.x, 0, velocity.z)))
 		for wheel in wheels:
-			(wheel as Node3D).rotate_x(-forward_sign * ground_speed / WHEEL_RADIUS * delta)
+			(wheel as Node3D).rotate_x(-forward_sign * ground_speed / (WHEEL_RADIUS * size_scale) * delta)
+
+func _check_fall(delta: float) -> void:
+	if flying:
+		return
+	_safe_wait -= delta
+	_air_time = 0.0 if is_on_floor() else _air_time + delta
+	if is_on_floor() and _safe_wait <= 0.0:
+		_safe_wait = 0.5
+		_last_safe = global_position
+	if _air_time > FALL_RESCUE_SECONDS and global_position.y < _last_safe.y - FALL_RESCUE_DEPTH:
+		global_position = _last_safe + Vector3(0, 0.2, 0)
+		velocity = Vector3.ZERO
+		_air_time = 0.0
+		get_tree().call_group("hud", "show_notice", "Whoa! Back on solid ground.")
 
 ## True once per click or trigger pull of use_tool.
 func tool_pulled(event: InputEvent) -> bool:
@@ -219,6 +242,7 @@ func _physics_process(delta: float) -> void:
 	# (a trigger released during a menu or a fight still counts as released).
 	if _tool_held and not Input.is_action_pressed("use_tool"):
 		_tool_held = false
+	_check_fall(delta)
 	_update_focus()
 	_update_size(delta)
 	if shut_down or docked or in_combat:
@@ -406,6 +430,7 @@ func set_tiny(on: bool, animate: bool = true) -> void:
 	body_collision.shape = _tiny_shape if on else _normal_shape
 	body_collision.position.y = (_tiny_shape.height if on else _normal_shape.height) * 0.5
 	camera_rig.position.y = CAMERA_HEIGHT * size_scale
+	camera.near = CAMERA_NEAR * (TINY_NEAR if on else 1.0)
 	if _size_tween != null and _size_tween.is_valid():
 		_size_tween.kill()
 	if not animate or not is_inside_tree():
