@@ -62,6 +62,7 @@ var _cable_material: StandardMaterial3D
 var _plug: MeshInstance3D
 var _cable_robot: Node3D = null     # kept while reeling in after undocking
 var _cable_t := 0.0                 # 0 = in the post, 1 = plugged in
+var _stored_at_dock := 0.0
 
 func _ready() -> void:
 	add_to_group("charger")
@@ -131,6 +132,8 @@ func _on_interacted(player: Node3D) -> void:
 func dock(player: Node3D) -> void:
 	docked_player = player
 	_cable_robot = player
+	_stored_at_dock = stored
+	print("dock %s: charger %.1f/%.0f (%d%%), robot %.1f, sun %.2f, %s" % [name, stored, effective_capacity(), roundi(stored / effective_capacity() * 100.0), Energy.current, sun_factor(), Clock.time_text()])
 	player.set("docked", true)
 	Game.save(player, name)
 	get_tree().call_group("hud", "show_notice", "Docked. Consciousness copied.")
@@ -141,6 +144,8 @@ func undock() -> void:
 		return
 	docked_player.set("docked", false)
 	docked_player = null
+	# the playtest log (godot.log) shows what each dock did: see save_18, 2026-09-29
+	print("undock %s: gave %.1f, charger now %.1f/%.0f (%d%%), robot %.1f, %s" % [name, _stored_at_dock - stored, stored, effective_capacity(), roundi(stored / effective_capacity() * 100.0), Energy.current, Clock.time_text()])
 	undocked.emit()
 
 # --- upgrades ------------------------------------------------------------------------------
