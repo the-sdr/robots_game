@@ -17,6 +17,34 @@ const TINY_POWER := 0.5
 const RANGED_AIM_WIDTH := 1.6
 const RANGED_AIM_HEIGHT := 2.0
 const HAMMER_MODEL := "res://scenes/props/items/hammer_head.res"
+
+# --- how each tool feels (owner, 2026-09-29): Catalog.TOOLS "pattern" ---------------
+# The player presses and releases (press/release, from player.gd); use() stays a
+# single complete action (tests, the fight screen). Easy softens every pattern.
+## Smasher, "rapid": each press is a hit; quick presses build a combo.
+const RAPID_COOLDOWN := 0.14
+const COMBO_WINDOW := 0.55       # seconds between presses that keep a combo going
+const COMBO_MAX := 5
+const COMBO_BONUS := 0.2         # extra power per combo step
+const RAPID_ENERGY := 1.5        # per hit
+const EASY_AUTO_HIT := 0.3       # Easy: holding the button hits this often
+## Cutter, "hold_heat": cuts while held; heat climbs. Let go in the green zone for
+## a clean cut (a bonus); hold to the top and it overheats and must cool.
+const HEAT_SECONDS := 2.8
+const EASY_HEAT_SECONDS := 4.2
+const CLEAN_FROM := 0.6
+const CLEAN_TO := 0.88
+const EASY_CLEAN_FROM := 0.5
+const EASY_CLEAN_TO := 0.94
+const CUT_RATE := 0.9            # damage per second = power x this
+const CLEAN_BONUS := 1.0         # a clean cut adds power x this
+const OVERHEAT_SECONDS := 2.0
+const COOL_RATE := 0.8           # heat lost per second when not cutting
+const HELD_TICK := 0.15          # held tools deal damage in ticks
+## Laser, "trace": a steady beam aimed with the camera; long things (vines) burn
+## segment by segment as the beam is swept along them (Breakable.burn_at).
+const BEAM_RATE := 1.0           # damage per second on short things = power x this
+const LASER_ENERGY_RATE := 1.0   # energy per second = the tool's energy x this
 const NOZZLE_MODEL := "res://scenes/props/items/nozzle.res"
 
 @onready var player: CharacterBody3D = owner as CharacterBody3D
@@ -24,6 +52,23 @@ const NOZZLE_MODEL := "res://scenes/props/items/nozzle.res"
 @onready var arm: Node3D = get_parent()                   # ArmRight
 
 var tool_id := ""
+## True between press() and release() for held tools.
+var holding := false
+## Cutter heat 0..1, and seconds left of an overheat.
+var heat := 0.0
+var overheated := 0.0
+## Smasher combo (1 = a single hit).
+var combo := 0
+## Clean cuts made (tests).
+var clean_cuts := 0
+var _last_hit_time := -10.0
+var _now := 0.0                       # game time (seconds), so combos follow the game's clock
+var _tick := 0.0
+var _auto_hit := 0.0
+var _cut_target: Node3D = null
+var _told: Array[Node] = []           # targets already told "wrong tool" this press
+var _laser_beam: MeshInstance3D
+var _laser_material: StandardMaterial3D
 var _head: Node3D
 var _cooldown_left := 0.0
 var _swing_tween: Tween
@@ -42,9 +87,248 @@ func _ready() -> void:
 	refresh()
 
 func _process(delta: float) -> void:
+	_now += delta
 	_cooldown_left = maxf(_cooldown_left - delta, 0.0)
+	var pattern := String(definition().get("pattern", ""))
+	if holding and (player.docked or player.shut_down or player.get("in_combat")):
+		release()
+	if holding:
+		match pattern:
+			"rapid":
+				_auto_hit -= delta
+				if _easy() and _auto_hit <= 0.0:
+					_auto_hit = EASY_AUTO_HIT
+					_rapid_hit()
+			"hold_heat":
+				_cut(delta)
+			"trace":
+				_fire_laser(delta)
+	if not (holding and pattern == "hold_heat"):
+		heat = maxf(heat - COOL_RATE * delta, 0.0)
+		overheated = maxf(overheated - delta, 0.0)
+	if pattern == "hold_heat" or heat > 0.0:
+		var clean := _clean_zone()
+		get_tree().call_group("hud", "show_heat", heat, clean.x, clean.y, overheated > 0.0)
 	if _head != null and tool_id == "cutter":
-		_head.rotate_object_local(Vector3.FORWARD, delta * (28.0 if _cooldown_left > 0.0 else 3.0))
+		_head.rotate_object_local(Vector3.FORWARD, delta * (28.0 if holding or _cooldown_left > 0.0 else 3.0))
+
+func _easy() -> bool:
+	return Settings.difficulty == "easy"
+
+func pattern() -> String:
+	return String(definition().get("pattern", ""))
+
+## The use button went down (player.gd, once per click or trigger pull).
+func press() -> void:
+	if tool_id == "":
+		use()                                  # says "no tool attached"
+		return
+	if player.docked or player.shut_down:
+		return
+	_told.clear()
+	match pattern():
+		"rapid":
+			holding = true
+			_auto_hit = EASY_AUTO_HIT
+			_rapid_hit()
+		"hold_heat":
+			if overheated > 0.0:
+				get_tree().call_group("hud", "show_notice", "Too hot! Let the %s cool down." % definition()["name"])
+				return
+			holding = true
+			_tick = 0.0
+			_cut_target = null
+		"trace":
+			if Energy.current <= 0.0:
+				get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % definition()["name"])
+				return
+			holding = true
+			_tick = 0.0
+			get_tree().call_group("hud", "show_aim", true)
+		_:
+			use()
+
+## The use button came up.
+func release() -> void:
+	if not holding:
+		return
+	holding = false
+	match pattern():
+		"hold_heat":
+			var clean := _clean_zone()
+			if overheated <= 0.0 and heat >= clean.x and heat <= clean.y and is_instance_valid(_cut_target):
+				clean_cuts += 1
+				var bonus: float = float(definition()["power"]) * CLEAN_BONUS * _power_scale()
+				_cut_target.call("apply", "cut", bonus, player.global_position)
+				_spark(1.8)
+				get_tree().call_group("hud", "show_notice", "Clean cut!")
+		"trace":
+			_laser_off()
+			get_tree().call_group("hud", "show_aim", false)
+
+func _clean_zone() -> Vector2:
+	return Vector2(EASY_CLEAN_FROM, EASY_CLEAN_TO) if _easy() else Vector2(CLEAN_FROM, CLEAN_TO)
+
+func _power_scale() -> float:
+	return TINY_POWER if player.get("tiny") else 1.0
+
+## One smasher hit; quick hits build the combo.
+func _rapid_hit() -> void:
+	if _cooldown_left > 0.0:
+		return
+	var def := definition()
+	if Energy.current < RAPID_ENERGY:
+		get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % def["name"])
+		return
+	combo = mini(combo + 1, COMBO_MAX) if _now - _last_hit_time <= COMBO_WINDOW else 1
+	_last_hit_time = _now
+	_cooldown_left = RAPID_COOLDOWN
+	_swing(0.28)
+	var target := _find_target(def["range"])
+	if target == null:
+		Energy.spend(RAPID_ENERGY * DRY_SWING_COST_FRACTION)
+		return
+	Energy.spend(RAPID_ENERGY)
+	var power: float = float(def["power"]) * (1.0 + COMBO_BONUS * (combo - 1)) * _power_scale()
+	if _apply_once(target, "smash", power):
+		_spark(2.5 + combo)
+		if combo > 1:
+			get_tree().call_group("hud", "show_combo", combo)
+
+## Applies an effect, but a target that refuses it is told only once per press.
+func _apply_once(target: Node3D, effect: String, power: float) -> bool:
+	if target.has_method("accepts") and not target.call("accepts", effect):
+		if not _told.has(target):
+			_told.append(target)
+			target.call("apply", effect, power, player.global_position)     # it says why not
+		return false
+	return target.call("apply", effect, power, player.global_position)
+
+## The cutter while held: heat climbs, whatever is in front is cut in ticks.
+func _cut(delta: float) -> void:
+	if overheated > 0.0:
+		return
+	var def := definition()
+	heat += delta / (EASY_HEAT_SECONDS if _easy() else HEAT_SECONDS)
+	Energy.drain(float(def["energy"]) * delta)
+	_tick -= delta
+	if _tick <= 0.0:
+		_tick = HELD_TICK
+		var target := _find_target(def["range"])
+		if target != null:
+			if _apply_once(target, "cut", float(def["power"]) * CUT_RATE * HELD_TICK * _power_scale()):
+				_cut_target = target
+				_spark(1.2)
+		_recoil_small()
+	if heat >= 1.0:
+		heat = 1.0
+		overheated = OVERHEAT_SECONDS
+		holding = false
+		get_tree().call_group("hud", "show_notice", "Overheated! Let it cool.")
+
+## The laser while held: a steady beam to whatever the camera looks at.
+func _fire_laser(delta: float) -> void:
+	var def := definition()
+	var cost: float = float(def["energy"]) * LASER_ENERGY_RATE * delta
+	if Energy.current < cost:
+		release()
+		get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % def["name"])
+		return
+	Energy.drain(cost)
+	var aim := laser_aim(float(def["range"]))
+	var hit_point: Vector3 = aim["point"]
+	var body: Node3D = aim["body"]
+	# the robot turns to face where it fires
+	var flat := hit_point - player.global_position
+	flat.y = 0.0
+	if flat.length() > 0.2:
+		visual.global_rotation.y = lerp_angle(visual.global_rotation.y, atan2(flat.x, flat.z) + PI, 12.0 * delta)
+	_laser_on(def, hit_point)
+	if body == null:
+		return
+	if body.has_method("burn_at"):
+		body.call("burn_at", hit_point, delta, player.global_position, float(def["power"]) * BEAM_RATE * _power_scale())
+		return
+	_tick -= delta
+	if _tick <= 0.0:
+		_tick = HELD_TICK
+		if body.has_method("apply"):
+			_apply_once(body, "burn", float(def["power"]) * BEAM_RATE * HELD_TICK * _power_scale())
+
+## Where the laser hits: along the camera's centre line, within reach of the robot.
+## {point: Vector3, body: Node3D or null}.
+func laser_aim(reach: float) -> Dictionary:
+	var camera := get_viewport().get_camera_3d()
+	var eye := player.global_position + Vector3(0, 0.9 * float(player.get("size_scale")), 0)
+	var direction: Vector3 = -visual.global_transform.basis.z
+	if camera != null:
+		direction = -camera.global_transform.basis.z
+	var space := player.get_world_3d().direct_space_state
+	var start := eye
+	if camera != null:
+		# from the camera through the screen centre, starting level with the robot
+		var along := (player.global_position - camera.global_position).dot(direction)
+		start = camera.global_position + direction * maxf(along, 0.0)
+	var ray := PhysicsRayQueryParameters3D.create(start, start + direction * reach)
+	ray.exclude = [player.get_rid()]
+	var hit := space.intersect_ray(ray)
+	if hit.is_empty():
+		return {"point": start + direction * reach, "body": null}
+	return {"point": hit["position"], "body": hit["collider"] as Node3D}
+
+func _laser_on(def: Dictionary, to: Vector3) -> void:
+	if _laser_beam == null:
+		_laser_material = StandardMaterial3D.new()
+		_laser_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_laser_material.albedo_color = def.get("colour", Color.RED)
+		_laser_material.emission_enabled = true
+		_laser_material.emission = def.get("colour", Color.RED)
+		_laser_material.emission_energy_multiplier = 4.0
+		var rod := CylinderMesh.new()
+		rod.top_radius = 0.02
+		rod.bottom_radius = 0.02
+		rod.height = 1.0
+		rod.radial_segments = 6
+		rod.material = _laser_material
+		_laser_beam = MeshInstance3D.new()
+		_laser_beam.name = "LaserBeam"
+		_laser_beam.mesh = rod
+		_laser_beam.top_level = true
+		_laser_beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_laser_beam)
+	var from := global_position + (-visual.global_transform.basis.z) * 0.35
+	var length := from.distance_to(to)
+	if length < 0.05:
+		_laser_beam.visible = false
+		return
+	var up := (to - from) / length
+	var side := up.cross(Vector3.UP if absf(up.dot(Vector3.UP)) < 0.9 else Vector3.RIGHT).normalized()
+	_laser_beam.global_transform = Transform3D(Basis(side, up * length, side.cross(up)), (from + to) * 0.5)
+	_laser_beam.visible = true
+	_flash.light_color = def.get("colour", Color.RED)
+	_flash.light_energy = 2.0 + sin(Time.get_ticks_msec() * 0.05) * 0.5
+
+func _laser_off() -> void:
+	if _laser_beam != null:
+		_laser_beam.visible = false
+	_flash.light_energy = 0.0
+
+## Laser beam visible (tests).
+func laser_firing() -> bool:
+	return _laser_beam != null and _laser_beam.visible
+
+func _spark(energy: float) -> void:
+	_flash.light_color = definition().get("colour", Color.WHITE)
+	_flash.light_energy = energy
+	var tween := create_tween()
+	tween.tween_property(_flash, "light_energy", 0.0, 0.15)
+
+func _recoil_small() -> void:
+	if _swing_tween != null and _swing_tween.is_valid():
+		return
+	_swing_tween = create_tween()
+	_swing_tween.tween_property(arm, "rotation:x", 0.12, 0.05)
+	_swing_tween.tween_property(arm, "rotation:x", 0.0, 0.08)
 
 func definition() -> Dictionary:
 	return Catalog.TOOLS.get(tool_id, {})
@@ -60,6 +344,8 @@ func refresh() -> void:
 	if tool_id != "":
 		_head = _build_head(definition())
 		add_child(_head)
+	holding = false
+	_laser_off()
 
 ## Q: attach the next tool the robot has built.
 func cycle() -> void:

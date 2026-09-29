@@ -134,7 +134,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and not shut_down and _focus != null:
 		_focus.interact(self)
 	if tool_pulled(event) and not shut_down:
-		tool_rig.use()
+		tool_rig.press()
 	if event.is_action_pressed("cycle_tool") and not shut_down:
 		tool_rig.cycle()
 	if event.is_action_pressed("detector") and not shut_down:
@@ -250,6 +250,7 @@ func _physics_process(delta: float) -> void:
 	# (a trigger released during a menu or a fight still counts as released).
 	if _tool_held and not Input.is_action_pressed("use_tool"):
 		_tool_held = false
+		tool_rig.release()
 	_check_fall(delta)
 	_update_focus()
 	_update_size(delta)

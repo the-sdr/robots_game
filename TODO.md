@@ -44,7 +44,14 @@
       around" card after the wake-up, a Detector card the first time it's on),
       and a Tools & controls page in the pause menu. **Playtest:** do the cards
       read well? Too many pop-ups? Pad prompts right?
-- [ ] Phase C: tools with their own feel (cutter hold/heat, smasher rapid, laser trace).
+- [x] Phase C: tools with their own feel. Smasher: quick presses build a combo
+      (SMASH x3!), Easy can just hold. Cutter: hold, heat gauge climbs, let go
+      in the green for a clean cut, overheat locks it 2 s (Easy: slower heat,
+      wider green). Laser: hold for a steady beam aimed with the camera (aim
+      dot); long things like vines burn segment by segment as you sweep along.
+      **Playtest:** does each tool feel different? Brambles in one or two good
+      cuts? Laser aiming OK with mouse and right stick?
+- [ ] Next: link fights to the tools (owner: "getting loot teaches you how to fight").
 - [ ] Phase D: find types - weeds (cut), containers (smash), wrecks (salvage; laser = better loot).
 - [x] F3 also saves a screenshot (playtest/shots/save_N.jpg, 1280 wide, named on
       the entry's line) of what was on screen when F3 was pressed. Commit them

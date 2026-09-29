@@ -28,6 +28,11 @@ const MESSAGE_SECONDS := 7.0
 var _notice_time := 0.0
 ## Tool cards and the Tools & controls page (scripts/ui/tool_card.gd).
 var tool_card: CanvasLayer
+## Tool feedback (tool_rig.gd): the cutter's heat, the smasher's combo, the laser's aim.
+var heat_gauge: HeatGauge
+var combo_label: Label
+var aim_dot: Control
+var _combo_tween: Tween
 var _prompt_target: Interactable = null
 var _message_time := 0.0
 var _notices: Array[String] = []
@@ -41,6 +46,7 @@ func _ready() -> void:
 	prompt_panel.visible = false
 	notice_label.visible = false
 	message_panel.visible = false
+	_build_tool_feedback()
 	tool_card = preload("res://scripts/ui/tool_card.gd").new()
 	tool_card.name = "ToolCard"
 	add_child(tool_card)
@@ -245,6 +251,86 @@ func fade_through(action: Callable, seconds: float = 0.35) -> void:
 
 func toggle_pause() -> void:
 	pause_menu.toggle()
+
+# --- tool feedback ---------------------------------------------------------------------------
+func _build_tool_feedback() -> void:
+	heat_gauge = HeatGauge.new()
+	heat_gauge.name = "HeatGauge"
+	heat_gauge.custom_minimum_size = Vector2(300, 34)
+	heat_gauge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 170)
+	heat_gauge.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	heat_gauge.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	heat_gauge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	heat_gauge.visible = false
+	add_child(heat_gauge)
+	combo_label = Label.new()
+	combo_label.name = "ComboLabel"
+	combo_label.add_theme_font_size_override("font_size", 44)
+	combo_label.add_theme_color_override("font_color", Color(1.0, 0.72, 0.25))
+	combo_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.0))
+	combo_label.add_theme_constant_override("outline_size", 8)
+	combo_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	combo_label.position += Vector2(90, -90)
+	combo_label.pivot_offset = Vector2(40, 25)
+	combo_label.visible = false
+	add_child(combo_label)
+	aim_dot = AimDot.new()
+	aim_dot.name = "AimDot"
+	aim_dot.custom_minimum_size = Vector2(24, 24)
+	aim_dot.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	aim_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	aim_dot.visible = false
+	add_child(aim_dot)
+
+## The cutter's heat (0..1) with its clean zone; hidden when cold.
+func show_heat(heat: float, clean_from: float, clean_to: float, overheated: bool) -> void:
+	heat_gauge.visible = heat > 0.0 or overheated
+	heat_gauge.heat = heat
+	heat_gauge.clean_from = clean_from
+	heat_gauge.clean_to = clean_to
+	heat_gauge.overheated = overheated
+	heat_gauge.queue_redraw()
+
+## "SMASH x3!" popping near the middle of the screen.
+func show_combo(count: int) -> void:
+	combo_label.text = "SMASH x%d!" % count
+	combo_label.visible = true
+	combo_label.modulate.a = 1.0
+	combo_label.scale = Vector2.ONE * 1.4
+	if _combo_tween != null and _combo_tween.is_valid():
+		_combo_tween.kill()
+	_combo_tween = create_tween()
+	_combo_tween.tween_property(combo_label, "scale", Vector2.ONE, 0.12)
+	_combo_tween.tween_interval(0.4)
+	_combo_tween.tween_property(combo_label, "modulate:a", 0.0, 0.3)
+	_combo_tween.tween_callback(func() -> void: combo_label.visible = false)
+
+## The laser's aim dot at the screen centre.
+func show_aim(on: bool) -> void:
+	aim_dot.visible = on
+
+class HeatGauge extends Control:
+	var heat := 0.0
+	var clean_from := 0.6
+	var clean_to := 0.88
+	var overheated := false
+
+	func _draw() -> void:
+		var bar := Rect2(Vector2(0, 8), Vector2(size.x, size.y - 8))
+		draw_rect(bar, Color(0.1, 0.13, 0.15, 0.85))
+		draw_rect(Rect2(bar.position + Vector2(bar.size.x * clean_from, 0), Vector2(bar.size.x * (clean_to - clean_from), bar.size.y)), Color(0.2, 0.65, 0.25, 0.9))
+		draw_rect(Rect2(bar.position + Vector2(bar.size.x * clean_to, 0), Vector2(bar.size.x * (1.0 - clean_to), bar.size.y)), Color(0.75, 0.18, 0.12, 0.9))
+		var fill := Color(1.0, 0.25, 0.15) if overheated else Color(1.0, 0.75, 0.3)
+		draw_rect(Rect2(bar.position, Vector2(bar.size.x * clampf(heat, 0.0, 1.0), bar.size.y * 0.5)), fill)
+		var x := bar.size.x * clampf(heat, 0.0, 1.0)
+		draw_line(Vector2(x, 0), Vector2(x, size.y), Color.WHITE, 3.0)
+		draw_rect(bar, Color(0.45, 0.95, 1.0), false, 2.0)
+
+class AimDot extends Control:
+	func _draw() -> void:
+		var c := size * 0.5
+		draw_circle(c, 3.0, Color(1.0, 0.4, 0.3))
+		draw_arc(c, 9.0, 0.0, TAU, 20, Color(1.0, 0.4, 0.3, 0.8), 2.0)
 
 ## A tool card, shown once when nothing else is on screen.
 func queue_card(id: String) -> void:

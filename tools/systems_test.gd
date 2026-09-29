@@ -1092,6 +1092,99 @@ func _initialize() -> void:
 	await process_frame
 	load("res://scripts/ui/tool_card.gd").suppressed = true
 
+	print("== tool feel: smasher combo, cutter heat, laser trace")
+	var feel_settings: Node = root.get_node("Settings")
+	var feel_level: String = feel_settings.difficulty
+	feel_settings.difficulty = "medium"
+	var feel_rig: Node3D = player.get_node("Visual/ArmRight/ToolRig")
+	for t in ["smasher", "cutter", "laser"]:
+		Game.add_tool(t)
+	var feel_forward: Vector3 = -player.visual.global_transform.basis.z
+	feel_forward.y = 0.0
+	feel_forward = feel_forward.normalized()
+	var make_target := func(effects: Array, hp: float, size: Vector3, at: Vector3) -> StaticBody3D:
+		var body: StaticBody3D = load("res://scripts/interact/breakable.gd").new()
+		body.set("effects", PackedStringArray(effects))
+		body.set("health", hp)
+		var shape := CollisionShape3D.new()
+		var box_shape := BoxShape3D.new()
+		box_shape.size = size
+		shape.shape = box_shape
+		shape.position.y = size.y * 0.5
+		body.add_child(shape)
+		world.add_child(body)
+		body.global_position = at
+		return body
+	Energy.current = 100.0
+	Game.data["equipped_tool"] = "smasher"
+	Game.inventory_changed.emit()
+	await process_frame
+	var crate_c: StaticBody3D = make_target.call(["smash"], 500.0, Vector3(0.8, 0.8, 0.8), player.global_position + feel_forward * 1.2)
+	for i in 3:
+		await physics_frame
+	for hit in 3:
+		feel_rig.press()
+		feel_rig.release()
+		for i in 12:
+			await process_frame
+	check(feel_rig.combo == 3 and absf((500.0 - crate_c.health) - 34.0 * (1.0 + 1.2 + 1.4)) < 0.5,
+		"smasher: three quick presses build a combo (x%d, %.1f damage)" % [feel_rig.combo, 500.0 - crate_c.health])
+	for i in 45:
+		await process_frame
+	feel_rig.press()
+	feel_rig.release()
+	check(feel_rig.combo == 1, "a pause breaks the combo")
+	crate_c.queue_free()
+	Game.data["equipped_tool"] = "cutter"
+	Game.inventory_changed.emit()
+	await process_frame
+	var thicket: StaticBody3D = make_target.call(["cut"], 500.0, Vector3(0.8, 1.0, 0.8), player.global_position + feel_forward * 1.1)
+	for i in 3:
+		await physics_frame
+	var cuts_before: int = feel_rig.clean_cuts
+	feel_rig.press()
+	for i in 120:
+		await process_frame
+	var heat_at_release: float = feel_rig.heat
+	feel_rig.release()
+	check(feel_rig.clean_cuts == cuts_before + 1 and 500.0 - thicket.health > 60.0, "cutter: let go in the green (heat %.2f) for a clean cut (%.0f cut)" % [heat_at_release, 500.0 - thicket.health])
+	for i in 200:
+		await process_frame
+	feel_rig.press()
+	for i in 60 * 3:
+		await process_frame
+	check(feel_rig.overheated > 0.0 and not feel_rig.holding, "hold too long and it overheats")
+	feel_rig.release()
+	feel_rig.press()
+	check(not feel_rig.holding, "too hot to start again straight away")
+	for i in 60 * 3:
+		await process_frame
+	feel_rig.press()
+	check(feel_rig.holding, "cooled down: it cuts again")
+	feel_rig.release()
+	thicket.queue_free()
+	var vine_bar: StaticBody3D = make_target.call(["burn"], 60.0, Vector3(3.0, 0.4, 0.4), player.global_position + feel_forward * 6.0 + Vector3(0, 0.5, 0))
+	await physics_frame
+	var trace: Vector2i = vine_bar.trace_progress()
+	check(trace.y == 5, "a 3 m vine burns in 5 segments (%d)" % trace.y)
+	vine_bar.burn_at(vine_bar.trace_point(0), 0.35, player.global_position, 30.0)
+	check(vine_bar.trace_progress().x == 1 and vine_bar.health < 60.0, "the beam burns the segment it rests on")
+	for k in range(1, 5):
+		vine_bar.burn_at(vine_bar.trace_point(k), 0.35, player.global_position, 30.0)
+	await process_frame
+	check(not is_instance_valid(vine_bar) or vine_bar.is_queued_for_deletion(), "swept along the whole vine, it burns through")
+	Game.data["equipped_tool"] = "laser"
+	Game.inventory_changed.emit()
+	await process_frame
+	feel_rig.press()
+	for i in 10:
+		await process_frame
+	check(feel_rig.laser_firing(), "the laser fires while the button is held")
+	feel_rig.release()
+	await process_frame
+	check(not feel_rig.laser_firing(), "and stops when it is let go")
+	feel_settings.difficulty = feel_level
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

@@ -24,6 +24,22 @@ signal broken
 var _max_health: float
 var _visual_root: Node3D
 
+# --- the laser's trace (tool_rig.gd "trace"; owner, 2026-09-29) ----------------------
+# A long burnable thing (vines across a wall gap) burns segment by segment where
+# the beam lingers, so the player sweeps the beam along it. Short ones just burn.
+const TRACE_MIN_LENGTH := 1.5
+const TRACE_SEGMENT := 0.6
+const TRACE_SECONDS := 0.3
+const EASY_TRACE_SECONDS := 0.18
+const BURN_TICK := 0.15
+var _trace_left: Array[float] = []       # beam seconds each segment still needs
+var _trace_centre := Vector3.ZERO
+var _trace_axis := Vector3.ZERO
+var _trace_length := 0.0
+var _trace_ready := false
+var _burn_tick := 0.0
+var _burn_told := false
+
 func _ready() -> void:
 	add_to_group("breakable")
 	_max_health = health
@@ -47,6 +63,98 @@ func apply(effect: String, power: float, from: Vector3) -> bool:
 	if health <= 0.0:
 		_break(from)
 	return true
+
+## The laser beam resting on `point` for `delta` seconds.
+func burn_at(point: Vector3, delta: float, from: Vector3, power: float) -> void:
+	if not accepts("burn"):
+		if not _burn_told:
+			_burn_told = true
+			apply("burn", 0.0, from)            # says why not
+		return
+	_setup_trace()
+	if _trace_left.is_empty():
+		_burn_tick -= delta
+		if _burn_tick <= 0.0:
+			_burn_tick = BURN_TICK
+			apply("burn", power * BURN_TICK, from)
+		return
+	var along := (point - _trace_centre).dot(_trace_axis) + _trace_length * 0.5
+	var i := clampi(int(along / (_trace_length / _trace_left.size())), 0, _trace_left.size() - 1)
+	if _trace_left[i] <= 0.0:
+		return
+	_trace_left[i] -= delta
+	if _trace_left[i] <= 0.0:
+		_char_segment(i)
+		var left := 0
+		for t in _trace_left:
+			if t > 0.0:
+				left += 1
+		health = _max_health * float(left) / _trace_left.size()
+		hit.emit("burn", health)
+		if left == 0:
+			_break(from)
+
+## [segments burned, segments in all] (0, 0 for things too short to trace).
+func trace_progress() -> Vector2i:
+	_setup_trace()
+	var burned := 0
+	for t in _trace_left:
+		if t <= 0.0:
+			burned += 1
+	return Vector2i(burned, _trace_left.size())
+
+## World-space centre of segment i (tests, and where its char mark goes).
+func trace_point(i: int) -> Vector3:
+	_setup_trace()
+	var step := _trace_length / maxi(_trace_left.size(), 1)
+	return _trace_centre + _trace_axis * (-_trace_length * 0.5 + step * (i + 0.5))
+
+func _setup_trace() -> void:
+	if _trace_ready:
+		return
+	_trace_ready = true
+	for node in find_children("*", "CollisionShape3D", true, false):
+		var shape := node as CollisionShape3D
+		var box := shape.shape as BoxShape3D
+		if box == null:
+			continue
+		var shape_basis := shape.global_transform.basis
+		var lengths := [box.size.x * shape_basis.x.length(), box.size.y * shape_basis.y.length(), box.size.z * shape_basis.z.length()]
+		var longest := 0
+		for k in 3:
+			if lengths[k] > lengths[longest]:
+				longest = k
+		if lengths[longest] < TRACE_MIN_LENGTH:
+			return
+		_trace_centre = shape.global_position
+		_trace_axis = shape_basis[longest].normalized()
+		_trace_length = lengths[longest]
+		var seconds := EASY_TRACE_SECONDS if Settings.difficulty == "easy" else TRACE_SECONDS
+		for k in maxi(int(ceil(_trace_length / TRACE_SEGMENT)), 2):
+			_trace_left.append(seconds)
+		return
+
+## A burned-through segment: a charred band and a puff of embers.
+func _char_segment(i: int) -> void:
+	var step := _trace_length / _trace_left.size()
+	var mark := MeshInstance3D.new()
+	var band := BoxMesh.new()
+	band.size = Vector3(step * 0.95, 0.35, 0.35)
+	var soot := StandardMaterial3D.new()
+	soot.albedo_color = Color(0.05, 0.04, 0.03)
+	soot.emission_enabled = true
+	soot.emission = Color(1.0, 0.35, 0.05)
+	soot.emission_energy_multiplier = 0.6
+	band.material = soot
+	mark.mesh = band
+	add_child(mark)
+	var x := _trace_axis
+	var y := (Vector3.UP if absf(x.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD).cross(x).normalized()
+	mark.global_transform = Transform3D(Basis(x, y, x.cross(y)), trace_point(i))
+	var ember := debris_colour
+	debris_colour = Color(1.0, 0.45, 0.1)
+	_debris(trace_point(i), 6)
+	debris_colour = ember
 
 func _break(from: Vector3) -> void:
 	_debris(from, debris_count)

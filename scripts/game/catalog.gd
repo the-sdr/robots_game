@@ -42,7 +42,7 @@ const ITEMS := {
 # guard (share of the next enemy blow that still lands), counter (damage back
 # when that blow is dodged or blocked), heal, hint (one line for the fight screen).
 const TOOLS := {
-	"smasher": {"name": "Smasher", "effect": "smash", "power": 34.0, "energy": 3.0, "range": 2.2,
+	"smasher": {"name": "Smasher", "effect": "smash", "pattern": "rapid", "power": 34.0, "energy": 3.0, "range": 2.2,
 		"cooldown": 0.55, "colour": Color(0.85, 0.5, 0.2),
 		"description": "A hammer head on an actuator. Breaks doors, boards, rotten wood.",
 		"moves": {
@@ -50,7 +50,7 @@ const TOOLS := {
 			"forward": {"name": "Leaping slam", "kind": "attack", "power": 11.0, "hits": 2, "energy": 6.0, "hint": "Jump in, hit twice"},
 			"back": {"name": "Brace", "kind": "guard", "guard": 0.35, "counter": 8.0, "energy": 2.0, "hint": "Block most of the next blow, bonk back"},
 		}},
-	"cutter": {"name": "Cutter", "effect": "cut", "power": 26.0, "energy": 2.0, "range": 2.0,
+	"cutter": {"name": "Cutter", "effect": "cut", "pattern": "hold_heat", "power": 26.0, "energy": 2.0, "range": 2.0,
 		"cooldown": 0.4, "colour": Color(0.4, 0.9, 1.0),
 		"description": "A spinning blade strip. Clears brambles and thin trunks.",
 		"moves": {
@@ -58,7 +58,7 @@ const TOOLS := {
 			"forward": {"name": "Whirl", "kind": "attack", "power": 6.0, "hits": 3, "energy": 4.0, "hint": "Spin: three cuts"},
 			"back": {"name": "Parry", "kind": "guard", "guard": 0.5, "counter": 12.0, "energy": 2.0, "hint": "Catch the next blow on the blade"},
 		}},
-	"laser": {"name": "Laser", "effect": "burn", "power": 30.0, "energy": 4.0, "range": 14.0,
+	"laser": {"name": "Laser", "effect": "burn", "pattern": "trace", "power": 30.0, "energy": 4.0, "range": 14.0,
 		"cooldown": 0.8, "colour": Color(1.0, 0.35, 0.3), "ranged": true,
 		"description": "A lens, a board and a coil: a beam that burns vines and ropes from far away.",
 		"moves": {
@@ -67,7 +67,7 @@ const TOOLS := {
 			"back": {"name": "Dazzle", "kind": "stun", "energy": 3.0, "hint": "Flash its eye: it misses its next turn"},
 		}},
 	# not an arm tool in the world: once built, jump and hold Space in the air to hover (player.gd)
-	"hover": {"name": "Hover pack", "effect": "hover", "power": 0.0, "energy": 0.0, "range": 0.0,
+	"hover": {"name": "Hover pack", "effect": "hover", "pattern": "hold", "power": 0.0, "energy": 0.0, "range": 0.0,
 		"cooldown": 0.3, "colour": Color(0.55, 0.9, 1.0),
 		"description": "Two lift fans and a gyro. Jump, then hold jump in the air to hover up high ledges.",
 		"moves": {
@@ -77,7 +77,7 @@ const TOOLS := {
 		}},
 	# matter generation: prints parts from scrap (recipes with "requires_tool") and
 	# prints ghost outlines (scripts/interact/buildable.gd) into real things
-	"fabricator": {"name": "Fabricator", "effect": "make", "power": 0.0, "energy": 4.0, "range": 4.0,
+	"fabricator": {"name": "Fabricator", "effect": "make", "pattern": "press", "power": 0.0, "energy": 4.0, "range": 4.0,
 		"cooldown": 0.6, "colour": Color(0.3, 1.0, 0.85),
 		"description": "A matter printer on your arm. Turns scrap into parts, and ghost outlines into real things.",
 		"moves": {
