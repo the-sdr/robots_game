@@ -235,7 +235,7 @@ func _build_layer() -> void:
 		_layer.add_child(bar)
 	var hint := Label.new()
 	hint.name = "Skip"
-	hint.text = "Space / Esc: skip"
+	hint.text = "%s: skip" % Glyphs.label("ui_accept")
 	hint.add_theme_color_override("font_color", Color(0.6, 0.62, 0.65))
 	hint.anchor_left = 1.0
 	hint.anchor_right = 1.0

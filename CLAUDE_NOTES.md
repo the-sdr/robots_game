@@ -538,6 +538,11 @@ independent so they land in any order. Owner decisions:
   change: compare the scene's nodes, and if only the new nodes differ, restore
   the chunk files (`git checkout -- scenes/level/<chunk dirs>`) before
   committing; chunks are referenced by path, not uid.
+- **Button names on screen come from `Glyphs`** (autoload): `Glyphs.label("interact")`
+  is "E" or "X" for the device in use. Never hard-code a key in player-facing
+  text. **Tool cards** (`scripts/ui/tool_card.gd`, owned by the HUD) pause the
+  game when they show: headless tests set `tool_card.gd`'s static `suppressed`
+  (systems_test and the drive test do), or a card freezes the physics mid-test.
 
 ## Session log
 

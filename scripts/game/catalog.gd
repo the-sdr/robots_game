@@ -69,7 +69,7 @@ const TOOLS := {
 	# not an arm tool in the world: once built, jump and hold Space in the air to hover (player.gd)
 	"hover": {"name": "Hover pack", "effect": "hover", "power": 0.0, "energy": 0.0, "range": 0.0,
 		"cooldown": 0.3, "colour": Color(0.55, 0.9, 1.0),
-		"description": "Two lift fans and a gyro. Jump, then hold Space in the air to hover up high ledges.",
+		"description": "Two lift fans and a gyro. Jump, then hold jump in the air to hover up high ledges.",
 		"moves": {
 			"": {"name": "Hop", "kind": "evade", "energy": 3.0, "hint": "Hop up: the next blow misses"},
 			"forward": {"name": "Dive", "kind": "attack", "power": 9.0, "hits": 2, "energy": 5.0, "hint": "Swoop down on it twice"},
@@ -121,7 +121,7 @@ const RECIPES := {
 		"description": "The lens focuses, the board fires, the coil charges. Burns from far away."},
 	"hover_pack": {"name": "Hover pack", "tool": "hover",
 		"needs": {"lift_fan": 2, "gyro": 1},
-		"description": "Two fans and a gyro on your back. Jump, then hold Space to hover."},
+		"description": "Two fans and a gyro on your back. Jump, then hold jump to hover."},
 	# charger upgrades: fitted to the charger the robot is docked at ("upgrade" = charger.gd kind)
 	"panel_extension": {"name": "Panel extension (charger)", "upgrade": "panel",
 		"needs": {"solar_cell": 2},

@@ -51,4 +51,4 @@ func _give_gift(_speaker: String) -> void:
 	Game.set_flag(GIFT_FLAG, true)
 	for id in GIFT:
 		Game.add_item(id, GIFT[id])
-	get_tree().call_group("hud", "show_notice", "Took 2 lift fans and a gyro. Build the hover pack (Tab).")
+	get_tree().call_group("hud", "show_notice", "Took 2 lift fans and a gyro. Build the hover pack (%s)." % Glyphs.label("inventory"))

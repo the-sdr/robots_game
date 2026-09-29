@@ -38,10 +38,15 @@ func _start_new_game() -> void:
 		Game.play_intro = false
 		var intro: Node = INTRO.instantiate()
 		add_child(intro)
-		intro.finished.connect(func() -> void: get_tree().create_timer(0.8).timeout.connect(func() -> void: Story.play("wake")))
+		intro.finished.connect(func() -> void: get_tree().create_timer(0.8).timeout.connect(_wake))
 		intro.play(self)
 	else:
-		get_tree().create_timer(1.2).timeout.connect(func() -> void: Story.play("wake"))
+		get_tree().create_timer(1.2).timeout.connect(_wake)
+
+## The wake-up message, then (once it has been read) the controls card.
+func _wake() -> void:
+	Story.play("wake")
+	get_tree().create_timer(4.0).timeout.connect(func() -> void: hud.queue_card("basics"))
 
 func _on_flag_changed(flag: String, value: bool) -> void:
 	if flag == "house_door_broken" and value:

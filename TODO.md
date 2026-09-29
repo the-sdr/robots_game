@@ -39,7 +39,11 @@
       crafting, View = pause, LB/RB = cycle tool, Y = detector.
       **Playtest:** does the sweep rhythm feel good? Too bright / too faint?
       Does the far haze help in the trees? Ground shader OK (not pink/black)?
-- [ ] Phase B: button pictures (keyboard/pad), tool cards, "Tools & controls" page.
+- [x] Phase B: button pictures follow the device (Glyphs autoload: prompts say
+      E or X, click or RT...), tool cards (once per tool, and a "Getting
+      around" card after the wake-up, a Detector card the first time it's on),
+      and a Tools & controls page in the pause menu. **Playtest:** do the cards
+      read well? Too many pop-ups? Pad prompts right?
 - [ ] Phase C: tools with their own feel (cutter hold/heat, smasher rapid, laser trace).
 - [ ] Phase D: find types - weeds (cut), containers (smash), wrecks (salvage; laser = better loot).
 - [x] F3 also saves a screenshot (playtest/shots/save_N.jpg, 1280 wide, named on

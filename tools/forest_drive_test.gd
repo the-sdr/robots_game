@@ -56,6 +56,7 @@ func _initialize() -> void:
 		await physics_frame
 	p = world.get_node("Player")
 	p.set_physics_process(false)
+	load("res://scripts/ui/tool_card.gd").suppressed = true      # a card would pause the physics mid-route
 	root.get_node("Game").set_flag("defeated:hill_sentry")     # routes over the crest must not start the tutorial fight
 	var ok := true
 

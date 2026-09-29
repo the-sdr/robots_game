@@ -72,6 +72,7 @@ func set_on(enabled: bool) -> void:
 	on = enabled
 	if on:
 		_time = SWEEP_PERIOD             # the first sweep goes out straight away
+		get_tree().call_group("hud", "queue_card", "detector")
 	get_tree().call_group("hud", "show_notice", "Detector on" if on else "Detector off")
 
 ## How far off a fix from this distance may land (0 = exact).

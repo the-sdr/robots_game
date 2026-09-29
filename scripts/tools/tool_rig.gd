@@ -76,13 +76,13 @@ func cycle() -> void:
 ## Left click: swing at whatever is in front.
 func use() -> bool:
 	if tool_id == "":
-		get_tree().call_group("hud", "show_notice", "No tool attached. Build one (Tab).")
+		get_tree().call_group("hud", "show_notice", "No tool attached. Build one (%s)." % Glyphs.label("inventory"))
 		return false
 	if _cooldown_left > 0.0 or player.docked or player.shut_down:
 		return false
 	var def := definition()
 	if def.get("effect", "") == "hover":
-		get_tree().call_group("hud", "show_notice", "The hover pack works on its own: jump, then hold Space in the air.")
+		get_tree().call_group("hud", "show_notice", "The hover pack works on its own: jump, then hold %s in the air." % Glyphs.label("jump"))
 		return false
 	if def.get("effect", "") == "make":
 		return _print_nearby(def)
@@ -125,7 +125,7 @@ func _print_nearby(def: Dictionary) -> bool:
 			best_d = d
 			best = node
 	if best == null:
-		get_tree().call_group("hud", "show_notice", "Nothing here to print. Parts are printed from scrap in Tab.")
+		get_tree().call_group("hud", "show_notice", "Nothing here to print. Parts are printed from scrap on the build screen (%s)." % Glyphs.label("inventory"))
 		return false
 	var cost: float = def["energy"]
 	if Energy.current < cost:

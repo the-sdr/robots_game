@@ -38,6 +38,7 @@ func _initialize() -> void:
 	Energy = root.get_node("Energy")
 	Catalog = root.get_node("Catalog")
 	await process_frame      # _initialize runs before the root joins the tree
+	load("res://scripts/ui/tool_card.gd").suppressed = true     # cards pause the game; tested on their own below
 	create_timer(240.0).timeout.connect(func() -> void: print("RESULT: WATCHDOG TIMEOUT (a check hung or a script error aborted the run)"); quit(2))
 	print("== catalog")
 	for rid in Catalog.RECIPES:
@@ -1024,6 +1025,72 @@ func _initialize() -> void:
 	for i in 60 * 4:
 		await process_frame
 	check(not det.on and float(terrain_mat.get_shader_parameter("scan_amount")) < 0.01 and float(terrain_mat.get_shader_parameter("scan_spots_on")) < 0.5, "switched off: the world looks normal again")
+
+	print("== button pictures and tool cards")
+	var glyphs: Node = root.get_node("Glyphs")
+	var card_hud: CanvasLayer = world.get_node("HUD")
+	var cards: CanvasLayer = card_hud.tool_card
+	glyphs.pad = false
+	check(glyphs.label("interact") == "E" and glyphs.label("use_tool") == "Left click" and glyphs.label("detector") == "R" and glyphs.label("move") == "WASD",
+		"keyboard names (%s, %s, %s)" % [glyphs.label("interact"), glyphs.label("use_tool"), glyphs.label("detector")])
+	glyphs.pad = true
+	check(glyphs.label("interact") == "X" and glyphs.label("use_tool") == "RT" and glyphs.label("detector") == "Y" and glyphs.label("inventory") == "Menu" and glyphs.label("pause") == "View" and glyphs.label("cycle_tool") == "LB",
+		"pad names (%s, %s, %s, %s, %s, %s)" % [glyphs.label("interact"), glyphs.label("use_tool"), glyphs.label("detector"), glyphs.label("inventory"), glyphs.label("pause"), glyphs.label("cycle_tool")])
+	glyphs.pad = false
+	var pad_tap := InputEventJoypadButton.new()
+	pad_tap.button_index = JOY_BUTTON_A
+	pad_tap.pressed = true
+	Input.parse_input_event(pad_tap)
+	var pad_up := pad_tap.duplicate() as InputEventJoypadButton
+	pad_up.pressed = false
+	Input.parse_input_event(pad_up)
+	for i in 4:
+		await process_frame
+	check(glyphs.pad and card_hud.tool_label.text.contains("RT"), "touching the pad switches prompts to pad buttons (%s)" % card_hud.tool_label.text)
+	var key_e := InputEventKey.new()
+	key_e.physical_keycode = KEY_F9
+	key_e.pressed = true
+	Input.parse_input_event(key_e)
+	var key_up := key_e.duplicate() as InputEventKey
+	key_up.pressed = false
+	Input.parse_input_event(key_up)
+	for i in 4:
+		await process_frame
+	check(not glyphs.pad, "a key switches them back")
+	cards._queue.clear()                 # the cards queued (unseen) by the sections above
+	load("res://scripts/ui/tool_card.gd").suppressed = false
+	Game.set_flag("card:hover", false)
+	Game.tool_added.emit("hover")
+	for i in 4:
+		await process_frame
+	check(cards.card_open() and paused and cards._title.text == "Hover pack", "a newly built tool shows its card, and the game waits")
+	var accept := InputEventAction.new()
+	accept.action = "ui_accept"
+	accept.pressed = true
+	Input.parse_input_event(accept)
+	for i in 4:
+		await process_frame
+	check(not cards.card_open() and not paused and Game.get_flag("card:hover"), "Got it (Enter / A) closes it and play goes on")
+	card_hud.queue_card("hover")
+	for i in 4:
+		await process_frame
+	check(not cards.card_open(), "each card shows only once")
+	card_hud.toggle_pause()
+	await process_frame
+	var pause_menu_node: CanvasLayer = card_hud.get_node("PauseMenu")
+	(pause_menu_node.find_child("ControlsButton", true, false) as Button).pressed.emit()
+	await process_frame
+	check(cards.page_open() and cards._page_list.get_child_count() >= 3, "the pause menu opens Tools & controls: the basics and the tools seen")
+	var back := InputEventAction.new()
+	back.action = "ui_cancel"
+	back.pressed = true
+	Input.parse_input_event(back)
+	for i in 4:
+		await process_frame
+	check(not cards.page_open() and pause_menu_node.visible and paused, "Esc goes back to the pause menu")
+	card_hud.toggle_pause()
+	await process_frame
+	load("res://scripts/ui/tool_card.gd").suppressed = true
 
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)

@@ -26,6 +26,9 @@ const MESSAGE_SECONDS := 7.0
 @onready var inventory_panel: Control = $InventoryPanel
 
 var _notice_time := 0.0
+## Tool cards and the Tools & controls page (scripts/ui/tool_card.gd).
+var tool_card: CanvasLayer
+var _prompt_target: Interactable = null
 var _message_time := 0.0
 var _notices: Array[String] = []
 
@@ -38,6 +41,13 @@ func _ready() -> void:
 	prompt_panel.visible = false
 	notice_label.visible = false
 	message_panel.visible = false
+	tool_card = preload("res://scripts/ui/tool_card.gd").new()
+	tool_card.name = "ToolCard"
+	add_child(tool_card)
+	Game.tool_added.connect(queue_card)
+	Glyphs.device_changed.connect(func(_pad: bool) -> void:
+		_refresh_tool()
+		set_prompt(_prompt_target))
 
 func _process(delta: float) -> void:
 	clock_label.text = "Day %d  %s" % [Clock.day, Clock.time_text()]
@@ -111,15 +121,16 @@ func _on_energy_changed(current: float, maximum: float) -> void:
 
 func _refresh_tool() -> void:
 	var tool_id: String = Game.data["equipped_tool"]
-	tool_label.text = ("Tool: %s   (Q next, click to use)" % Catalog.tool_name(tool_id)) if tool_id != "" else "No tool attached"
+	tool_label.text = ("Tool: %s   (%s next, %s to use)" % [Catalog.tool_name(tool_id), Glyphs.label("cycle_tool"), Glyphs.label("use_tool")]) if tool_id != "" else "No tool attached"
 
 ## Called by the player every frame with the current interactable (or null).
 func set_prompt(target: Interactable) -> void:
+	_prompt_target = target
 	if target == null:
 		prompt_panel.visible = false
 		return
 	prompt_panel.visible = true
-	prompt_label.text = "[E]  %s" % target.prompt
+	prompt_label.text = "%s  %s" % [Glyphs.text("interact"), target.prompt]
 
 func show_notice(text: String) -> void:
 	if notice_label.visible and _notice_time > 0.0:
@@ -209,7 +220,7 @@ func _build_dialogue() -> void:
 	_dialogue_text.add_theme_font_size_override("font_size", 19)
 	box.add_child(_dialogue_text)
 	var hint := Label.new()
-	hint.text = "[E] next"
+	hint.text = "%s next" % Glyphs.text("interact")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.add_theme_color_override("font_color", Color(0.6, 0.62, 0.65))
 	box.add_child(hint)
@@ -234,6 +245,14 @@ func fade_through(action: Callable, seconds: float = 0.35) -> void:
 
 func toggle_pause() -> void:
 	pause_menu.toggle()
+
+## A tool card, shown once when nothing else is on screen.
+func queue_card(id: String) -> void:
+	tool_card.queue_card(id)
+
+## The pause menu's Tools & controls page.
+func open_controls_page() -> void:
+	tool_card.show_page()
 
 func toggle_inventory() -> void:
 	inventory_panel.toggle()

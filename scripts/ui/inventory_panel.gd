@@ -21,7 +21,7 @@ func _ready() -> void:
 	row.name = "KitRow"
 	row.add_theme_constant_override("separation", 8)
 	var title := Label.new()
-	title.text = "Fight kit (keys 1-3, click to change):"
+	title.text = "Fight kit (%s / %s / %s in a fight; pick a slot to change it):" % [Glyphs.label("combat_slot_1"), Glyphs.label("combat_slot_2"), Glyphs.label("combat_slot_3")]
 	row.add_child(title)
 	for i in Game.LOADOUT_SIZE:
 		var button := Button.new()

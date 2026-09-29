@@ -11,6 +11,7 @@ signal inventory_changed
 signal flag_changed(flag: String, value: bool)
 signal loaded          # a save was applied to the running world
 signal new_game_started
+signal tool_added(tool_id: String)      # the first time a tool is built (its card shows)
 
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
@@ -107,6 +108,7 @@ func add_tool(tool_id: String) -> void:
 	elif kit.has(""):
 		kit[kit.find("")] = tool_id
 	inventory_changed.emit()
+	tool_added.emit(tool_id)
 
 # --- the fight kit (loadout): three tools on keys 1-3 ------------------------------
 const LOADOUT_SIZE := 3

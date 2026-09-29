@@ -225,7 +225,7 @@ func input_move(slot: int, direction: String) -> bool:
 		return false
 	var tool_id: String = _kit[slot] if slot < _kit.size() else ""
 	if tool_id == "" and _kit.any(func(t: String) -> bool: return t != ""):
-		_say("Slot %d is empty. Put a tool in it on the Tab screen." % (slot + 1))
+		_say("Slot %d is empty. Put a tool in it on the build screen (%s)." % [slot + 1, Glyphs.label("inventory")])
 		return false
 	_chosen = {"slot": slot, "tool": tool_id, "move": Catalog.move(tool_id, direction)}
 	return true
@@ -371,7 +371,7 @@ func _refresh() -> void:
 	for i in 3:
 		var tool_id: String = _kit[i] if i < _kit.size() else ""
 		if tool_id == "":
-			_card_labels[i].text = "[%d]  (empty)\nTab: add a tool" % (i + 1)
+			_card_labels[i].text = "[%s]  (empty)\n%s: add a tool" % [Glyphs.label("combat_slot_%d" % (i + 1)), Glyphs.label("inventory")]
 			continue
 		var m0 := Catalog.move(tool_id, "")
 		var mf := Catalog.move(tool_id, "forward")
