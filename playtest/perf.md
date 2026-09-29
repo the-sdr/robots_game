@@ -11,3 +11,9 @@
 - **perf_9** — 2026-09-27 19:49:16 — avg 37.8 ms (26 FPS), worst 39.2 ms, draw calls 1323, triangles 6.90M, objects 1501, mobile  —  X    -0.2  Y    +0.0  Z    -7.2  Facing  N  002°  Camera  N  003°  Pitch    -18°
 - **perf_10** — 2026-09-28 18:54:21 — avg 80.8 ms (12 FPS), worst 85.4 ms, draw calls 778, triangles 6.12M, objects 954, mobile  —  X    -0.0  Y    +0.1  Z    -7.2  Facing  N  004°  Camera  N  004°  Pitch    -11°
 - **perf_11** — 2026-09-28 19:12:56 — avg 27.9 ms (36 FPS), worst 30.6 ms, draw calls 246, triangles 2.13M, objects 425, mobile  —  X    +0.2  Y    +0.1  Z    -7.4  Facing  SE 148°  Camera  SE 157°  Pitch    -10°
+- **perf_12** — 2026-09-29 14:32:56 — avg 37.0 ms (27 FPS), worst 50.0 ms, draw calls 202, triangles 1.89M, objects 296, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    -0.7  Y    +0.1  Z    -4.1  Facing  SW 225°  Camera  SW 216°  Pitch    -12°
+  - **Note:** Xbox controller binding - a for menu select. Charge bar animation, have one ring start blinking to show charging. I gather all rings blue = fully charged.
+- **perf_13** — 2026-09-29 14:35:38 — avg 21.8 ms (46 FPS), worst 22.2 ms, draw calls 83, triangles 0.97M, objects 497, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X   -23.9  Y    +0.8  Z    +5.2  Facing  S  202°  Camera  S  180°  Pitch    -13°
+  - **Note:** is this meant to be collectable
+- **perf_14** — 2026-09-29 14:41:24 — avg 16.7 ms (60 FPS), worst 16.7 ms, draw calls 56, triangles 0.41M, objects 422, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    +3.4  Y    +5.4  Z   +74.8  Facing  S  190°  Camera  S  166°  Pitch    -26°
+  - **Note:** I've escaped! Tiny curse lets player slip through the trees. Not a bad thing but there needs to be enough content to cover a full charge. would procedural content work from a certain point to make it lighter to run?
