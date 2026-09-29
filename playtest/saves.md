@@ -11,3 +11,68 @@
   - **Note:** can the docking station have a more realistic fitting mechanism? maybe a cable that attaches out of it and connects to the different types of robots.
 - **save_8** — 2026-09-29 14:41:53 — X    +4.6  Y   -27.4  Z   +85.0  Facing  S  169°  Camera  E  098°  Pitch    -13°  FPS 60
   - **Note:** as noted in perf recording, I am able to reach the end of the world with tiny curse
+- **save_9** — 2026-09-29 19:11:14 — X    -0.7  Y    +0.1  Z    -4.1  Facing  SW 225°  Camera  SW 217°  Pitch    -20°  FPS 26
+  - **Note:** the charging indicator didn't start blinking
+- **save_10** — 2026-09-29 19:12:15 — X    +0.3  Y    +0.1  Z    -4.0  Facing  SE 119°  Camera  SE 152°  Pitch    -30°  FPS 39
+  - **Note:** what triggers the text disappearing? ideally a user prompt makes the text disappear ie. enter on the keyboard / a on controller
+- **save_11** — 2026-09-29 19:12:58 — X    -1.7  Y    +0.2  Z    -3.6  Facing  S  200°  Camera  SW 214°  Pitch    -35°  FPS 38
+  - **Note:** can we do something about this dock placement? It's passing through the wall
+- **save_12** — 2026-09-29 19:19:48 — X   -25.1  Y    +0.0  Z    +3.0  Facing  NW 305°  Camera  W  263°  Pitch     +3°  FPS 28
+  - **Note:** rug is not solid, player object is not sitting on it. also disable jump, it doesn't make sense and is a legacy part of the build. jump should be a craftable feature.
+- **save_13** — 2026-09-29 19:21:32 — X   -26.4  Y    +0.0  Z    +5.1  Facing  SW 247°  Camera  S  190°  Pitch    -18°  FPS 55
+  - **Note:** didn't see an object before sun tracker was collected
+- **save_14** — 2026-09-29 19:21:54 — X   -24.9  Y    +0.0  Z    +4.6  Facing  N  009°  Camera  E  084°  Pitch    -21°  FPS 30
+  - **Note:** still not standing on the floorboards, make these a solid object
+- **save_15** — 2026-09-29 19:23:02 — X    -3.3  Y    -0.0  Z    -2.2  Facing  E  069°  Camera  NE 055°  Pitch    +18°  FPS 21
+  - **Note:** where is the dock?
+- **save_16** — 2026-09-29 19:23:47 — X    +0.7  Y    +0.1  Z    -6.0  Facing  SE 135°  Camera  S  185°  Pitch     -7°  FPS 28
+  - **Note:** needed jump to get in the building on tiny mode, bear that in mind
+- **save_17** — 2026-09-29 19:27:15 — X    -1.5  Y    -1.1  Z   -41.9  Facing  NW 308°  Camera  NW 306°  Pitch    +20°  FPS 28
+  - **Note:** text went by too quickly per prior notes. also the beacon wasn't visible at the start of the game, the sightlines aren't quite right to intrigue the player or offer a naviation point
+- **save_18** — 2026-09-29 19:29:07 — X   +41.4  Y    -0.0  Z   -47.7  Facing  E  090°  Camera  E  101°  Pitch    +20°  FPS 15
+  - **Note:** how is the dock charge at full 100% right after a charge happened?
+- **save_19** — 2026-09-29 19:30:37 — X   +94.7  Y    +6.6  Z   -14.9  Facing  S  173°  Camera  SW 239°  Pitch    +20°  FPS 32
+  - **Note:** where did we land on fixing this issue? outside the map
+- **save_20** — 2026-09-29 19:31:07 — X   +70.9  Y    +5.3  Z   -27.9  Facing  NW 319°  Camera  NW 325°  Pitch    +17°  FPS 26
+  - **Note:** the beacon was visible just before and saved this p
+- **save_21** — 2026-09-29 19:31:15 — X   +70.6  Y    +5.3  Z   -27.7  Facing  SW 244°  Camera  E  069°  Pitch    +20°  FPS 60
+  - **Note:** and saved this playthrough
+- **save_22** — 2026-09-29 19:32:41 — X   +90.0  Y    +7.5  Z    +8.1  Facing  SE 146°  Camera  W  280°  Pitch    -12°  FPS 38
+  - **Note:** Playtesters think jumping is fun
+- **save_23** — 2026-09-29 19:37:47 — X   +22.4  Y    +7.8  Z   +56.9  Facing  W  249°  Camera  W  254°  Pitch    -32°  FPS 60
+  - **Note:** Playtester would like the charge to last longer. Maybe 20 mins between charges
+- **save_24** — 2026-09-29 19:38:52 — X   +41.0  Y    -0.1  Z   -46.9  Facing  W  282°  Camera  SW 214°  Pitch     +0°  FPS 22
+  - **Note:** Robot can go into the Dock Charger whereas it shouldn't be able to go right inside it
+- **save_25** — 2026-09-29 19:40:07 — X   +54.8  Y    +0.9  Z   -31.6  Facing  N  008°  Camera  NW 318°  Pitch    -20°  FPS 28
+  - **Note:** Charge is lasting shorter and shorter time, it seems
+- **save_26** — 2026-09-29 20:00:51 — X   +41.0  Y    -0.1  Z   -46.9  Facing  S  197°  Camera  NE 046°  Pitch    -29°  FPS 42
+  - **Note:** dock is not a solid object. easy difficulty finds charging times too challenging
+- **save_27** — 2026-09-29 20:03:32 — X    +0.7  Y    +0.1  Z    -4.2  Facing  NW 310°  Camera  N  345°  Pitch    -44°  FPS 37
+  - **Note:** make xbox menu button the crafting button. put up controllor prompts for button press instructions if controllor detected
+- **save_28** — 2026-09-29 20:05:58 — X    -1.3  Y    +0.2  Z    -3.8  Facing  SW 204°  Camera  S  198°  Pitch    -13°  FPS 35
+- **save_29** — 2026-09-29 20:09:18 — X   -18.0  Y    +0.0  Z    +2.3  Facing  N  001°  Camera  N  009°  Pitch    -19°  FPS 22
+  - **Note:** don't like having to scroll on the crafting menu. probably needs to be a full screen menu. make a cool design
+- **save_30** — 2026-09-29 20:13:49 — X   +46.2  Y    +0.1  Z   -49.1  Facing  E  080°  Camera  NW 333°  Pitch    -11°  FPS 32
+  - **Note:** btw what's a pocket charger?
+- **save_31** — 2026-09-29 20:17:28 — X    +3.3  Y    +5.8  Z   -88.6  Facing  E  100°  Camera  N  010°  Pitch    -17°  FPS 47
+  - **Note:** barely able to read that text
+- **save_32** — 2026-09-29 20:17:45 — X    +2.9  Y    +4.9  Z   -90.1  Facing  SW 210°  Camera  S  183°  Pitch    +20°  FPS 29
+  - **Note:** there should be items to salvage from defeated robots
+- **save_33** — 2026-09-29 20:18:59 — X   -13.0  Y    +0.0  Z  -123.4  Facing  NW 300°  Camera  W  292°  Pitch     -8°  FPS 52
+  - **Note:** it doesn't make sense diagetically that I can't get through in tiny mode. let's find a different asset for the gate
+- **save_34** — 2026-09-29 20:19:56 — X   -13.4  Y    +0.4  Z   -97.4  Facing  W  264°  Camera  W  278°  Pitch     -1°  FPS 57
+  - **Note:** got throguh gap in wall in tiny mode
+- **save_35** — 2026-09-29 20:20:15 — X   -21.6  Y    -0.4  Z   -97.9  Facing  NW 316°  Camera  NW 323°  Pitch     +7°  FPS 55
+  - **Note:** tiny mode under building gaps, needs foundations
+- **save_36** — 2026-09-29 20:20:58 — X   -21.1  Y    +0.1  Z  -111.2  Facing  E  098°  Camera  E  088°  Pitch     -8°  FPS 48
+  - **Note:** am I even supposed to be able to be here
+- **save_37** — 2026-09-29 20:22:17 — X    +2.7  Y    +2.0  Z   -94.6  Facing  N  353°  Camera  S  171°  Pitch    -16°  FPS 32
+  - **Note:** how do I use tool 1 and tool 2? equipped? I have cutter equipped, it's not clear
+- **save_38** — 2026-09-29 20:24:03 — X    +6.1  Y    +0.0  Z  -114.0  Facing  W  281°  Camera  W  291°  Pitch    -13°  FPS 51
+  - **Note:** smart work putting a rule in to make sure I can grow back at ending of curse in an area with enough space
+- **save_39** — 2026-09-29 20:26:52 — X  -108.4  Y    +7.1  Z   -25.6  Facing  SW 230°  Camera  S  163°  Pitch    -35°  FPS 60
+  - **Note:** how did I even get here without being in tiny mode? I'm so lost.
+- **save_40** — 2026-09-29 20:27:56 — X   +13.9  Y    +1.6  Z  -123.4  Facing  W  249°  Camera  NE 036°  Pitch     -1°  FPS 56
+  - **Note:** empty building
+- **save_41** — 2026-09-29 20:28:55 — X    -1.1  Y    +4.5  Z  -107.6  Facing  S  158°  Camera  S  202°  Pitch    -25°  FPS 30
+  - **Note:** I can't find anything else to do after the sentry, is that meant to be? answer on next session

@@ -17,3 +17,17 @@
   - **Note:** is this meant to be collectable
 - **perf_14** — 2026-09-29 14:41:24 — avg 16.7 ms (60 FPS), worst 16.7 ms, draw calls 56, triangles 0.41M, objects 422, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    +3.4  Y    +5.4  Z   +74.8  Facing  S  190°  Camera  S  166°  Pitch    -26°
   - **Note:** I've escaped! Tiny curse lets player slip through the trees. Not a bad thing but there needs to be enough content to cover a full charge. would procedural content work from a certain point to make it lighter to run?
+- **perf_15** — 2026-09-29 20:02:20 — avg 46.4 ms (22 FPS), worst 57.8 ms, draw calls 632, triangles 4.91M, objects 1067, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X   +41.8  Y    -0.0  Z   -47.7  Facing  SW 208°  Camera  W  284°  Pitch    -22°
+  - **Note:** can't get out of this area, caught in an unending loop back to this station
+- **perf_16** — 2026-09-29 20:06:38 — avg 30.4 ms (33 FPS), worst 32.0 ms, draw calls 231, triangles 1.86M, objects 652, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    -1.3  Y    +0.2  Z    -3.8  Facing  SW 204°  Camera  S  198°  Pitch    -13°
+  - **Note:** prompt me to talk about how to make this game more interesting. metroidvania layout is good for beta, but the game loop is boring, it's going around collecting parts. What else can make this process of getting to the city fun?
+- **perf_17** — 2026-09-29 20:08:03 — avg 43.5 ms (23 FPS), worst 50.0 ms, draw calls 517, triangles 4.40M, objects 910, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    -6.2  Y    -0.0  Z   -12.7  Facing  W  269°  Camera  W  263°  Pitch    -12°
+  - **Note:** oooh I know, a metal detector and digging. I want some inspiration or even a reference to the show Detectorists. Instead of finding spinning objects, we're digging them up or smashing them out of boxes that diagetically make sense for this world
+- **perf_18** — 2026-09-29 20:15:36 — avg 25.4 ms (39 FPS), worst 31.7 ms, draw calls 362, triangles 2.60M, objects 730, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    +3.0  Y    +5.0  Z   -81.1  Facing  SW 237°  Camera  NW 312°  Pitch     +7°
+  - **Note:** I am only here because of tiny mode. Provide a map and some sort of documentation about what items are needed to get to this point without tiny mode.
+- **perf_19** — 2026-09-29 20:17:14 — avg 21.9 ms (46 FPS), worst 24.5 ms, draw calls 418, triangles 1.87M, objects 982, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    +0.4  Y    +6.8  Z   -85.6  Facing  N  000°  Camera  N  003°  Pitch     -3°
+  - **Note:** There needs to be a block and dodge mechanic as well for the enemy attack turn. loved the space circle. lets keep refining this, really good for a first attempt
+- **perf_20** — 2026-09-29 20:25:43 — avg 22.0 ms (45 FPS), worst 22.3 ms, draw calls 311, triangles 2.28M, objects 677, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X   +23.6  Y    +1.1  Z   -59.3  Facing  E  081°  Camera  SE 114°  Pitch    -39°
+  - **Note:** like that it's buried in the dirt. cable should plug in higher on the cylinder
+- **perf_21** — 2026-09-29 20:27:28 — avg 47.9 ms (21 FPS), worst 62.7 ms, draw calls 510, triangles 3.66M, objects 871, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    -1.9  Y   +20.7  Z   -14.1  Facing  NW 308°  Camera  W  289°  Pitch    -25°
+  - **Note:** just a perf test in god mode
