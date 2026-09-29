@@ -19,6 +19,8 @@ const COLLECTIBLE_SCENE := "res://scenes/props/collectible_part.tscn"
 const GIANT_SCENE := "res://scenes/props/fallen_giant.tscn"
 const CRATE_SCENE := "res://scenes/props/crate.tscn"
 const BURIED_SCENE := "res://scenes/props/buried_find.tscn"
+const WEEDS_SCENE := "res://scenes/props/weed_patch.tscn"
+const WRECK_SCENE := "res://scenes/props/wreck.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
 const BREAKABLE_SCRIPT := "res://scripts/interact/breakable.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
@@ -135,6 +137,15 @@ func _initialize() -> void:
 				var find := _instance(BURIED_SCENE, finds, "Find_%s" % o["id"], xf)   # named by design id: its save flag is its path
 				find.set("item_id", o["item"])
 				find.set("amount", int(o.get("amount", 1)))
+			"weeds", "container", "wreck":
+				# something to recover inside: cut the weeds, smash the crate, salvage the wreck
+				if finds == null:
+					finds = _group("Finds")
+				var scene: String = {"weeds": WEEDS_SCENE, "container": CRATE_SCENE, "wreck": WRECK_SCENE}[kind]
+				var holder := _instance(scene, finds, "Find_%s" % o["id"], xf)
+				holder.set("drops", {o["item"]: int(o.get("amount", 1))})
+				if kind == "wreck":
+					holder.set("bonus", o.get("bonus", {}))
 			"crate":
 				_instance(CRATE_SCENE, props, node_name, xf)       # a smashable crate (drops scrap)
 			"scene":

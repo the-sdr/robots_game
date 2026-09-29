@@ -47,6 +47,13 @@ func _ready() -> void:
 		break_flag = "broken:" + String(get_path()).trim_prefix("/root/")
 	if Game.get_flag(break_flag):
 		queue_free()
+		return
+	if not drops.is_empty():
+		add_to_group("detectable")          # something to recover inside: the detector senses it
+
+## Where the detector senses what's inside.
+func detect_position() -> Vector3:
+	return global_position
 
 func accepts(effect: String) -> bool:
 	return effects.has(effect)

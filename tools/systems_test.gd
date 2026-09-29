@@ -1185,6 +1185,51 @@ func _initialize() -> void:
 	check(not feel_rig.laser_firing(), "and stops when it is let go")
 	feel_settings.difficulty = feel_level
 
+	print("== finds: weeds to cut, a crate to smash, a wreck to salvage")
+	var inventory_before_finds: Dictionary = (Game.data["inventory"] as Dictionary).duplicate()
+	var finds_root: Node = world.get_node("GeneratedLevel/Finds")
+	var crate_find: Node3D = finds_root.get_node("Find_clearing_crate")
+	var weeds_find: Node3D = finds_root.get_node("Find_clearing_weeds")
+	var wreck_find: Node3D = finds_root.get_node("Find_clearing_wreck")
+	check(crate_find.is_in_group("detectable") and weeds_find.is_in_group("detectable") and wreck_find.is_in_group("detectable"),
+		"the detector senses the crate, the weeds and the wreck")
+	var hit_from: Vector3 = crate_find.global_position + Vector3(1.5, 0, 0)
+	check(not weeds_find.apply("smash", 50.0, hit_from), "weeds shrug off the smasher")
+	var blades_before: int = Game.count("blade_strip")
+	for i in 2:
+		weeds_find.apply("cut", 26.0, hit_from)
+	await process_frame
+	check(Game.count("blade_strip") == blades_before + 1 and not is_instance_valid(weeds_find), "cut away, the weeds give up what they hid")
+	var scrap_in_crate: int = Game.count("scrap_metal")
+	for i in 2:
+		crate_find.apply("smash", 34.0, hit_from)
+	await process_frame
+	check(Game.count("scrap_metal") == scrap_in_crate + 2, "the crate smashes open: 2 scrap")
+	var servos_before: int = Game.count("servo_motor")
+	var lenses_before: int = Game.count("optic_lens")
+	for i in 4:
+		wreck_find.apply("cut", 26.0, hit_from)
+	await process_frame
+	check(is_instance_valid(wreck_find) and wreck_find.salvaged and not wreck_find.is_in_group("detectable") and Game.count("servo_motor") == servos_before + 1 and Game.count("optic_lens") == lenses_before,
+		"salvaged with the cutter: a servo motor, and the wreck stays, stripped")
+	check(not wreck_find.apply("cut", 26.0, hit_from), "nothing more in a stripped wreck")
+	var spare_wreck: StaticBody3D = load("res://scenes/props/wreck.tscn").instantiate()
+	spare_wreck.set("drops", {"servo_motor": 1})
+	spare_wreck.set("bonus", {"optic_lens": 1})
+	spare_wreck.set("break_flag", "salvaged:test_wreck")
+	world.add_child(spare_wreck)
+	spare_wreck.global_position = wreck_find.global_position + Vector3(0, 0, 4.0)
+	await process_frame
+	var seam: Vector2i = spare_wreck.trace_progress()
+	for k in seam.y:
+		spare_wreck.burn_at(spare_wreck.trace_point(k), 0.35, hit_from, 30.0)
+	await process_frame
+	check(seam.y >= 3 and spare_wreck.salvaged and Game.count("optic_lens") == lenses_before + 1 and Game.count("servo_motor") == servos_before + 2,
+		"salvaged with the laser along its %d-part seam: the servo and a bonus optic lens" % seam.y)
+	spare_wreck.queue_free()
+	Game.data["inventory"] = inventory_before_finds      # the sections below count parts from zero
+	Game.inventory_changed.emit()
+
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
 	var pickup_path := String(pickup.get_path())

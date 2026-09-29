@@ -531,7 +531,8 @@ independent so they land in any order. Owner decisions:
   `materials/terrain_painterly.tres` at runtime (never saved; `_exit_tree`
   resets them). Up to 12 spots (the shader's array size). Shaders can't be
   checked headless: the owner's playtest is the first look.
-- **Finds** come from a design's `finds.items` (kind `buried` so far):
+- **Finds** come from a design's `finds.items` (kinds `buried`, `weeds`,
+  `container`, `wreck`; a wreck's `bonus` is extra loot when the laser strips it):
   forest_build emits them, level_bake instances `scenes/props/buried_find.tscn`
   under `GeneratedLevel/Finds` named `Find_<id>` (the save flag is the path, so
   keep ids stable). A rebake re-serialises every chunk `.res` with no real

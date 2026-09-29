@@ -52,7 +52,12 @@
       **Playtest:** does each tool feel different? Brambles in one or two good
       cuts? Laser aiming OK with mouse and right stick?
 - [ ] Next: link fights to the tools (owner: "getting loot teaches you how to fight").
-- [ ] Phase D: find types - weeds (cut), containers (smash), wrecks (salvage; laser = better loot).
+- [x] Phase D: find types. Anything breakable with loot inside is detectable
+      (crates, rubble...). New: weed patches (cut them away), wrecks (salvage
+      with the cutter; with the laser swept along the seam you get a bonus
+      part; the wreck stays, stripped). Test set in the Dry Clearing: weeds
+      (blade strip), a crate (2 scrap), a wreck (servo motor, + optic lens by
+      laser). **Playtest:** do the weeds and the wreck read as what they are?
 - [x] F3 also saves a screenshot (playtest/shots/save_N.jpg, 1280 wide, named on
       the entry's line) of what was on screen when F3 was pressed. Commit them
       with the logs; read them when reviewing notes.

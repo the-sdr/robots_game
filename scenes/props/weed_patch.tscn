@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interact/breakable.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_nature/Grass_Wispy_Tall.gltf" id="2"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_nature/Grass_Common_Tall.gltf" id="3"]
+[ext_resource type="PackedScene" path="res://assets/quaternius_nature/Plant_1_Big.gltf" id="4"]
+
+[sub_resource type="BoxShape3D" id="Shape_weeds"]
+size = Vector3(1.6, 1.0, 1.6)
+
+[node name="WeedPatch" type="StaticBody3D"]
+script = ExtResource("1")
+effects = PackedStringArray("cut")
+health = 40.0
+debris_colour = Color(0.3, 0.5, 0.15, 1)
+debris_count = 30
+hit_notice = "Tangled weeds, taller than you. Something sharp would clear them."
+display_name = "the weeds"
+chunk_count = 0
+
+[node name="Wispy1" parent="." instance=ExtResource("2")]
+transform = Transform3D(1.8, 0, 0, 0, 2.2, 0, 0, 0, 1.8, -0.4, 0, -0.3)
+
+[node name="Wispy2" parent="." instance=ExtResource("2")]
+transform = Transform3D(-0.9, 0, 1.56, 0, 2.4, 0, -1.56, 0, -0.9, 0.35, 0, 0.3)
+
+[node name="Common1" parent="." instance=ExtResource("3")]
+transform = Transform3D(1.4, 0, 1.4, 0, 2.0, 0, -1.4, 0, 1.4, 0.4, 0, -0.4)
+
+[node name="Common2" parent="." instance=ExtResource("3")]
+transform = Transform3D(-1.9, 0, 0, 0, 2.1, 0, 0, 0, -1.9, -0.35, 0, 0.45)
+
+[node name="Plant" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, 0)
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("Shape_weeds")

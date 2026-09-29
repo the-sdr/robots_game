@@ -331,6 +331,8 @@ def main():
                 draw.rectangle([x - 8, z - 8, x + 8, z + 8], fill=(150, 130, 110), outline=INK, width=2)
             elif o["kind"] == "collectible":
                 draw.regular_polygon((x, z, 8), 5, fill=(240, 180, 30), outline=INK)
+            elif o["kind"] in ("weeds", "container", "wreck"):
+                draw.rectangle([x - 5, z - 5, x + 5, z + 5], outline=(170, 60, 20), width=3)   # a box: find inside
             elif o["kind"] == "buried":
                 draw.line([x - 6, z - 6, x + 6, z + 6], fill=(170, 60, 20), width=3)      # X marks the spot
                 draw.line([x - 6, z + 6, x + 6, z - 6], fill=(170, 60, 20), width=3)

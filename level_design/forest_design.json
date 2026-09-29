@@ -1179,7 +1179,7 @@
   }
  ],
  "finds": {
-  "_about": "Things to recover that the detector finds (scripts/detector.gd). kind 'buried': a faint soil patch; the robot digs it up (interact). First set: a detector test near the start (owner, 2026-09-29).",
+  "_about": "Things to recover that the detector finds (scripts/detector.gd). kind 'buried': a soil patch the robot digs up (interact); 'weeds': cut them away; 'container': smash it open; 'wreck': salvage it with the cutter or laser ('bonus' = extra loot for the laser). First set: a test near the start (owner, 2026-09-29).",
   "items": [
    {
     "id": "gate_scrap",
@@ -1246,6 +1246,43 @@
     "item": "power_cell",
     "amount": 1,
     "note": "South-west edge of the Dry Clearing."
+   },
+   {
+    "id": "clearing_weeds",
+    "kind": "weeds",
+    "pos": [
+     26.5,
+     -58.5
+    ],
+    "item": "blade_strip",
+    "amount": 1,
+    "note": "A clump of tall weeds on the clearing's south-east side. Cut them away."
+   },
+   {
+    "id": "clearing_crate",
+    "kind": "container",
+    "pos": [
+     19.0,
+     -53.0
+    ],
+    "item": "scrap_metal",
+    "amount": 2,
+    "note": "An old crate on the clearing's north-west side. Smash it open."
+   },
+   {
+    "id": "clearing_wreck",
+    "kind": "wreck",
+    "pos": [
+     24.0,
+     -60.5
+    ],
+    "heading": 30,
+    "item": "servo_motor",
+    "amount": 1,
+    "bonus": {
+     "optic_lens": 1
+    },
+    "note": "A dead machine at the clearing's south edge. Salvage it; with the laser, along the seam, it gives more."
    }
   ]
  },
