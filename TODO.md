@@ -39,6 +39,16 @@
       world (Detectorists as inspiration). Memories are computer parts it finds.
       Open: where the detector comes from, the buttons, what is buried first,
       and whether the labyrinth layout should open up (open world / hybrid).
+      Owner liked the "sweep" rhythm: a wave rolls out every few seconds,
+      warm spots flare and tighten as you close in. Finds come out different
+      ways: dug up, salvaged (wrecks, defeated robots), hidden in weeds to cut
+      away, inside containers to smash.
+- [ ] **Tools that each feel different to use (owner, 2026-09-29).** Cutting:
+      hold the button, release before it overheats. Bashing: rapid presses.
+      Laser, and more tools later, each with their own feel. The game must
+      teach each one well: an elegant, non-diegetic controls popup (the robot
+      knows how; the player doesn't) that shows which button does what,
+      keyboard or pad. Design first, with the owner.
 - [ ] **Design with the owner: content beyond the tree line for the tiny
       robot** (the escape stays: the owner likes it). Enough to fill a full
       charge. Question raised: procedural content from a point outward, to
