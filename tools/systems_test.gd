@@ -1109,7 +1109,7 @@ func _initialize() -> void:
 
 	print("== playtest notes (F3 / F4 ask for a note)")
 	var log_dir := "res://.godot/test_playtest"
-	for f in ["playtest/saves.md", "playtest/perf.md"]:
+	for f in ["playtest/saves.md", "playtest/perf.md", "playtest/shots/save_77.jpg"]:
 		if FileAccess.file_exists(log_dir.path_join(f)):
 			DirAccess.remove_absolute(log_dir.path_join(f))
 	var stand_in := Node3D.new()           # the overlay only needs a "player" to read a position from
@@ -1164,6 +1164,12 @@ func _initialize() -> void:
 	var perf_text := FileAccess.get_file_as_string(log_dir.path_join("playtest/perf.md"))
 	check(perf_text.contains("- **perf_1** —") and perf_text.contains(Engine.get_architecture_name()) and perf_text.contains("\n  - **Note:** fps drops by the ford"),
 		"perf_1 carries the machine and the note")
+	var fake_screen := Image.create(1920, 1080, false, Image.FORMAT_RGB8)
+	fake_screen.fill(Color(0.3, 0.5, 0.2))
+	var shot_rel: String = overlay.save_shot(fake_screen, "save_77")
+	var shot := Image.load_from_file(ProjectSettings.globalize_path(log_dir.path_join(shot_rel))) if shot_rel != "" else null
+	check(shot_rel == "playtest/shots/save_77.jpg" and shot != null and shot.get_width() == 1280 and shot.get_height() == 720,
+		"F3's screenshot is saved as a 1280-wide jpg next to the logs (%s)" % shot_rel)
 	overlay.free()
 	stand_in.free()
 	Game.delete_save()

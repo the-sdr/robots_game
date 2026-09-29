@@ -66,7 +66,8 @@ ARM64 = Surface).
   Compass: North = −Z, East = +X, South = +Z, West = −X; headings clockwise from North.
 - In game: **F2** overlay (position, facing, camera heading, pitch, FPS),
   **F3** saves a position (`playtest/saves.md`: save_1, save_2…) with a typed
-  playtest note (`- **Note:**` line under it), **F4** logs a
+  playtest note (`- **Note:**` line under it) and a screenshot
+  (`playtest/shots/save_N.jpg`, look at it), **F4** logs a
   5-second performance sample (`playtest/perf.md`: perf_1…), **F7** god mode
   (double-tap Space to fly, Space up / Shift down, no collision).
 - Talk about places as coordinates, save names, design node names

@@ -42,7 +42,9 @@
 - [ ] Phase B: button pictures (keyboard/pad), tool cards, "Tools & controls" page.
 - [ ] Phase C: tools with their own feel (cutter hold/heat, smasher rapid, laser trace).
 - [ ] Phase D: find types - weeds (cut), containers (smash), wrecks (salvage; laser = better loot).
-- [ ] F3 also saves a screenshot next to its entry (owner, 2026-09-29).
+- [x] F3 also saves a screenshot (playtest/shots/save_N.jpg, 1280 wide, named on
+      the entry's line) of what was on screen when F3 was pressed. Commit them
+      with the logs; read them when reviewing notes.
 - [ ] **Detector ("robot vision"), design in progress with the owner.** Owner's
       direction so far: visual only (deaf-friendly: no beeps needed to play);
       the overlay shows the robot's view - a grid with contours following the

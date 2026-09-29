@@ -16,6 +16,9 @@ extends CanvasLayer
 # the note, Esc = log it without). The note is written on its own line under
 # the entry, so feedback is read from these files instead of pasted into chat.
 # F4 measures first and asks afterwards: an open text box would skew the numbers.
+# F3 also keeps a screenshot of what was on screen when it was pressed (before
+# the note box opens): playtest/shots/save_N.jpg, named on the entry's line, so
+# Claude can see what the player saw (owner, 2026-09-29).
 #
 # While the player's god mode (F7) is on, a status line is shown as well.
 
@@ -136,6 +139,7 @@ func _save_position() -> void:
 	var details: String = "  ".join(_describe_position()) + "  FPS %d" % roundi(1000.0 / maxf(_frame_ms, 0.1))
 	_ask_note({
 		"file": SAVE_FILE, "prefix": "save", "details": details, "notice": "Saved %s",
+		"shot": _grab_screen(),
 		"header": "# Playtest saves (F3). North = -Z, East = +X. Headings clockwise from North.",
 		"title": "%s at X %.1f  Z %.1f: what's here?",
 	})
@@ -204,9 +208,40 @@ func _finish_note(note: String) -> void:
 	Input.mouse_mode = _old_mouse_mode
 	var entry: Dictionary = _pending
 	_pending = {}
+	if entry.get("shot") != null:
+		var entry_name := "%s_%d" % [entry["prefix"], _highest_number(_read_log(entry["file"]), entry["prefix"]) + 1]
+		var shot_path := save_shot(entry["shot"], entry_name)
+		if shot_path != "":
+			entry["details"] = String(entry["details"]) + "  —  shot: " + shot_path
 	var written := _append_entry(entry["file"], entry["prefix"], entry["header"], entry["details"], note.strip_edges())
 	if written != "":
 		show_notice(String(entry["notice"]) % written)
+
+## What is on screen right now (null when nothing is rendered, e.g. headless).
+func _grab_screen() -> Image:
+	if DisplayServer.get_name() == "headless":
+		return null
+	var texture := get_viewport().get_texture()
+	if texture == null:
+		return null
+	var image := texture.get_image()
+	return image if image != null and not image.is_empty() else null
+
+const SHOT_WIDTH := 1280         # screenshots are scaled down to this: enough to read, small in git
+
+## Saves a screenshot as playtest/shots/<entry>.jpg and returns that path (relative
+## to the log folder), or "" if it couldn't be written.
+func save_shot(image: Image, entry_name: String) -> String:
+	var relative := "playtest/shots/%s.jpg" % entry_name
+	var path := _log_path(relative)
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var copy := image.duplicate() as Image
+	if copy.get_width() > SHOT_WIDTH:
+		copy.resize(SHOT_WIDTH, roundi(copy.get_height() * float(SHOT_WIDTH) / copy.get_width()), Image.INTERPOLATE_BILINEAR)
+	if copy.save_jpg(path, 0.82) != OK:
+		push_warning("Could not save screenshot %s" % path)
+		return ""
+	return relative
 
 func _build_note_box() -> void:
 	var style := StyleBoxFlat.new()
