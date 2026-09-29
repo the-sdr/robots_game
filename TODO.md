@@ -23,6 +23,9 @@
 - [x] Charge bar: a ring blinks only while energy moves (docked, or sun filling).
 - [x] Dock cable: reels out of the post into the robot's back, and back in.
 - [x] Fall rescue: falling off the world puts the robot back on solid ground.
+- [x] Battery by difficulty (evening playtest): a full battery lasts 15 / 10 / 5
+      minutes of driving on Easy / Medium / Hard (was under 2 minutes).
+      **Playtest:** does Easy feel relaxed now? Are chargers still worth finding?
 - [ ] **Design with the owner: content beyond the tree line for the tiny
       robot** (the escape stays: the owner likes it). Enough to fill a full
       charge. Question raised: procedural content from a point outward, to

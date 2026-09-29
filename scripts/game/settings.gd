@@ -4,9 +4,10 @@ extends Node
 # not to the robot's progress, so they live outside the save (user://settings.cfg)
 # and can change any time from the main menu or the pause menu.
 #
-# Difficulty only changes fights. Easy is tuned so a six-year-old wins without
-# trouble (PROJECT_VISION.md, "Who it's for"): slow timing ring, wide windows,
-# a missed press still hits, a big "NOW!" cue, and the tutorial can't be lost.
+# Difficulty changes fights and battery life. Easy is tuned so a six-year-old
+# wins without trouble (PROJECT_VISION.md, "Who it's for"): slow timing ring,
+# wide windows, a missed press still hits, a big "NOW!" cue, the tutorial
+# can't be lost, and a full battery lasts 15 minutes of driving.
 
 signal difficulty_changed(level: String)
 
@@ -21,16 +22,18 @@ const DEFAULT_LEVEL := "easy"
 ## now_cue: flash a big "NOW!" when it's time to press.
 ## enemy_damage / enemy_health: multipliers on every enemy.
 ## tutorial_knockout: whether the tutorial fight can be lost at all.
+## battery_minutes: how long a full battery lasts while driving (owner's
+## playtest, 2026-09-29: Easy 15, Medium 10, Hard 5; it was under 2 minutes).
 const DIFFICULTY := {
 	"easy": {"name": "Easy", "ring_speed": 0.5, "good_window": 0.40, "perfect_window": 0.15,
 		"miss_factor": 1.0, "defend_window": 0.50, "now_cue": true,
-		"enemy_damage": 0.5, "enemy_health": 0.7, "tutorial_knockout": false},
+		"enemy_damage": 0.5, "enemy_health": 0.7, "tutorial_knockout": false, "battery_minutes": 15.0},
 	"medium": {"name": "Medium", "ring_speed": 1.0, "good_window": 0.18, "perfect_window": 0.07,
 		"miss_factor": 0.6, "defend_window": 0.20, "now_cue": false,
-		"enemy_damage": 1.0, "enemy_health": 1.0, "tutorial_knockout": true},
+		"enemy_damage": 1.0, "enemy_health": 1.0, "tutorial_knockout": true, "battery_minutes": 10.0},
 	"hard": {"name": "Hard", "ring_speed": 1.3, "good_window": 0.10, "perfect_window": 0.04,
 		"miss_factor": 0.4, "defend_window": 0.12, "now_cue": false,
-		"enemy_damage": 1.4, "enemy_health": 1.3, "tutorial_knockout": true},
+		"enemy_damage": 1.4, "enemy_health": 1.3, "tutorial_knockout": true, "battery_minutes": 5.0},
 }
 
 var difficulty: String = DEFAULT_LEVEL

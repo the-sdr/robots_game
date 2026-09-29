@@ -293,7 +293,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_update_camera_distance(delta)
 	if not god_mode:
-		Energy.drain((Energy.DRIVE_DRAIN if move_dir.length() > 0.1 else Energy.IDLE_DRAIN) * delta * (TINY_DRAIN if tiny else 1.0))
+		Energy.drain((Energy.drive_drain() if move_dir.length() > 0.1 else Energy.idle_drain()) * delta * (TINY_DRAIN if tiny else 1.0))
 
 # --- the hover pack (Catalog tool "hover", from Pythia's lift fans and gyro) -----------
 const HOVER_LIFT = 2.2          # m/s up while below the ceiling height

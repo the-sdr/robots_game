@@ -8,8 +8,7 @@ signal changed(current: float, maximum: float)
 signal depleted
 
 const MAX := 100.0
-const IDLE_DRAIN := 0.08      # per second, just being switched on
-const DRIVE_DRAIN := 0.9      # per second while driving: a full battery is ~110 s, ~330 m at 3 m/s (door to hill crest is 111 m)
+const IDLE_SHARE := 0.09      # standing still drains this share of the driving rate
 const LOW_WARNING := 20.0
 
 var current: float = MAX
@@ -21,6 +20,16 @@ func reset() -> void:
 	_warned_low = false
 	_was_empty = false
 	changed.emit(current, MAX)
+
+## Per second while driving: a full battery lasts the difficulty's
+## battery_minutes (Settings). At 3 m/s, 15 minutes is 2.7 km; door to hill
+## crest is 111 m.
+func drive_drain() -> float:
+	return MAX / (float(Settings.tuning()["battery_minutes"]) * 60.0)
+
+## Per second just being switched on.
+func idle_drain() -> float:
+	return drive_drain() * IDLE_SHARE
 
 func fraction() -> float:
 	return current / MAX

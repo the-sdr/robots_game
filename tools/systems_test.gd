@@ -189,6 +189,14 @@ func _initialize() -> void:
 	Energy.drain(1000.0)
 	check(Energy.current == 0.0 and got_depleted[0], "drain to zero emits depleted")
 	check(Energy.add(25.0) == 25.0 and Energy.current == 25.0, "add returns what fit")
+	var settings_node: Node = root.get_node("Settings")
+	var level_before: String = settings_node.difficulty
+	for level in {"easy": 15.0, "medium": 10.0, "hard": 5.0}.keys():
+		settings_node.difficulty = level
+		var minutes: float = Energy.MAX / Energy.drive_drain() / 60.0
+		check(absf(minutes - {"easy": 15.0, "medium": 10.0, "hard": 5.0}[level]) < 0.01 and Energy.idle_drain() < Energy.drive_drain() * 0.1,
+			"%s: a full battery lasts %.1f minutes of driving" % [level, minutes])
+	settings_node.difficulty = level_before
 
 	print("== world: new game, dock, save, load")
 	Game.new_game()
