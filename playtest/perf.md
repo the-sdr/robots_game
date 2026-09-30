@@ -31,3 +31,5 @@
   - **Note:** like that it's buried in the dirt. cable should plug in higher on the cylinder
 - **perf_21** — 2026-09-29 20:27:28 — avg 47.9 ms (21 FPS), worst 62.7 ms, draw calls 510, triangles 3.66M, objects 871, mobile, x86_64, Intel(R) UHD Graphics, vulkan  —  X    -1.9  Y   +20.7  Z   -14.1  Facing  NW 308°  Camera  W  289°  Pitch    -25°
   - **Note:** just a perf test in god mode
+- **perf_22** — 2026-09-30 18:37:57 — avg 33.1 ms (30 FPS), worst 41.1 ms, draw calls 490, triangles 3.64M, objects 817, mobile, arm64, Qualcomm(R) Adreno(TM) X1-45 GPU, vulkan  —  X    -2.2  Y    -1.2  Z   -46.4  Facing  NW 324°  Camera  NW 320°  Pitch     -9°
+  - **Note:** random perf test on Surface Pro

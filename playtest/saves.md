@@ -91,3 +91,29 @@
   - **Note:** problem is the story prompts are still flashing fast. let's have B on controller to dismiss and an appropriate keyboard key like Esc. Overlay rather than locking the game is good. if user doesn't close it, a new prompt can just replace the old one
 - **save_49** — 2026-09-30 14:38:15 — X   -32.2  Y    -1.6  Z   -34.1  Facing  SW 243°  Camera  SW 237°  Pitch    -22°  FPS 36  —  shot: playtest/shots/save_49.jpg
   - **Note:** why isn't detector on full for this? Should there not be somethign to do to get this item?
+- **save_50** — 2026-09-30 18:14:24 — X    -0.7  Y    +0.1  Z    -4.1  Facing  SW 225°  Camera  SW 220°  Pitch    -28°  FPS 27  —  shot: playtest/shots/save_50.jpg
+  - **Note:** solar panel reflection was interesting
+- **save_51** — 2026-09-30 18:15:26 — X    -0.7  Y    +0.1  Z    -4.1  Facing  SW 225°  Camera  NW 308°  Pitch     -6°  FPS 17  —  shot: playtest/shots/save_51.jpg
+  - **Note:** charging light isn't blinking! are you doing the bottom ring and the object in the way stops the viewer seeing it? make the top ring blink maybe?
+- **save_52** — 2026-09-30 18:22:02 — X    +0.7  Y    +0.0  Z   -11.1  Facing  S  170°  Camera  SE 136°  Pitch    -21°  FPS 42  —  shot: playtest/shots/save_52.jpg
+  - **Note:** digging was a bit too far away. robot should be on top of that spot basically to make it happen
+- **save_53** — 2026-09-30 18:25:22 — X   +12.3  Y    -0.2  Z    +4.5  Facing  S  176°  Camera  S  165°  Pitch     +8°  FPS 40  —  shot: playtest/shots/save_53.jpg
+  - **Note:** can we pivot the robot head up and down slightly with the look movement? so that the light points a bit up if you look up. doesn't need to rotate a full 90 or even 45 degrees. just a nice touch. we are going for immersion in thsi game
+- **save_54** — 2026-09-30 18:26:16 — X    +3.7  Y    +0.0  Z    -5.2  Facing  S  169°  Camera  S  172°  Pitch     -4°  FPS 37  —  shot: playtest/shots/save_54.jpg
+  - **Note:** random idea to add to dodo: Infrared Light, Xray, Microwave as optic tool sets. For use as tools and weapons
+- **save_55** — 2026-09-30 18:29:26 — X   -22.3  Y    -0.4  Z   -28.1  Facing  NE 048°  Camera  NE 055°  Pitch    -17°  FPS 22  —  shot: playtest/shots/save_55.jpg
+  - **Note:** I don't think I was prompted to use the detector. This should happen upon leaving the house. The escape does a great job of explaining tool crafting and bashing. As soon as you're out we need to tell the player how to scan
+- **save_56** — 2026-09-30 18:30:14 — X   -22.3  Y    -0.4  Z   -28.1  Facing  NE 048°  Camera  NE 063°  Pitch    -18°  FPS 22  —  shot: playtest/shots/save_56.jpg
+  - **Note:** also I think scanner should be right mouse button rather than on a 5 second timer. make this change if right mouse button isn't used. also controller LT or probably LB ideally
+- **save_57** — 2026-09-30 18:36:47 — X    -3.2  Y    -0.4  Z   -50.6  Facing  N  340°  Camera  NW 326°  Pitch     -4°  FPS 27  —  shot: playtest/shots/save_57.jpg
+  - **Note:** I completely forgot, it should be that going to the dock at night skips the night until dawn optionally
+- **save_58** — 2026-09-30 18:37:34 — X    -2.6  Y    -0.6  Z   -50.0  Facing  NW 319°  Camera  NW 317°  Pitch    -16°  FPS 29  —  shot: playtest/shots/save_58.jpg
+  - **Note:** let's make blue or colour blind friendly alt colour from the golden light to show where there is a charging station
+- **save_59** — 2026-09-30 18:39:13 — X    -2.6  Y    -0.7  Z   -50.0  Facing  NW 315°  Camera  NW 318°  Pitch    -18°  FPS 32  —  shot: playtest/shots/save_59.jpg
+  - **Note:** the inventory screen tool selection is not intuitive
+- **save_60** — 2026-09-30 18:40:02 — X    -6.7  Y    -1.9  Z   -45.4  Facing  SW 241°  Camera  SW 240°  Pitch    -19°  FPS 30  —  shot: playtest/shots/save_60.jpg
+  - **Note:** I have laser equipped, why can't I see it firing? also add inventory to F3 capture so you know what items I have
+- **save_61** — 2026-09-30 18:44:50 — X   -37.9  Y    -1.0  Z   -37.5  Facing  S  181°  Camera  S  185°  Pitch    -27°  FPS 45  —  shot: playtest/shots/save_61.jpg
+  - **Note:** Let's make this setting a part of the world where night time is shorter. Let's call it summer in the mid north or mid south around the solstice. 15/24 hours daylight
+- **save_62** — 2026-09-30 18:46:18 — X   +23.8  Y    +1.0  Z   -59.6  Facing  E  084°  Camera  NW 335°  Pitch    -28°  FPS 28  —  shot: playtest/shots/save_62.jpg
+  - **Note:** also F3 doesn't work when a menu is open. I need it to show you what's on the menu screen. I have cutter equipped right now. There is no action. Instructions have been great though
