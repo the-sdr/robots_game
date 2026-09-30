@@ -179,6 +179,11 @@ func close_message() -> void:
 
 # Before the player's pause: with a story card up, B / Esc closes the card.
 func _input(event: InputEvent) -> void:
+	if _ask_panel != null:
+		if event.is_action_pressed("ui_cancel"):
+			answer(false)
+			get_viewport().set_input_as_handled()
+		return
 	var player := get_tree().get_first_node_in_group("player")
 	var fighting: bool = player != null and bool(player.get("in_combat"))
 	if message_panel.visible and event.is_action_pressed("ui_cancel") and not get_tree().paused and not fighting:
@@ -377,6 +382,86 @@ func _check_first_parts() -> void:
 			Game.set_flag("hint_ready:" + recipe_id, true)
 			show_message("Ready to build", "You have everything for the %s. Open the build screen (%s) and pick it." % [recipe["name"], Glyphs.label("inventory")])
 			return
+
+# --- a yes / no question, and a fade to black ------------------------------------------------
+var _ask_panel: PanelContainer
+var _ask_yes: Callable
+var _fader: ColorRect
+
+## A small question over the game (which waits): yes runs `on_yes`. A / Enter
+## says yes, B / Esc says no; the buttons work with the mouse too.
+func ask(title: String, text: String, yes_text: String, no_text: String, on_yes: Callable) -> void:
+	const STYLE := preload("res://scripts/ui/ui_style.gd")
+	if _ask_panel != null:
+		_ask_panel.queue_free()
+	_ask_yes = on_yes
+	var centre := CenterContainer.new()
+	centre.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_ask_panel = PanelContainer.new()
+	_ask_panel.name = "AskPanel"
+	_ask_panel.add_theme_stylebox_override("panel", STYLE.panel_style(0.7))
+	_ask_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	_ask_panel.add_child(box)
+	var head := STYLE.label(title, 30, STYLE.CYAN)
+	head.add_theme_font_override("font", STYLE.title_font())
+	box.add_child(head)
+	var body := STYLE.label(text, 20)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.custom_minimum_size = Vector2(520, 0)
+	box.add_child(body)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_END
+	row.add_theme_constant_override("separation", 10)
+	box.add_child(row)
+	var no := Button.new()
+	no.text = "%s  (%s)" % [no_text, Glyphs.label("ui_cancel")]
+	no.pressed.connect(answer.bind(false))
+	row.add_child(no)
+	var yes := Button.new()
+	yes.text = "%s  (%s)" % [yes_text, Glyphs.label("ui_accept")]
+	yes.pressed.connect(answer.bind(true))
+	row.add_child(yes)
+	var holder := CanvasLayer.new()
+	holder.layer = 21
+	holder.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(holder)
+	holder.add_child(centre)
+	centre.add_child(_ask_panel)
+	_ask_panel.set_meta("holder", holder)
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	yes.grab_focus()
+
+func asking() -> bool:
+	return _ask_panel != null
+
+## The answer to ask() (also for tests).
+func answer(yes: bool) -> void:
+	if _ask_panel == null:
+		return
+	(_ask_panel.get_meta("holder") as Node).queue_free()
+	_ask_panel = null
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if yes and _ask_yes.is_valid():
+		_ask_yes.call()
+
+## Fades the screen to `alpha` (1 = black) over `seconds`.
+func fade(alpha: float, seconds: float) -> void:
+	if _fader == null:
+		var holder := CanvasLayer.new()
+		holder.layer = 30
+		add_child(holder)
+		_fader = ColorRect.new()
+		_fader.color = Color(0, 0, 0, 0)
+		_fader.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_fader.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(_fader)
+	var tween := create_tween()
+	tween.tween_property(_fader, "color:a", alpha, seconds)
+	await tween.finished
 
 ## The pause menu's Tools & controls page.
 func open_controls_page() -> void:

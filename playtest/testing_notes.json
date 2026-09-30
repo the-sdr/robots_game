@@ -10,6 +10,11 @@
    "ask": "Is the pace right, or too slow now? Does it freeze again? If it does, push the newest log from AppData (it now records every step of the fight)."
   },
   {
+   "title": "Resting through the night",
+   "try": "Dock at a charger at night: it asks whether to rest until morning. Yes skips to 07:12 with the battery topped up from the charger; Not now just docks.",
+   "ask": "Does it feel right? Should nights also be shorter (summer, ~15 hours of daylight)?"
+  },
+  {
    "title": "The detector",
    "try": "Press to scan: right mouse button (or R), LB on the pad. Walk towards a warm spot and scan again until it is a tight ring, then dig (E / X). Try the garden gate first, then the Dry Clearing. (Tools now cycle on RB / Q.)",
    "ask": "Does scanning on a button feel better than the timer did? Too bright, too faint? Does the warm haze above the trees help from far away?"

@@ -1370,6 +1370,41 @@ func _initialize() -> void:
 		await process_frame
 	check(not help.is_open() and not paused, "B / Esc closes it and play goes on")
 
+	print("== resting through the night at a charger")
+	var rest_hud: CanvasLayer = world.get_node("HUD")
+	var rest_charger: Node3D = world.get_node("HouseCharger")
+	var rest_day: int = Clock.day
+	Clock.time = 0.9                                   # 21:36
+	rest_charger.set("stored", 60.0)
+	Energy.current = 20.0
+	player.global_position = rest_charger.global_position + Vector3(1.2, 0.2, 0)
+	for i in 3:
+		await physics_frame
+	rest_charger.dock(player)
+	await process_frame
+	check(rest_hud.asking() and paused, "docking at night asks: rest until morning?")
+	rest_hud.answer(true)
+	for i in 150:
+		await process_frame
+	check(Clock.day == rest_day + 1 and absf(Clock.time - 0.30) < 0.02 and Energy.current > 79.0, "yes: it's morning, day %d, battery %.0f" % [Clock.day, Energy.current])
+	check(rest_hud.message_title.text.begins_with("Morning"), "and a card says so (%s)" % rest_hud.message_title.text)
+	rest_hud.close_message()
+	rest_charger.undock()
+	Clock.time = 0.9
+	rest_charger.set("stored", 60.0)
+	rest_charger.dock(player)
+	await process_frame
+	check(rest_hud.asking(), "asked again the next night")
+	rest_hud.answer(false)
+	await process_frame
+	check(not paused and Clock.time > 0.85 and bool(player.docked), "no: it just docks, still night")
+	rest_charger.undock()
+	Clock.time = 0.5
+	rest_charger.dock(player)
+	await process_frame
+	check(not rest_hud.asking(), "by day docking asks nothing")
+	rest_charger.undock()
+
 	print("== pickups")
 	var loose: Node = world.get_node("GeneratedLevel/Collectibles")
 	if loose.get_child_count() == 0:

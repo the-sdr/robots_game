@@ -39,7 +39,31 @@ func _ready() -> void:
 		_start_new_game()
 	for c in get_tree().get_nodes_in_group("charger"):
 		c.docked.connect(func(_player: Node3D) -> void: Story.play("copy"))
+		c.docked.connect(_offer_rest.bind(c))
 	Game.flag_changed.connect(_on_flag_changed)
+
+# --- resting through the night (owner, save_57) -------------------------------------------
+## Docking at night asks whether to rest until morning (optional: "Not now" just docks).
+func _offer_rest(_player: Node3D, charger: Node3D) -> void:
+	if Clock.is_day() or _shutting_down:
+		return
+	hud.ask("Night", "It's dark and the sun won't fill any charger until morning. Rest here until morning?",
+		"Rest until morning", "Not now", _rest_until_morning.bind(charger))
+
+## Skips to morning while docked: the robot takes what the charger holds, the
+## copy is saved, and a new day starts.
+func _rest_until_morning(charger: Node3D) -> void:
+	await hud.fade(1.0, 0.6)
+	var wanted: float = Energy.MAX - Energy.current
+	var given: float = minf(wanted, float(charger.get("stored")))
+	Energy.add(given)
+	charger.set("stored", float(charger.get("stored")) - given)
+	Clock.skip_to_morning()
+	Game.save(player, charger.name)
+	print("rested at %s until %s, day %d: gave %.1f" % [charger.name, Clock.time_text(), Clock.day, given])
+	await get_tree().create_timer(0.4).timeout
+	await hud.fade(0.0, 0.8)
+	hud.show_message("Morning, day %d" % Clock.day, "Rested at the %s through the night. Battery %d%%." % [_charger_label(charger.name), roundi(Energy.fraction() * 100.0)])
 
 func _start_new_game() -> void:
 	var home := home_charger()
