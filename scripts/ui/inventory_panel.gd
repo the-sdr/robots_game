@@ -9,29 +9,12 @@ extends Control
 
 @onready var close_button: Button = %CloseButton
 
-## The fight kit: three buttons, one per key 1-3; click to put another built tool in that slot.
-var kit_buttons: Array[Button] = []
 
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	Game.inventory_changed.connect(_refresh)
 	close_button.pressed.connect(toggle)
-	var row := HBoxContainer.new()
-	row.name = "KitRow"
-	row.add_theme_constant_override("separation", 8)
-	var title := Label.new()
-	title.text = "Fight kit (%s / %s / %s in a fight; pick a slot to change it):" % [Glyphs.label("combat_slot_1"), Glyphs.label("combat_slot_2"), Glyphs.label("combat_slot_3")]
-	row.add_child(title)
-	for i in Game.LOADOUT_SIZE:
-		var button := Button.new()
-		button.custom_minimum_size = Vector2(130, 0)
-		button.pressed.connect(func() -> void: Game.cycle_loadout_slot(i))
-		row.add_child(button)
-		kit_buttons.append(button)
-	var vbox: Node = $Center/Panel/VBox
-	vbox.add_child(row)
-	vbox.move_child(row, 1)
 
 # The player is paused while this is open, so Tab and Esc are handled here.
 func _unhandled_input(event: InputEvent) -> void:
@@ -48,7 +31,7 @@ func toggle() -> void:
 		_focus_button()
 
 # A controller needs a focused button for A (ui_accept) to press. Prefers the
-# first buildable recipe, then the fight kit, then Close.
+# first buildable recipe, then a tool to attach, then Close.
 func _focus_button() -> void:
 	var recipes: Array[Button] = []
 	for child in recipes_list.get_children():
@@ -56,16 +39,14 @@ func _focus_button() -> void:
 			recipes.append(child)
 	if not recipes.is_empty():
 		recipes[0].grab_focus()
-	elif not kit_buttons.is_empty() and not kit_buttons[0].disabled:
-		kit_buttons[0].grab_focus()
 	else:
+		for child in items_list.get_children():
+			if child is Button and not child.is_queued_for_deletion() and not (child as Button).disabled:
+				(child as Button).grab_focus()        # a tool to attach
+				return
 		close_button.grab_focus()
 
 func _refresh() -> void:
-	var kit := Game.loadout()
-	for i in kit_buttons.size():
-		kit_buttons[i].text = "%d: %s" % [i + 1, Catalog.tool_name(kit[i]) if kit[i] != "" else "(empty)"]
-		kit_buttons[i].disabled = Game.data["tools"].is_empty()
 	for child in items_list.get_children():
 		child.queue_free()
 	for child in recipes_list.get_children():
@@ -76,9 +57,16 @@ func _refresh() -> void:
 		empty.text = "Nothing yet."
 		items_list.add_child(empty)
 	for tool_id in Game.data["tools"]:
-		var row := Label.new()
-		row.text = "%s  (tool%s)" % [Catalog.tool_name(tool_id), ", attached" if Game.data["equipped_tool"] == tool_id else ""]
-		items_list.add_child(row)
+		var attached: bool = Game.data["equipped_tool"] == tool_id
+		var button := Button.new()
+		button.text = "%s   %s" % [Catalog.tool_name(tool_id), "(attached: %s uses it)" % Glyphs.label("use_tool") if attached else "- attach"]
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.disabled = attached
+		button.pressed.connect(func() -> void:
+			Game.data["equipped_tool"] = tool_id
+			Game.inventory_changed.emit()
+			get_tree().call_group("hud", "show_notice", "Attached the %s" % Catalog.tool_name(tool_id)))
+		items_list.add_child(button)
 	var ids: Array = inventory.keys()
 	ids.sort()
 	for id in ids:

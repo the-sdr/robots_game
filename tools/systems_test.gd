@@ -597,12 +597,14 @@ func _initialize() -> void:
 	vines.free()
 
 	print("== the Hill Sentry: the tutorial fight")
+	var combat_rules: Script = load("res://scripts/combat/combat.gd")
 	var sentry: Node3D = world.get_node("GeneratedLevel/Props/HillSentry")
 	check(sentry.global_position.distance_to(Vector3(3, sentry.global_position.y, -90)) < 0.1, "the sentry stands on the hill")
 	var owner_difficulty: String = settings.difficulty
 	settings.set_difficulty("easy")
 	Energy.current = 100.0
 	Game.data["loadout"] = ["smasher", "cutter", "laser"]
+	Game.data["equipped_tool"] = "smasher"
 	player.global_position = Vector3(0.0, 6.0, -79.0)
 	player.velocity = Vector3.ZERO
 	for i in 30:
@@ -618,20 +620,43 @@ func _initialize() -> void:
 	var frames := 0
 	var presses := 0
 	var coach_seen := {}
+	var switched := false
 	while is_instance_valid(combat) and combat.phase != "done" and frames < 60 * 90:
 		if combat.phase == "coach":
 			coach_seen[combat._coach_title.text] = true
 			combat.dismiss_coach()
 		elif combat.phase == "choose":
-			combat.input_move(0, "")                      # 1: Smash
-		elif combat.phase == "timing" and combat.seconds_to_beat() <= 0.0:
-			combat.input_timing()                         # right on the beat
+			if not switched:                              # RB / Q switches the tool in hand, then back
+				switched = true
+				var rb := InputEventAction.new()
+				rb.action = "cycle_tool"
+				rb.pressed = true
+				Input.parse_input_event(rb)
+				for i in 3:
+					await process_frame
+				check(combat._tool != "smasher" and combat._tools.size() > 1, "RB / Q switches tools on your turn (to the %s)" % combat._tool)
+				combat.select_tool("smasher")
+			combat.start_attack()                         # RT: the smasher in hand
+		elif combat.phase in ["attack", "defend", "timing"]:
+			combat.perform_for_test("perfect")
 			presses += 1
 		await process_frame
 		frames += 1
-	check(coach_seen.has("A fight!") and coach_seen.has("Your turn: pick a tool") and coach_seen.has("Hit on the beat") and coach_seen.has("Its turn: get ready to dodge"),
-		"the first fight stops to teach each step (%s)" % ", ".join(coach_seen.keys()))
-	check(Game.get_flag("defeated:hill_sentry") and Game.count("capacitor") == 1, "Easy: won with good timing, the capacitor dropped (%d frames, %d presses)" % [frames, presses])
+	var coached := ", ".join(coach_seen.keys())
+	check(coach_seen.has("A fight!") and coach_seen.has("Your turn") and coached.contains("The Smasher in a fight") and coached.contains("Its turn: defend with the Smasher"),
+		"the first fight stops to teach each step (%s)" % coached)
+	check(Game.get_flag("defeated:hill_sentry") and Game.count("capacitor") == 0, "Easy: won with the smasher (%d frames, %d patterns); the reward isn't handed over..." % [frames, presses])
+	var plating: Node = sentry.get_parent().get_node_or_null("Salvage_hill_sentry")
+	check(plating != null and plating.is_in_group("detectable"), "...its shield plating fell off beside it: salvage to find")
+	var caps_before: int = Game.count("capacitor")
+	for i in 4:
+		if is_instance_valid(plating) and not plating.salvaged:
+			plating.apply("cut", 26.0, plating.global_position + Vector3(1, 0, 0))
+	check(Game.count("capacitor") == caps_before + 1 and plating.salvaged, "salvaged with the cutter: the capacitor")
+	check(combat_rules.smash_quality(7, false) == "perfect" and combat_rules.smash_quality(4, false) == "good" and combat_rules.smash_quality(4, true) == "perfect"
+		and combat_rules.cut_quality(0.78, false, 0.72, 0.84) == "perfect" and combat_rules.cut_quality(0.5, false, 0.72, 0.84) == "good" and combat_rules.cut_quality(1.0, true, 0.72, 0.84) == "miss"
+		and combat_rules.trace_quality(5) == "perfect" and combat_rules.trace_quality(3) == "good" and combat_rules.share_quality(0.3) == "miss",
+		"each tool's fight scoring: taps, heat, trace, hold")
 	for i in 120:
 		await process_frame
 	check(not player.in_combat and player.camera.current and not is_instance_valid(combat), "the robot drives again with its own camera")
@@ -648,7 +673,9 @@ func _initialize() -> void:
 		if combat.phase == "coach":
 			combat.dismiss_coach()
 		elif combat.phase == "choose":
-			combat.input_move(0, "")
+			combat.start_attack()
+		elif combat.phase in ["attack", "defend", "timing"]:
+			combat.perform_for_test("miss")                # pressing nothing
 		await process_frame
 		frames += 1
 	for i in 150:
@@ -1337,6 +1364,28 @@ func _initialize() -> void:
 	check(caches_ok == 6, "six caches (pump, camera, birdbox, junction box, hose reel, weather station): each smashes open with its part")
 	Game.data["inventory"] = cache_inventory
 	Game.inventory_changed.emit()
+
+	print("== the build screen attaches tools (no fight kit)")
+	var bpanel: Control = world.get_node("HUD/InventoryPanel")
+	Game.add_tool("smasher")
+	Game.add_tool("laser")
+	Game.data["equipped_tool"] = "smasher"
+	Game.inventory_changed.emit()
+	bpanel.toggle()
+	await process_frame
+	var attach_laser: Button = null
+	for child in bpanel.items_list.get_children():
+		if child is Button and not child.is_queued_for_deletion() and (child as Button).text.begins_with("Laser"):
+			attach_laser = child
+	check(attach_laser != null and bpanel.find_child("KitRow", true, false) == null, "tools are buttons on the build screen, and the fight kit row is gone")
+	if attach_laser != null:
+		attach_laser.pressed.emit()
+	await process_frame
+	check(Game.data["equipped_tool"] == "laser", "pressing one attaches it (%s)" % Game.data["equipped_tool"])
+	bpanel.toggle()
+	Game.data["equipped_tool"] = "smasher"
+	Game.inventory_changed.emit()
+	await process_frame
 
 	print("== F1 help: controls, testing notes, the map")
 	var notes: Dictionary = load("res://scripts/ui/help_menu.gd").load_notes()

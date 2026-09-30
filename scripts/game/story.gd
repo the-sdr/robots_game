@@ -72,7 +72,7 @@ const BEATS := {
 	"tiny_over": {"title": "Pop!", "text":
 		"Back to full size. Maybe don't poke him next time. Or maybe do."},
 	"sentry_won": {"title": "Sentry down", "text":
-		"The sentry sits down with a clunk. Its big eye blinks... and turns green. Friendly now. In its chest: a capacitor bank. The way to the city is open."},
+		"The sentry sits down with a clunk. Its big eye blinks... and turns green. Friendly now. Its shield plating clatters off beside it, and something is still wired in there: salvage it. The way to the city is open."},
 	"sentry_down": {"title": "The Hill Sentry", "text":
 		"It sits beside the path, humming to itself. When you roll past, its green eye follows you. It seems happier this way."},
 	"shutdown": {"title": "Power lost", "text":

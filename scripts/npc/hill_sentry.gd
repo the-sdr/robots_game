@@ -4,7 +4,9 @@ extends StaticBody3D
 # tutorial: on Easy it can't be lost). Reaching the crest starts the fight
 # screen (scenes/combat/combat.tscn); this node is the enemy actor it drives:
 # arena positions and animations. Beaten, it sits down beside the path for
-# good (flag "defeated:hill_sentry"), green-eyed and friendly.
+# good (flag "defeated:hill_sentry"), green-eyed and friendly, and its broken
+# shield plating lies beside it: a wreck to salvage (cutter or laser; the laser
+# along the seam gets bonus parts) holding its reward (owner, 2026-09-30).
 
 const COMBAT := preload("res://scenes/combat/combat.tscn")
 # In this scene's frame at rest (placed at (3, -90) facing south, heading 180):
@@ -13,6 +15,9 @@ const ARENA_ENEMY := Vector3(2.6, 0, -0.6)       # world (0.4, -89.4)
 const RETREAT := Vector3(3.0, 0, -10.5)          # world (0, -79.5): back down the hill
 const EYE_ANGRY := Color(1.0, 0.35, 0.1)
 const EYE_FRIENDLY := Color(0.35, 1.0, 0.45)
+const WRECK := preload("res://scenes/props/wreck.tscn")
+const SALVAGE_AT := Vector3(-1.8, 0, 1.2)        # beside where it sits, in its own frame
+const SALVAGE_BONUS := {"scrap_metal": 2}        # extra for a laser salvage
 
 @export var enemy_id := "hill_sentry"
 
@@ -37,9 +42,32 @@ func _ready() -> void:
 	inspect.enabled = false
 	if Game.get_flag(flag()):
 		_sit_down(false)
+		if not Game.get_flag(salvage_flag()):
+			drop_salvage.call_deferred(false)
 
 func flag() -> String:
 	return "defeated:" + enemy_id
+
+func salvage_flag() -> String:
+	return "salvaged:" + enemy_id
+
+## Its broken shield plating, beside it: a wreck holding its reward.
+func drop_salvage(tell: bool = true) -> Node3D:
+	if get_parent().has_node("Salvage_" + enemy_id):
+		return get_parent().get_node("Salvage_" + enemy_id)
+	var wreck: StaticBody3D = WRECK.instantiate()
+	wreck.name = "Salvage_" + enemy_id
+	wreck.set("drops", Catalog.ENEMIES[enemy_id].get("reward", {}))
+	wreck.set("bonus", SALVAGE_BONUS)
+	wreck.set("break_flag", salvage_flag())
+	wreck.set("display_name", "its shield plating")
+	wreck.set("hit_notice", "The Sentry's broken shield plating. A blade or a beam would get the parts out.")
+	wreck.scale = Vector3.ONE * 0.75
+	get_parent().add_child(wreck)
+	wreck.global_transform = Transform3D(_rest.basis, _rest * SALVAGE_AT)
+	if tell:
+		get_tree().call_group("hud", "show_notice", "Its shield plating fell off. Salvage it (cutter or laser) for parts.")
+	return wreck
 
 func _on_body_entered(body: Node3D) -> void:
 	if fighting or Game.get_flag(flag()) or not body.is_in_group("player"):

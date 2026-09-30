@@ -87,7 +87,7 @@ const TOOLS := {
 		}},
 }
 
-## Used when the fight kit is empty (it can't be, once the smasher exists, but never soft-lock a fight).
+## The treads: used in a fight when the robot has no tool yet (never soft-lock a fight).
 const TREAD_MOVES := {
 	"": {"name": "Ram", "kind": "attack", "power": 6.0, "hits": 1, "energy": 0.0, "hint": "Drive into it"},
 	"forward": {"name": "Ram", "kind": "attack", "power": 6.0, "hits": 1, "energy": 0.0, "hint": "Drive into it"},

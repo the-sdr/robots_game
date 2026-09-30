@@ -216,10 +216,11 @@ func _fill_controls() -> void:
 	fight.add_theme_constant_override("h_separation", 40)
 	fight.add_theme_constant_override("v_separation", 8)
 	_content.add_child(fight)
-	for row in [["combat_slot_1", "Use the tool in kit slot 1"], ["combat_slot_2", "Kit slot 2"], ["combat_slot_3", "Kit slot 3"],
-			["combat_timing", "On the beat: hit, or dodge its attack"]]:
+	for row in [["cycle_tool", "Switch tool (on your turn)"], ["use_tool", "Attack with it - its own way"],
+			["use_tool", "On its turn: defend with it"], ["combat_timing", "No tool: jump its blows"]]:
 		_row(row[0], row[1], fight)
-	var more := STYLE.label("Hold %s or %s with a tool's button for its other moves." % ["the stick up" if Glyphs.pad else "W", "down" if Glyphs.pad else "S"], 18, STYLE.DIM)
+	var more := STYLE.label("Fights use the tools the way you use them out in the world: tap the smasher, hold and release the cutter, trace with the laser.", 18, STYLE.DIM)
+	more.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_content.add_child(more)
 	var tools: Array = Game.data.get("tools", [])
 	if not tools.is_empty():

@@ -10,9 +10,9 @@
    "ask": "Which values felt best? (Just close the panel - I read them from the log.)"
   },
   {
-   "title": "The first fight (the Hill Sentry)",
-   "try": "The fight now slows down and teaches each step: a pop-up before your first move, your first ring and its first attack, and a banner every turn. On the Surface, start the game with D3D12 (Surface: run Godot with --rendering-driver d3d12 --rendering-method mobile) - the last fight froze under Vulkan.",
-   "ask": "Is the pace right, or too slow now? Does it freeze again? If it does, push the newest log from AppData (it now records every step of the fight)."
+   "title": "Fights use your tools now (the Hill Sentry)",
+   "try": "Your turn: RB / Q switch tools, RT / click attacks with the one in hand, its own way - smasher: tap fast; cutter: hold, let go in the green; laser: hold and trace the glowing dots. Its turn: defend with the tool in hand - smasher: tap to bash it aside; cutter: hold, let go as the ring touches; laser: beam on its eye. Beat it and its shield plating falls off: salvage it for the capacitor (the laser along the seam gets more). The build screen now attaches tools; the fight kit is gone.",
+   "ask": "Does fighting feel like using your tools? Which tool is most fun in a fight? Too hard, too easy?"
   },
   {
    "title": "Resting through the night",

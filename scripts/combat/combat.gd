@@ -2,21 +2,25 @@ extends CanvasLayer
 
 # The fight screen: turn-based robot combat on the live world (an enemy node
 # like the hill sentry starts it with begin()). Rules and numbers are in
-# combat_state.gd / Catalog / Settings; this script runs the turns, reads the
-# keys, draws the timing ring and animates both robots.
+# combat_state.gd / Catalog / Settings / Tuning; this script runs the turns,
+# reads the buttons, draws the meters and animates both robots.
 #
-# Keys (Input Map): combat_slot_1..3 use the fight kit's tools (Game.loadout);
-# hold move_forward (W) or move_back (S) with one for that tool's other moves;
-# combat_timing (Space / A) presses on the beat, and the slot key works too.
-# Tests drive it through input_move() / input_timing() / dismiss_coach() and
-# read `phase`.
+# Fights use the tool controls (owner, 2026-09-30: "fight controls the same as
+# the tool controls... consistent"). Your turn: RB / Q switch tools, RT / click
+# uses the one in hand, in its own way - smasher: tap fast in a burst; cutter:
+# hold and let go in the green (the same heat as in the world, F10 tunes both);
+# laser: hold and trace the glowing seam with the mouse / right stick;
+# fabricator: hold to print a repair. Its turn: defend with the tool in hand -
+# smasher: tap to bash the blow aside; cutter: hold and let go as the ring
+# closes (parry); laser: hold the beam on its eye (dazzle); fabricator: hold to
+# print a shield; no tool: jump on the ring. Each result is a quality
+# ("perfect" / "good" / "miss") that combat_state turns into damage.
+# Tests drive it with select_tool() / start_attack() / perform_for_test() /
+# dismiss_coach() and read `phase`.
 #
-# Teaching (owner, 2026-09-30: "the whole fight needs to slow down with pop-ups
-# to teach the player, let them know what's about to happen and what to
-# press"): a coach panel stops the fight the first time each thing happens
+# Teaching: a coach panel stops the fight the first time each thing happens
 # (saved flags "coach:<id>"), a banner announces every turn, and every attack
-# gets a "get ready" beat. Every step also goes to the log ("fight: ..."), so a
-# freeze shows where it happened (the Surface froze in a fight, 2026-09-30).
+# gets a "get ready" beat. Every step goes to the log ("fight: ...").
 
 signal finished(won: bool)
 
@@ -24,6 +28,18 @@ const State := preload("res://scripts/combat/combat_state.gd")
 const STYLE := preload("res://scripts/ui/ui_style.gd")
 const BANNER_SECONDS := 1.1
 const GET_READY_SECONDS := 1.0
+const T := preload("res://scripts/game/tuning.gd")
+const FIGHT_TOOLS := ["smasher", "cutter", "laser", "fabricator"]
+const SMASH_SECONDS := 2.0         # the tap burst (Easy: x1.5)
+const SMASH_TARGET := 7            # taps for "perfect" (Easy: 4); half of it for "good"
+const BASH_TARGET := 4             # taps before the ring closes to bash a blow aside (Easy: 2)
+const TRACE_SECONDS := 3.0         # time to trace the seam (Easy: x1.5)
+const TRACE_DOTS := 5
+const TRACE_REACH := 34.0          # px from the cursor that burns a dot
+const CURSOR_SPEED := 520.0        # px per second at full stick
+const MOUSE_AIM := 1.0
+const DAZZLE_NEEDED := 0.45        # seconds the beam must rest on its eye (Easy: 0.25)
+const PRINT_SECONDS := 1.2         # hold to print a repair
 const ATTACK_RING := 0.9      # seconds the attack ring takes to close at normal speed
 const NEXT_HIT_RING := 0.55   # later hits of a combo come faster
 const RING_START := 170.0
@@ -34,11 +50,22 @@ var player: CharacterBody3D
 var enemy_node: Node3D           # the enemy actor (hill_sentry.gd): arena positions and animations
 var enemy_id := ""
 var enemy_name := ""
-## "intro", "coach", "choose", "timing", "busy", "done". Tests wait on it.
+## "intro", "coach", "choose", "attack", "defend", "busy", "done". Tests wait on it.
 var phase := ""
 var aborted := false
 
-var _kit: Array[String] = []
+var _tools: Array[String] = []    # the tools this fight can use, in FIGHT_TOOLS order
+var _tool := ""                    # the one in hand
+var _held := false                 # use_tool is down
+var _presses := 0
+var _press_times: Array[float] = []
+var _released_at := -1.0
+var _pressed_at := -1.0
+var _t := 0.0                      # seconds into the current pattern
+var _aim := Vector2.ZERO           # the laser cursor, px from the screen centre
+var _forced := ""                  # tests: the result the current pattern should give
+var _meter: FightMeter
+var _tool_card: Label
 var _chosen := {}
 var _beat_at := 0.0
 var _beat_t := 0.0
@@ -78,11 +105,14 @@ func begin(p: CharacterBody3D, enemy: Node3D, id: String) -> void:
 	var def: Dictionary = Catalog.ENEMIES[id]
 	enemy_name = String(def["name"])
 	state.start(def, Settings.tuning(), Catalog.PLAYER_HEALTH)
-	_kit = Game.loadout()
+	for t in FIGHT_TOOLS:
+		if Game.has_tool(t):
+			_tools.append(t)
+	_tool = String(Game.data["equipped_tool"]) if _tools.has(String(Game.data["equipped_tool"])) else (_tools[0] if not _tools.is_empty() else "")
 	_equipped_before = String(Game.data["equipped_tool"])
 	player.set("in_combat", true)
 	player.velocity = Vector3.ZERO
-	_log("begin %s (%s), kit %s, energy %.0f" % [id, Settings.difficulty, _kit, Energy.current])
+	_log("begin %s (%s), tools %s, in hand %s, energy %.0f" % [id, Settings.difficulty, _tools, _tool, Energy.current])
 	Energy.depleted.connect(_on_battery_dead)
 	_build_ui()
 	_refresh()
@@ -100,23 +130,20 @@ func _run() -> void:
 			break
 		await _enemy_turn()
 		rounds += 1
-		if rounds == 1 and state.outcome == "" and not aborted:
-			await _coach("other_moves", "More moves", "Hold %s with a tool for a defensive move: it gets you ready for the next blow (Brace, Parry, Dazzle...). Hold %s for a big attack." % [_back_name(), _forward_name()])
+		if rounds == 1 and state.outcome == "" and not aborted and _tools.size() > 1:
+			await _coach("switch_tools", "Every tool fights its own way", "Switch tools with %s: each one attacks and defends differently - the same way it works out in the world." % Glyphs.label("cycle_tool"), [["cycle_tool", "switch tool"], ["use_tool", "use it"]])
 	await _finish()
 
 # --- turns ------------------------------------------------------------------------------
 func _player_turn() -> void:
 	await _show_banner("YOUR TURN", Color(0.5, 1.0, 0.6))
-	var kit_rows := []
-	for i in 3:
-		var t: String = _kit[i] if i < _kit.size() else ""
-		kit_rows.append(["combat_slot_%d" % (i + 1), Catalog.tool_name(t) if t != "" else "(empty)"])
-	await _coach("your_turn", "Your turn: pick a tool", "Your fight kit is the cards at the bottom. Press a tool's button to use it. Hold %s or %s at the same time for its other moves." % [_forward_name(), _back_name()], kit_rows)
+	await _coach("your_turn", "Your turn", "Fight with the tool in your hand, just like out in the world. %s switches tools, %s uses the one you hold." % [Glyphs.label("cycle_tool"), Glyphs.label("use_tool")],
+		[["cycle_tool", "switch tool"], ["use_tool", "use it"]])
 	phase = "choose"
 	_chosen = {}
-	_log("your turn (%.0f / %.0f HP)" % [state.player_hp, state.player_max])
-	_tip("choose", "Your turn! Press %s, %s or %s." % [Glyphs.label("combat_slot_1"), Glyphs.label("combat_slot_2"), Glyphs.label("combat_slot_3")])
-	_highlight(-1)
+	_log("your turn (%.0f / %.0f HP), in hand: %s" % [state.player_hp, state.player_max, _tool])
+	_tip("choose", "Your turn! %s to use the %s, %s to switch." % [Glyphs.label("use_tool"), Catalog.tool_name(_tool) if _tool != "" else "treads", Glyphs.label("cycle_tool")])
+	_refresh()
 	while _chosen.is_empty() and not aborted:
 		await get_tree().process_frame
 	if aborted:
@@ -124,8 +151,7 @@ func _player_turn() -> void:
 	phase = "busy"
 	var tool_id: String = _chosen["tool"]
 	var move: Dictionary = _chosen["move"]
-	_log("you chose %s: %s (%s)" % [tool_id, move["name"], move["kind"]])
-	_highlight(int(_chosen["slot"]))
+	_log("you use %s: %s (%s)" % [tool_id, move["name"], move["kind"]])
 	var cost := float(move.get("energy", 0.0))
 	var weak := false
 	if cost > 0.0:
@@ -136,28 +162,27 @@ func _player_turn() -> void:
 	_say("%s%s!" % [move["name"], " (low battery: weak)" if weak else ""])
 	_show_tool(tool_id)
 	var qualities := []
-	if String(move["kind"]) == "attack":
-		await _coach("attack_ring", "Hit on the beat", "A ring will close onto the circle in the middle. Press %s the moment it touches: perfect timing hits hardest.%s" % [Glyphs.label("combat_timing"), " On Easy a miss still hits." if bool(state.tuning.get("now_cue", false)) else ""], [["combat_timing", "when the ring touches the circle"]])
-		_tip("attack", "Press %s when the ring touches the circle!" % Glyphs.label("combat_timing"))
+	var kind := String(move["kind"])
+	if kind == "attack":
+		await _coach("attack_" + tool_id, "The %s in a fight" % Catalog.tool_name(tool_id), ATTACK_HOWTO.get(tool_id, "Press %s on the beat.") % Glyphs.label("use_tool"), [["use_tool", ATTACK_SHORT.get(tool_id, "use it")]])
 		for i in int(move.get("hits", 1)):
-			var q := await _timing(state.ring_seconds(ATTACK_RING if i == 0 else NEXT_HIT_RING), false)
+			var q := await _attack_pattern(tool_id)
 			if aborted:
 				return
 			qualities.append(q)
+			_log("  %s attack: %s" % [tool_id, q])
 			_player_lunge()
 			_popup({"perfect": "PERFECT!", "good": "Good", "miss": "Miss..."}[q], enemy_node.global_position + Vector3(0, 2.6, 0), Color(1, 0.9, 0.3))
-			await _wait(0.25)
+			await _wait(0.3)
+	elif kind == "repair":
+		await _coach("attack_" + tool_id, "The fabricator in a fight", "Hold %s to print patches over your dents. Let go when the bar is full." % Glyphs.label("use_tool"), [["use_tool", "hold until full"]])
+		var q := await _attack_pattern(tool_id)
+		move = move.duplicate()
+		move["heal"] = float(move.get("heal", 0.0)) * {"perfect": 1.0, "good": 0.6, "miss": 0.25}[q]
 	var result: Dictionary = state.player_move(move, qualities, weak)
-	match String(move["kind"]):
+	match kind:
 		"attack":
 			_popup(str(result["damage"]), enemy_node.global_position + Vector3(0, 2.2, 0), Color(1, 0.4, 0.3))
-			enemy_node.call("flinch")
-		"guard":
-			_say("%s: ready for the next blow." % move["name"])
-		"evade":
-			_say("%s: it will miss you!" % move["name"])
-		"stun":
-			_say("%s! %s can't see." % [move["name"], enemy_name])
 			enemy_node.call("flinch")
 		"repair":
 			_popup("+%d" % result["healed"], player.global_position + Vector3(0, 1.8, 0), Color(0.4, 1, 0.5))
@@ -168,28 +193,32 @@ func _enemy_turn() -> void:
 	phase = "busy"
 	await _show_banner("%s'S TURN" % enemy_name.to_upper(), Color(1.0, 0.55, 0.4))
 	var attack: Dictionary = state.next_attack()
-	_log("its turn: %s" % (attack.get("name", "dazzled, skips") if not attack.is_empty() else "dazzled, skips"))
+	_log("its turn: %s, you defend with %s" % [attack.get("name", "dazzled, skips") if not attack.is_empty() else "dazzled, skips", _tool if _tool != "" else "a jump"])
 	if attack.is_empty():
 		_say("%s is dazzled and misses its turn!" % enemy_name)
 		state.enemy_move([])
 		await _wait(1.2)
 		return
-	await _coach("defend_ring", "Its turn: get ready to dodge", "%s is about to attack. The ring closes again: press %s just as it touches to dodge (no damage), or close to it to block (half)." % [enemy_name, Glyphs.label("combat_timing")], [["combat_timing", "as the ring touches: dodge!"]])
+	var defence: String = _tool if DEFEND_HOWTO.has(_tool) else ""
+	await _coach("defend_" + (defence if defence != "" else "jump"), "Its turn: defend with the %s" % (Catalog.tool_name(defence) if defence != "" else "jump"),
+		DEFEND_HOWTO.get(defence, "Press %s just as the ring closes to jump out of the way.") % Glyphs.label("use_tool" if defence != "" else "combat_timing"),
+		[["use_tool" if defence != "" else "combat_timing", DEFEND_SHORT.get(defence, "jump as the ring closes")]])
 	_say("%s: %s! Get ready..." % [enemy_name, attack["name"]])
-	_tip("defend", "Press %s just as the ring closes to dodge!" % Glyphs.label("combat_timing"))
+	_refresh()
 	await _wait(GET_READY_SECONDS)
 	var qualities := []
 	for i in int(attack.get("hits", 1)):
 		var seconds: float = state.ring_seconds(float(attack["wind_up"]) if i == 0 else NEXT_HIT_RING)
 		enemy_node.call("wind_up", seconds)
-		var q := await _timing(seconds, true)
+		var q := await _defence_pattern(defence, seconds)
 		if aborted:
 			return
 		qualities.append(q)
+		_log("  defend %s: %s" % [defence if defence != "" else "jump", q])
 		enemy_node.call("strike")
 		if q == "perfect":
 			_player_dodge()
-			_popup("DODGED!", player.global_position + Vector3(0, 1.9, 0), Color(0.5, 1, 0.6))
+			_popup(DEFEND_WIN.get(defence, "DODGED!"), player.global_position + Vector3(0, 1.9, 0), Color(0.5, 1, 0.6))
 		else:
 			_player_hit()
 			_popup("Blocked" if q == "good" else "Ouch!", player.global_position + Vector3(0, 1.9, 0), Color(1, 0.8, 0.4) if q == "good" else Color(1, 0.4, 0.3))
@@ -197,13 +226,233 @@ func _enemy_turn() -> void:
 	var result: Dictionary = state.enemy_move(qualities)
 	if int(result["damage"]) > 0:
 		_popup("-%d" % result["damage"], player.global_position + Vector3(0, 1.5, 0), Color(1, 0.35, 0.3))
-	if int(result["countered"]) > 0:
-		_popup("Counter %d" % result["countered"], enemy_node.global_position + Vector3(0, 2.2, 0), Color(0.5, 0.9, 1))
-		enemy_node.call("flinch")
 	_refresh()
 	await _wait(0.7)
 
-## One timing press: the ring closes over `seconds`; returns the quality.
+# --- how each tool fights ---------------------------------------------------------------------
+const ATTACK_HOWTO := {
+	"smasher": "Tap %s as fast as you can while the bar runs. Quick taps build a combo: more hits, more damage.",
+	"cutter": "Hold %s: the heat climbs. Let go in the green for a clean cut. Too long and it overheats and misses.",
+	"laser": "Hold %s to fire and trace the glowing seam, dot by dot, with the mouse or right stick. Burn them all!",
+}
+const ATTACK_SHORT := {"smasher": "tap fast", "cutter": "hold, let go in the green", "laser": "hold and trace the dots"}
+const DEFEND_HOWTO := {
+	"smasher": "Tap %s fast while it winds up to bash the blow aside. Enough taps before the ring closes and it misses you.",
+	"cutter": "Hold %s while it winds up and let go just as the ring touches the circle: a parry. Close to it still blocks half.",
+	"laser": "Hold %s and keep the beam on its glowing eye until the ring closes: dazzled, it misses.",
+	"fabricator": "Hold %s while it winds up to print a shield. The longer you hold, the stronger it is.",
+}
+const DEFEND_SHORT := {"smasher": "tap fast to bash it aside", "cutter": "hold, let go as the ring touches", "laser": "beam on its eye", "fabricator": "hold to print a shield"}
+const DEFEND_WIN := {"smasher": "BASHED ASIDE!", "cutter": "PARRIED!", "laser": "DAZZLED!", "fabricator": "SHIELDED!"}
+
+## Scores (static, so tests can check the rules directly).
+static func smash_quality(taps: int, easy: bool) -> String:
+	var target := 4 if easy else SMASH_TARGET
+	return "perfect" if taps >= target else ("good" if taps * 2 >= target else "miss")
+
+static func cut_quality(heat_at_release: float, overheated: bool, clean_from: float, clean_to: float) -> String:
+	if overheated:
+		return "miss"
+	if heat_at_release >= clean_from and heat_at_release <= clean_to:
+		return "perfect"
+	return "good" if heat_at_release >= 0.3 else "miss"
+
+static func trace_quality(burned: int) -> String:
+	return "perfect" if burned >= TRACE_DOTS else ("good" if burned >= 3 else "miss")
+
+static func share_quality(share: float) -> String:
+	return "perfect" if share >= 0.99 else ("good" if share >= 0.5 else "miss")
+
+func _easy() -> bool:
+	return Settings.difficulty == "easy"
+
+func _begin_pattern(mode: String) -> void:
+	phase = "attack" if mode in ["taps", "heat", "trace", "fill"] else "defend"
+	_presses = 0
+	_press_times.clear()
+	_released_at = -1.0
+	_pressed_at = -1.0
+	_t = 0.0
+	_forced = ""
+	_held = Input.is_action_pressed("use_tool")     # a release during a coach panel would be missed
+	_meter.mode = mode
+	_meter.visible = true
+
+func _end_pattern() -> void:
+	_meter.visible = false
+	_ring.visible = false
+	phase = "busy"
+
+## Runs one attack with `tool_id`'s pattern and returns its quality.
+func _attack_pattern(tool_id: String) -> String:
+	match tool_id:
+		"smasher":
+			_begin_pattern("taps")
+			var seconds := SMASH_SECONDS * (1.5 if _easy() else 1.0)
+			_meter.target = 4 if _easy() else SMASH_TARGET
+			while _t < seconds and _forced == "" and not aborted:
+				await _pattern_frame()
+				_meter.progress = _t / seconds
+				_meter.count = _presses
+			var q := _forced if _forced != "" else smash_quality(_presses, _easy())
+			_end_pattern()
+			return q
+		"cutter":
+			_begin_pattern("heat")
+			_meter.clean_from = T.v("cutter_clean_from")
+			_meter.clean_to = T.v("cutter_clean_to")
+			var heat := 0.0
+			var over := false
+			var waited := 0.0
+			while _forced == "" and not aborted:
+				await _pattern_frame()
+				if _held:
+					heat += get_process_delta_time() / T.v("cutter_heat_seconds")
+					if heat >= 1.0:
+						over = true
+						heat = 1.0
+						break
+				elif heat > 0.0:
+					break                                    # let go
+				else:
+					waited += get_process_delta_time()
+					if waited > 5.0:
+						break                                # never pressed
+				_meter.heat = heat
+			var q := _forced if _forced != "" else cut_quality(heat, over, T.v("cutter_clean_from"), T.v("cutter_clean_to"))
+			if over:
+				_popup("OVERHEATED", player.global_position + Vector3(0, 1.8, 0), Color(1, 0.4, 0.2))
+			_end_pattern()
+			return q
+		"laser":
+			_begin_pattern("trace")
+			var seconds := TRACE_SECONDS * (1.5 if _easy() else 1.0)
+			_aim = Vector2(-240, 30)
+			_meter.dots = []
+			for i in TRACE_DOTS:
+				var x := -160.0 + 320.0 * i / (TRACE_DOTS - 1)
+				_meter.dots.append(Vector2(x, sin(i * 1.3) * 40.0))
+			_meter.burned = []
+			while _t < seconds and _forced == "" and not aborted:
+				await _pattern_frame()
+				_move_aim()
+				_meter.cursor = _aim
+				_meter.firing = _held
+				if _held:
+					for i in _meter.dots.size():
+						if not _meter.burned.has(i) and (_meter.dots[i] as Vector2).distance_to(_aim) <= TRACE_REACH:
+							_meter.burned.append(i)
+				_meter.progress = _t / seconds
+				if _meter.burned.size() >= TRACE_DOTS:
+					break
+			var q := _forced if _forced != "" else trace_quality(_meter.burned.size())
+			_end_pattern()
+			return q
+		"fabricator":
+			_begin_pattern("fill")
+			var filled := 0.0
+			var waited := 0.0
+			while _forced == "" and not aborted:
+				await _pattern_frame()
+				if _held:
+					filled = minf(filled + get_process_delta_time() / PRINT_SECONDS, 1.0)
+				elif filled > 0.0:
+					break
+				else:
+					waited += get_process_delta_time()
+					if waited > 5.0:
+						break
+				_meter.heat = filled
+			var q := _forced if _forced != "" else share_quality(filled)
+			_end_pattern()
+			return q
+	# no tool: ram on the beat (the old timing ring, pressed with use or jump)
+	var r := await _timing(state.ring_seconds(ATTACK_RING), false)
+	return _forced if _forced != "" else r
+
+## Its blow, defended the way the tool in hand does it; returns the quality.
+func _defence_pattern(tool_id: String, seconds: float) -> String:
+	_ring.visible = true
+	match tool_id:
+		"smasher":
+			_begin_pattern("bash")
+			var needed := 2 if _easy() else BASH_TARGET
+			_meter.target = needed
+			while _t < seconds and _forced == "" and not aborted:
+				await _pattern_frame()
+				_ring_progress(seconds)
+				_meter.count = _presses
+			var q := _forced if _forced != "" else ("perfect" if _presses >= needed else ("good" if _presses * 2 >= needed else "miss"))
+			_end_pattern()
+			return q
+		"cutter":
+			_begin_pattern("parry")
+			var window := float(state.tuning["defend_window"])
+			while _t < seconds + window * 2.0 and _forced == "" and not aborted:
+				await _pattern_frame()
+				_ring_progress(seconds)
+				if _released_at >= 0.0 and _pressed_at >= 0.0:
+					break
+			var offset := INF if _released_at < 0.0 or _pressed_at < 0.0 else _released_at - seconds
+			var q := _forced if _forced != "" else state.defence_quality(offset)
+			_end_pattern()
+			return q
+		"laser":
+			_begin_pattern("eye")
+			var needed := 0.25 if _easy() else DAZZLE_NEEDED
+			_aim = Vector2(-200, 120)
+			var on_eye := 0.0
+			while _t < seconds and _forced == "" and not aborted:
+				await _pattern_frame()
+				_ring_progress(seconds)
+				_move_aim()
+				_meter.cursor = _aim
+				_meter.firing = _held
+				if _held and _aim.distance_to(FightMeter.EYE) <= TRACE_REACH:
+					on_eye += get_process_delta_time()
+				_meter.heat = on_eye / needed
+			var q := _forced if _forced != "" else share_quality(on_eye / needed)
+			_end_pattern()
+			return q
+		"fabricator":
+			_begin_pattern("shield")
+			var held := 0.0
+			while _t < seconds and _forced == "" and not aborted:
+				await _pattern_frame()
+				_ring_progress(seconds)
+				if _held:
+					held += get_process_delta_time()
+				_meter.heat = held / (seconds * 0.7)
+			var q := _forced if _forced != "" else share_quality(held / (seconds * 0.7))
+			_end_pattern()
+			return q
+	# no tool: jump as the ring closes
+	var r := await _timing(seconds, true)
+	return _forced if _forced != "" else r
+
+func _pattern_frame() -> void:
+	await get_tree().process_frame
+	if not get_tree().paused:
+		_t += get_process_delta_time()
+
+func _ring_progress(seconds: float) -> void:
+	_ring.set("progress", _t / seconds)
+	_ring.set("in_window", absf(_t - seconds) <= float(state.tuning["defend_window"]))
+	_ring.queue_redraw()
+
+## The laser cursor follows the right stick (and the mouse, in _unhandled_input).
+func _move_aim() -> void:
+	var stick := Input.get_vector("look_left", "look_right", "look_up", "look_down")
+	_aim += stick * CURSOR_SPEED * get_process_delta_time()
+	_aim = _aim.clamp(Vector2(-420, -260), Vector2(420, 260))
+
+## Tests: finish the current attack / defence pattern with this quality.
+func perform_for_test(quality: String) -> void:
+	_forced = quality
+	if _awaiting:
+		_press_offset = 0.0 if quality == "perfect" else (0.2 if quality == "good" else INF)
+		_awaiting = false
+
 func _timing(seconds: float, defend: bool) -> String:
 	_defending = defend
 	_beat_at = seconds
@@ -241,39 +490,54 @@ func _unhandled_input(event: InputEvent) -> void:
 			dismiss_coach()
 			get_viewport().set_input_as_handled()
 		return
-	if phase == "choose":
-		for n in 3:
-			if event.is_action_pressed("combat_slot_%d" % (n + 1), false, true):
-				input_move(n, _direction())
-				get_viewport().set_input_as_handled()
-				return
-	elif phase == "timing":
-		var pressed := event.is_action_pressed("combat_timing", false, true)
-		for n in 3:
-			pressed = pressed or event.is_action_pressed("combat_slot_%d" % (n + 1), false, true)
-		if pressed:
-			input_timing()
-			get_viewport().set_input_as_handled()
-
-func _direction() -> String:
-	if Input.is_action_pressed("move_forward"):
-		return "forward"
-	if Input.is_action_pressed("move_back"):
-		return "back"
-	return ""
+	if event.is_action("use_tool"):
+		var down := event.is_action_pressed("use_tool")
+		if down and not _held:
+			_held = true
+			_presses += 1
+			_press_times.append(_t)
+			_pressed_at = _t
+			if phase == "choose":
+				start_attack()
+			elif phase == "timing":
+				input_timing()
+		elif not down and event.is_action_released("use_tool") and _held:
+			_held = false
+			_released_at = _t
+		get_viewport().set_input_as_handled()
+		return
+	if phase == "choose" and event.is_action_pressed("cycle_tool"):
+		select_tool("")
+		get_viewport().set_input_as_handled()
+		return
+	if phase == "timing" and event.is_action_pressed("combat_timing"):
+		input_timing()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseMotion and phase in ["attack", "defend"]:
+		_aim += (event as InputEventMouseMotion).relative * MOUSE_AIM
+		_aim = _aim.clamp(Vector2(-420, -260), Vector2(420, 260))
 
 ## Pick slot 0-2's tool with a direction ("", "forward", "back"). False if the slot is empty.
-func input_move(slot: int, direction: String) -> bool:
+## Switch to a tool ("" = the next one), on your turn.
+func select_tool(tool_id: String) -> void:
+	if _tools.is_empty():
+		return
+	if tool_id == "":
+		tool_id = _tools[(_tools.find(_tool) + 1) % _tools.size()]
+	if not _tools.has(tool_id):
+		return
+	_tool = tool_id
+	_show_tool(tool_id)
+	_refresh()
+
+## Use the tool in hand (RT / click on your turn; tests call it too).
+func start_attack() -> bool:
 	if phase != "choose":
 		return false
-	var tool_id: String = _kit[slot] if slot < _kit.size() else ""
-	if tool_id == "" and _kit.any(func(t: String) -> bool: return t != ""):
-		_say("Slot %d is empty. Put a tool in it on the build screen (%s)." % [slot + 1, Glyphs.label("inventory")])
-		return false
-	_chosen = {"slot": slot, "tool": tool_id, "move": Catalog.move(tool_id, direction)}
+	_chosen = {"tool": _tool, "move": Catalog.move(_tool, "")}
 	return true
 
-## The timing press (Space / A, or the slot key again).
 func input_timing() -> void:
 	if _awaiting:
 		_press_offset = _beat_t - _beat_at
@@ -288,10 +552,13 @@ func _finish() -> void:
 	if won:
 		_say("You win! %s powers down." % enemy_name)
 		Game.set_flag("defeated:" + enemy_id, true)
-		for item in def.get("reward", {}):
-			Game.add_item(item, int(def["reward"][item]))
-			get_tree().call_group("hud", "show_notice", "Took %s" % Catalog.item_name(item))
 		enemy_node.call("defeat")
+		if enemy_node.has_method("drop_salvage"):
+			enemy_node.call("drop_salvage")          # its reward is in there: cutter or laser (owner, 2026-09-30)
+		else:
+			for item in def.get("reward", {}):
+				Game.add_item(item, int(def["reward"][item]))
+				get_tree().call_group("hud", "show_notice", "Took %s" % Catalog.item_name(item))
 		await _wait(1.6)
 		Story.play("sentry_won")
 	elif not aborted:
@@ -466,22 +733,13 @@ func _refresh() -> void:
 	_player_bar.max_value = state.player_max
 	_player_bar.value = state.player_hp
 	_player_label.text = "Your robot   %d / %d" % [roundi(state.player_hp), roundi(state.player_max)]
-	for i in 3:
-		var tool_id: String = _kit[i] if i < _kit.size() else ""
-		if tool_id == "":
-			_card_labels[i].text = "[%s]  (empty)\n%s: add a tool" % [Glyphs.label("combat_slot_%d" % (i + 1)), Glyphs.label("inventory")]
-			continue
-		var m0 := Catalog.move(tool_id, "")
-		var mf := Catalog.move(tool_id, "forward")
-		var mb := Catalog.move(tool_id, "back")
-		var key := Glyphs.label("combat_slot_%d" % (i + 1))
-		var up := "Up" if Glyphs.pad else Glyphs.label("move_forward")
-		var down := "Down" if Glyphs.pad else Glyphs.label("move_back")
-		_card_labels[i].text = "[%s]  %s\n%s\n%s + %s   %s\n%s + %s   %s" % [key, Catalog.tool_name(tool_id), m0["name"], up, key, mf["name"], down, key, mb["name"]]
-
-func _highlight(slot: int) -> void:
-	for i in _cards.size():
-		_cards[i].modulate = Color(1.25, 1.2, 0.8) if i == slot else Color(1, 1, 1)
+	if _tool == "":
+		_tool_card.text = "No tools yet: ram it on the beat (%s), jump its blows (%s)" % [Glyphs.label("use_tool"), Glyphs.label("combat_timing")]
+		return
+	var move := Catalog.move(_tool, "")
+	var switch := ("   ◀ %s ▶" % Glyphs.label("cycle_tool")) if _tools.size() > 1 else ""
+	_tool_card.text = "%s%s\nAttack: %s (%s: %s)\nDefend: %s" % [Catalog.tool_name(_tool).to_upper(), switch, move["name"], Glyphs.label("use_tool"),
+		ATTACK_SHORT.get(_tool, "hold"), DEFEND_SHORT.get(_tool, "jump as the ring closes")]
 
 func _panel_style(colour: Color) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
@@ -565,21 +823,19 @@ func _build_ui() -> void:
 	mine.add_child(_player_label)
 	_player_bar = _bar(Color(0.3, 0.9, 0.45), 320)
 	mine.add_child(_player_bar)
-	# the fight kit, bottom centre
-	var cards := HBoxContainer.new()
-	cards.add_theme_constant_override("separation", 12)
-	_root.add_child(cards)
-	_anchor(cards, Control.PRESET_CENTER_BOTTOM, -405, -150, 405, -14)
-	for i in 3:
-		var card := PanelContainer.new()
-		card.custom_minimum_size = Vector2(262, 128)
-		card.add_theme_stylebox_override("panel", _panel_style(Color(0.06, 0.08, 0.1, 0.85)))
-		var text := _label("", 17)
-		text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		card.add_child(text)
-		cards.add_child(card)
-		_cards.append(card)
-		_card_labels.append(text)
+	# the tool in hand, bottom centre (RB / Q switch it on your turn)
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _panel_style(Color(0.06, 0.08, 0.1, 0.88)))
+	_root.add_child(card)
+	_anchor(card, Control.PRESET_CENTER_BOTTOM, -360, -130, 360, -14)
+	_tool_card = _label("", 19)
+	card.add_child(_tool_card)
+	# the meter for the current attack / defence, centre
+	_meter = FightMeter.new()
+	_meter.visible = false
+	_meter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_meter)
+	_anchor(_meter, Control.PRESET_CENTER, -440, -280, 440, 280)
 	# the turn banner, centre
 	_banner = _label("", 64, Color(0.5, 1.0, 0.6))
 	_banner.add_theme_font_override("font", STYLE.title_font())
@@ -627,3 +883,63 @@ class TimingRing extends Control:
 		draw_circle(c, 46.0, Color(0, 0, 0, 0.35))
 		draw_arc(c, 46.0, 0.0, TAU, 48, Color(1, 1, 1, 0.95), 6.0, true)
 		draw_arc(c, maxf(r, 8.0), 0.0, TAU, 64, Color(0.4, 1, 0.5) if in_window else Color(1, 0.8, 0.25), 8.0, true)
+
+## What the current attack / defence looks like: taps and their target, the
+## heat gauge with its green zone, the seam to trace, the eye to dazzle, a fill bar.
+class FightMeter extends Control:
+	const EYE := Vector2(0, -150)          # where "its eye" is, from the centre (the dazzle target)
+	var mode := ""
+	var progress := 0.0
+	var count := 0
+	var target := 1
+	var heat := 0.0
+	var clean_from := 0.7
+	var clean_to := 0.85
+	var dots: Array = []
+	var burned: Array = []
+	var cursor := Vector2.ZERO
+	var firing := false
+
+	func _process(_delta: float) -> void:
+		if visible:
+			queue_redraw()
+
+	func _draw() -> void:
+		var c := size * 0.5
+		var font := ThemeDB.fallback_font
+		var cyan := Color(0.45, 0.95, 1.0)
+		var warm := Color(1.0, 0.72, 0.3)
+		match mode:
+			"taps", "bash":
+				var label := "TAP!" if mode == "taps" else "BASH IT ASIDE!"
+				draw_string(font, c + Vector2(-120, 120), "%s  %d / %d" % [label, count, target], HORIZONTAL_ALIGNMENT_LEFT, -1, 40, warm if count >= target else cyan)
+				if mode == "taps":
+					draw_rect(Rect2(c + Vector2(-200, 140), Vector2(400, 14)), Color(0.1, 0.13, 0.15, 0.85))
+					draw_rect(Rect2(c + Vector2(-200, 140), Vector2(400 * (1.0 - progress), 14)), cyan)
+			"heat", "fill", "shield":
+				var bar := Rect2(c + Vector2(-220, 120), Vector2(440, 30))
+				draw_rect(bar, Color(0.1, 0.13, 0.15, 0.85))
+				if mode == "heat":
+					draw_rect(Rect2(bar.position + Vector2(bar.size.x * clean_from, 0), Vector2(bar.size.x * (clean_to - clean_from), bar.size.y)), Color(0.2, 0.65, 0.25, 0.9))
+					draw_rect(Rect2(bar.position + Vector2(bar.size.x * clean_to, 0), Vector2(bar.size.x * (1.0 - clean_to), bar.size.y)), Color(0.75, 0.18, 0.12, 0.9))
+				draw_rect(Rect2(bar.position, Vector2(bar.size.x * clampf(heat, 0.0, 1.0), bar.size.y * 0.5)), warm)
+				draw_rect(bar, cyan, false, 2.0)
+				var word: String = {"heat": "HOLD... LET GO IN THE GREEN", "fill": "HOLD TO PRINT", "shield": "HOLD FOR A SHIELD"}[mode]
+				draw_string(font, bar.position + Vector2(0, -12), word, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, cyan)
+			"trace":
+				for i in dots.size():
+					var p: Vector2 = c + dots[i]
+					if i > 0:
+						draw_line(c + dots[i - 1], p, Color(1.0, 0.6, 0.2, 0.5), 4.0)
+					draw_circle(p, 14.0, Color(0.3, 0.2, 0.15) if burned.has(i) else Color(1.0, 0.7, 0.3))
+				draw_circle(c + cursor, 10.0, Color(1.0, 0.3, 0.2) if firing else Color(1, 1, 1, 0.6))
+				draw_arc(c + cursor, 18.0, 0.0, TAU, 24, Color(1, 1, 1, 0.8), 2.0)
+				draw_string(font, c + Vector2(-160, 200), "TRACE THE SEAM  %d / %d" % [burned.size(), dots.size()], HORIZONTAL_ALIGNMENT_LEFT, -1, 30, cyan)
+			"eye":
+				draw_circle(c + EYE, 24.0, Color(1.0, 0.35, 0.1, 0.9))
+				draw_arc(c + EYE, 34.0, 0.0, TAU * clampf(heat, 0.0, 1.0), 32, cyan, 5.0)
+				draw_circle(c + cursor, 10.0, Color(1.0, 0.3, 0.2) if firing else Color(1, 1, 1, 0.6))
+				draw_arc(c + cursor, 18.0, 0.0, TAU, 24, Color(1, 1, 1, 0.8), 2.0)
+				draw_string(font, c + Vector2(-150, 200), "BEAM ON ITS EYE!", HORIZONTAL_ALIGNMENT_LEFT, -1, 30, cyan)
+			"parry":
+				draw_string(font, c + Vector2(-190, 200), "HOLD... LET GO AS THE RING TOUCHES", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, cyan)
