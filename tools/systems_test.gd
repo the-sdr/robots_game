@@ -1080,14 +1080,14 @@ func _initialize() -> void:
 	var pause_menu_node: CanvasLayer = card_hud.get_node("PauseMenu")
 	(pause_menu_node.find_child("ControlsButton", true, false) as Button).pressed.emit()
 	await process_frame
-	check(cards.page_open() and cards._page_list.get_child_count() >= 3, "the pause menu opens Tools & controls: the basics and the tools seen")
+	check(card_hud.help_menu.is_open() and card_hud.help_menu.tab == "Controls", "the pause menu opens Help and controls")
 	var back := InputEventAction.new()
 	back.action = "ui_cancel"
 	back.pressed = true
 	Input.parse_input_event(back)
 	for i in 4:
 		await process_frame
-	check(not cards.page_open() and pause_menu_node.visible and paused, "Esc goes back to the pause menu")
+	check(not card_hud.help_menu.is_open() and pause_menu_node.visible and paused, "Esc goes back to the pause menu")
 	card_hud.toggle_pause()
 	await process_frame
 	load("res://scripts/ui/tool_card.gd").suppressed = true
@@ -1316,6 +1316,41 @@ func _initialize() -> void:
 	Game.data["inventory"] = cache_inventory
 	Game.inventory_changed.emit()
 
+	print("== F1 help: controls, testing notes, the map")
+	var notes: Dictionary = load("res://scripts/ui/help_menu.gd").load_notes()
+	var notes_ok: bool = notes.has("sprint") and (notes.get("items", []) as Array).size() >= 5
+	for item in notes.get("items", []):
+		notes_ok = notes_ok and item.has("title") and item.has("try") and item.has("ask")
+	check(notes_ok, "playtest/testing_notes.json: a sprint and %d items, each with try and ask" % (notes.get("items", []) as Array).size())
+	var help_hud: CanvasLayer = world.get_node("HUD")
+	var help: CanvasLayer = help_hud.help_menu
+	var help_ev := InputEventAction.new()
+	help_ev.action = "help"
+	help_ev.pressed = true
+	Input.parse_input_event(help_ev)
+	for i in 4:
+		await process_frame
+	check(help.is_open() and paused and help.tab == "Controls", "F1 / D-pad down opens Help on Controls, and the game waits")
+	var next_tab := InputEventAction.new()
+	next_tab.action = "cycle_tool"
+	next_tab.pressed = true
+	Input.parse_input_event(next_tab)
+	for i in 3:
+		await process_frame
+	check(help.tab == "Testing notes" and help._content.get_child_count() >= 3, "LB / RB / Q switch to the testing notes")
+	Input.parse_input_event(next_tab.duplicate())
+	for i in 3:
+		await process_frame
+	var map_px: Vector2 = help.map_pixel(Vector3(0, 0, -8.6))
+	check(help.tab == "Map" and absf(map_px.x - (46 + 42 * 9)) < 0.01 and absf(map_px.y - (46 + (96 - 8.6) * 9)) < 0.01, "and to the map, with the robot placed on it (door at %s px)" % map_px)
+	var shut := InputEventAction.new()
+	shut.action = "ui_cancel"
+	shut.pressed = true
+	Input.parse_input_event(shut)
+	for i in 4:
+		await process_frame
+	check(not help.is_open() and not paused, "B / Esc closes it and play goes on")
+
 	print("== pickups")
 	var loose: Node = world.get_node("GeneratedLevel/Collectibles")
 	if loose.get_child_count() == 0:
@@ -1467,6 +1502,28 @@ func _initialize() -> void:
 		"F3's screenshot is saved as a 1280-wide jpg next to the logs (%s)" % shot_rel)
 	overlay.free()
 	stand_in.free()
+	print("== the main menu: testing notes, help")
+	var title_menu: Control = load("res://scenes/ui/main_menu.tscn").instantiate()
+	root.add_child(title_menu)
+	for i in 3:
+		await process_frame
+	var menu_notes: Dictionary = load("res://scripts/ui/help_menu.gd").load_notes()
+	var listed: int = title_menu.notes_panel.find_child("Items", true, false).get_child_count()
+	check(listed == (menu_notes.get("items", []) as Array).size(), "the testing notes are on the main menu (%d items)" % listed)
+	var bar_text := ""
+	for l in title_menu.find_child("HelpBar", true, false).find_children("*", "Label", true, false):
+		bar_text += (l as Label).text + " "
+	check(bar_text.contains("F1") and bar_text.contains("D-pad down"), "the main menu says F1 / D-pad down opens help (%s)" % bar_text.strip_edges())
+	(title_menu.get_node("%NotesButton") as Button).pressed.emit()
+	await process_frame
+	check(title_menu.help_menu.is_open() and title_menu.help_menu.tab == "Testing notes", "Testing notes opens the full notes")
+	title_menu.help_menu.close()
+	(title_menu.get_node("%HelpButton") as Button).pressed.emit()
+	await process_frame
+	check(title_menu.help_menu.is_open() and title_menu.help_menu.tab == "Controls" and not title_menu.help_menu._tab_buttons["Map"].visible, "Help and controls opens help (no map before the game)")
+	title_menu.help_menu.close()
+	title_menu.queue_free()
+	await process_frame
 	Game.delete_save()
 	print("RESULT: %s (%d failures)" % ["OK" if failures == 0 else "PROBLEMS FOUND", failures])
 	quit(0 if failures == 0 else 1)

@@ -31,6 +31,8 @@ var pad := false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS           # menus pause the game; keep listening
 	pad = not Input.get_connected_joypads().is_empty()
+	# the game's look for every menu and panel (scripts/ui/ui_style.gd)
+	get_tree().root.theme = preload("res://scripts/ui/ui_style.gd").theme()
 
 func _input(event: InputEvent) -> void:
 	var from_pad := pad

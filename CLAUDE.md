@@ -70,6 +70,12 @@ ARM64 = Surface).
   (`playtest/shots/save_N.jpg`, look at it), **F4** logs a
   5-second performance sample (`playtest/perf.md`: perf_1…), **F7** god mode
   (double-tap Space to fly, Space up / Shift down, no collision).
+- **F1** (pad: D-pad down) opens Help in the game: controls, the testing notes,
+  and the as-built map with the robot on it.
+- **Testing notes** (`playtest/testing_notes.json`) are what the owner sees on
+  the main menu and in F1: this sprint's playtest targets, each with "try" and
+  "ask". **Keep them current**: rewrite them whenever a sprint's targets
+  change, before pushing a build for the owner to play.
 - Talk about places as coordinates, save names, design node names
   (`fork`, `giant_ford`, `clearing`…) or area names, and check them against
   `level_design/maps/forest_map_v3_built.png` (everything actually placed,

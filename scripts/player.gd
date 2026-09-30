@@ -129,6 +129,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _find_hud():
 			_hud.toggle_pause()
 			get_viewport().set_input_as_handled()
+	if event.is_action_pressed("help") and _find_hud() and not get_tree().paused:
+		_hud.open_help()
+		get_viewport().set_input_as_handled()
 	if in_combat:
 		return               # the fight screen reads its own keys
 	if event.is_action_pressed("inventory") and not shut_down:

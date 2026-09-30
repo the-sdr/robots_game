@@ -29,6 +29,8 @@ var _notice_time := 0.0
 var _message_hint: Label
 ## Tool cards and the Tools & controls page (scripts/ui/tool_card.gd).
 var tool_card: CanvasLayer
+## F1 help: controls, testing notes, map (scripts/ui/help_menu.gd).
+var help_menu: CanvasLayer
 ## Tool feedback (tool_rig.gd): the cutter's heat, the smasher's combo, the laser's aim.
 var heat_gauge: HeatGauge
 var combo_label: Label
@@ -48,6 +50,10 @@ func _ready() -> void:
 	notice_label.visible = false
 	message_panel.visible = false
 	_build_tool_feedback()
+	help_menu = preload("res://scripts/ui/help_menu.gd").new()
+	help_menu.name = "HelpMenu"
+	help_menu.in_game = true
+	add_child(help_menu)
 	tool_card = preload("res://scripts/ui/tool_card.gd").new()
 	tool_card.name = "ToolCard"
 	add_child(tool_card)
@@ -373,6 +379,14 @@ func _check_first_parts() -> void:
 ## The pause menu's Tools & controls page.
 func open_controls_page() -> void:
 	tool_card.show_page()
+
+## F1 / D-pad down, or the pause menu: help on a tab ("Controls", "Testing notes", "Map").
+func open_help(tab: String = "Controls") -> void:
+	help_menu.open(tab)
+
+## A tool's card again (from the help menu).
+func show_tool_card(tool_id: String) -> void:
+	tool_card.show_card(tool_id)
 
 func toggle_inventory() -> void:
 	inventory_panel.toggle()

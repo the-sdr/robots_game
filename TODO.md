@@ -51,6 +51,16 @@
       dot); long things like vines burn segment by segment as you sweep along.
       **Playtest:** does each tool feel different? Brambles in one or two good
       cuts? Laser aiming OK with mouse and right stick?
+- [x] 2026-09-30 playtest: testing notes on the main menu and in F1; F1 help
+      (controls, notes, map with the robot); the main menu's new look (robot
+      vision background, Bahnschrift, glass panels); forest parts inside things
+      that belong there (pump, camera, birdbox, junction box, hose reel,
+      weather station; toolbox in the clearing); no jump when closing a menu;
+      story cards stay until B / Esc; parts and "ready to build" hand-holding.
+- [ ] Menu art: the owner may hunt for menu assets; a real font file (OFL, e.g.
+      Rajdhani / Exo 2) would need the owner's OK to add to the project.
+- [ ] Hub/Agora crates: replace with city things (bins, lockers, vending
+      machines, parcel lockers) when the city gets its pass.
 - [ ] Next: link fights to the tools (owner: "getting loot teaches you how to fight").
 - [x] Phase D: find types. Anything breakable with loot inside is detectable
       (crates, rubble...). New: weed patches (cut them away), wrecks (salvage

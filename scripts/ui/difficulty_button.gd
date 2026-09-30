@@ -12,4 +12,4 @@ func _ready() -> void:
 
 func _refresh() -> void:
 	text = "Difficulty: %s" % Settings.difficulty_name()
-	tooltip_text = "Changes fights only. Easy: slow timing, big hints, the first fight can't be lost."
+	tooltip_text = "Fights and battery. Easy: slow timing, big hints, the first fight can't be lost, 15 minutes of driving per charge."
