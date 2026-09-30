@@ -132,11 +132,14 @@ func _run() -> void:
 	if _skip:
 		return
 	# 6. the dock: sunlight reaches it, the bar lights, one ring blinking
+	# From the room side: the old spot (0.7, 0.72, 0.55) sat 5 cm behind the house
+	# wall, which hid the bottom two rings - and the bottom one is the one that
+	# blinks at 10 % (owner, save_51; checked with exact mesh rays).
 	var post: Vector3 = charger.global_position
-	_camera_hold(post + Vector3(0.7, 0.72, 0.55), post + Vector3(0, 0.62, 0))
+	_camera_hold(post + Vector3(0.95, 0.55, -0.15), post + Vector3(0, 0.55, 0))
 	await _wait(0.7)
 	charger.set("stored", float(charger.call("effective_capacity")) * 0.1)
-	await _wait(2.3)
+	await _wait(3.0)
 	if _skip:
 		return
 	# 7. the robot's face, very close: the iris opens, a little

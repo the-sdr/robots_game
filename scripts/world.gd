@@ -13,6 +13,20 @@ const INTRO := preload("res://scenes/cutscene/opening.tscn")
 @onready var hud: CanvasLayer = $HUD
 
 var _shutting_down := false
+var _told_scan := false
+
+# The detector card shows as the robot first steps out of the house (owner,
+# save_55: "as soon as you're out we need to tell the player how to scan").
+const HOUSE_MIN := Vector2(-2.79, -7.84)
+const HOUSE_MAX := Vector2(2.79, -2.21)
+
+func _process(_delta: float) -> void:
+	if _told_scan or not Game.get_flag("house_door_broken"):
+		return
+	var p := player.global_position
+	if p.x < HOUSE_MIN.x or p.x > HOUSE_MAX.x or p.z < HOUSE_MIN.y or p.z > HOUSE_MAX.y:
+		_told_scan = true
+		hud.queue_card("detector")
 
 func _ready() -> void:
 	Clock.running = true

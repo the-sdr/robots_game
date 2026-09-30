@@ -1283,6 +1283,16 @@ func _initialize() -> void:
 	for i in 4:
 		await process_frame
 	check(not fix_hud.message_open() and not fix_hud.pause_menu.visible, "B / Esc closes it (and doesn't pause)")
+	var scan_cards: CanvasLayer = fix_hud.tool_card
+	Game.set_flag("card:detector", false)
+	scan_cards._queue.clear()
+	world.set("_told_scan", false)
+	Game.set_flag("house_door_broken", true)
+	player.global_position = Vector3(0.0, 0.3, -1.0)          # just outside the house
+	for i in 3:
+		await process_frame
+	check(scan_cards._queue.has("detector"), "stepping out of the house queues the Detector card")
+	scan_cards._queue.clear()
 	var sweep_det: Node = player.get_node("Detector")
 	sweep_det.scan()
 	for i in 18:
