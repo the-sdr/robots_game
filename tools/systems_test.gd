@@ -39,7 +39,7 @@ func _initialize() -> void:
 	Catalog = root.get_node("Catalog")
 	await process_frame      # _initialize runs before the root joins the tree
 	load("res://scripts/ui/tool_card.gd").suppressed = true     # cards pause the game; tested on their own below
-	create_timer(240.0).timeout.connect(func() -> void: print("RESULT: WATCHDOG TIMEOUT (a check hung or a script error aborted the run)"); quit(2))
+	create_timer(480.0).timeout.connect(func() -> void: print("RESULT: WATCHDOG TIMEOUT (a check hung or a script error aborted the run)"); quit(2))
 	print("== catalog")
 	for rid in Catalog.RECIPES:
 		var r: Dictionary = Catalog.RECIPES[rid]
@@ -1229,6 +1229,68 @@ func _initialize() -> void:
 	spare_wreck.queue_free()
 	Game.data["inventory"] = inventory_before_finds      # the sections below count parts from zero
 	Game.inventory_changed.emit()
+
+	print("== playtest fixes (2026-09-30)")
+	var fix_hud: CanvasLayer = world.get_node("HUD")
+	var fix_glyphs: Node = root.get_node("Glyphs")
+	fix_glyphs.pad = true
+	check(fix_glyphs.label("ui_cancel") == "B" and fix_glyphs.label("help") == "D-pad down", "pad: B closes things, D-pad down opens help (%s, %s)" % [fix_glyphs.label("ui_cancel"), fix_glyphs.label("help")])
+	fix_glyphs.pad = false
+	check(fix_glyphs.label("help") == "F1" and fix_glyphs.label("ui_cancel") == "Esc", "keyboard: F1 help, Esc closes (%s, %s)" % [fix_glyphs.label("help"), fix_glyphs.label("ui_cancel")])
+	for i in 30:
+		await physics_frame
+	paused = true                                    # a menu is open...
+	Input.action_press("jump")                       # ...and A / Space closes it
+	for i in 5:
+		await process_frame
+	paused = false
+	var ground_y: float = player.global_position.y
+	for i in 20:
+		await physics_frame
+	check(player.global_position.y < ground_y + 0.1, "the press that closes a menu doesn't make the robot jump")
+	Input.action_release("jump")
+	await physics_frame
+	await physics_frame
+	Input.action_press("jump")
+	var top_y := ground_y
+	for i in 20:
+		await physics_frame
+		top_y = maxf(top_y, player.global_position.y)
+	Input.action_release("jump")
+	check(top_y > ground_y + 0.3, "a fresh press jumps as usual (%.2f m)" % (top_y - ground_y))
+	for i in 60:
+		await physics_frame
+	fix_hud.show_message("Test", "A story card.")
+	for i in 60 * 20:
+		await process_frame
+	check(fix_hud.message_open(), "a story card stays up (20 s later) until it is closed")
+	fix_hud.show_message("Next", "A newer card.")
+	check(fix_hud.message_title.text == "Next", "a new one replaces it")
+	var close_ev := InputEventAction.new()
+	close_ev.action = "ui_cancel"
+	close_ev.pressed = true
+	Input.parse_input_event(close_ev)
+	for i in 4:
+		await process_frame
+	check(not fix_hud.message_open() and not fix_hud.pause_menu.visible, "B / Esc closes it (and doesn't pause)")
+	var sweep_det: Node = player.get_node("Detector")
+	sweep_det.set_on(true)
+	for i in 18:
+		await process_frame
+	check(sweep_det.wave_radius() > 0.0 and sweep_det.wave_radius() < 12.0, "the sweep ring starts slow near the robot (%.1f m after 0.3 s)" % sweep_det.wave_radius())
+	sweep_det.set_on(false)
+	var old_part: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0) if world.get_node("GeneratedLevel/Collectibles").get_child_count() > 0 else null
+	check(old_part == null or old_part.is_in_group("detectable"), "loose parts are detectable too")
+	Game.set_flag("hint_ready:smasher", false)
+	var had_smasher: bool = Game.has_tool("smasher")
+	Game.data["tools"].erase("smasher")
+	Game.add_item("hammer_head")
+	Game.add_item("actuator_arm")
+	await process_frame
+	check(fix_hud.message_open() and fix_hud.message_title.text == "Ready to build" and fix_hud.message_text.text.contains("Smasher"), "with both parts, a card says the Smasher can be built (%s)" % fix_hud.message_text.text)
+	fix_hud.close_message()
+	if had_smasher:
+		Game.data["tools"].append("smasher")
 
 	print("== pickups")
 	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)

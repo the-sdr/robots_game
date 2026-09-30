@@ -15,7 +15,8 @@ extends Node
 # costs a little energy while on.
 
 const SWEEP_PERIOD := 5.0
-const SWEEP_TIME := 1.0          # the front's trip out to RANGE
+const SWEEP_TIME := 1.2          # the front's trip out to RANGE (it starts slow, so the ring
+                                 # is seen rolling out from the robot even when a find is close)
 const OVERLAY_IN := 0.15         # seconds for the robot view to come up
 const OVERLAY_OUT := 0.5         # and to fade after the sweep
 const RANGE := 60.0
@@ -75,6 +76,14 @@ func set_on(enabled: bool) -> void:
 		get_tree().call_group("hud", "queue_card", "detector")
 	get_tree().call_group("hud", "show_notice", "Detector on" if on else "Detector off")
 
+## The sweep front's distance from where it started (-100 = no front): it eases
+## out from the robot, so the ring near the robot lasts long enough to see.
+func wave_radius() -> float:
+	if not on or _time >= SWEEP_TIME:
+		return -100.0
+	var t := _time / SWEEP_TIME
+	return RANGE * t * t
+
 ## How far off a fix from this distance may land (0 = exact).
 static func fuzz(distance: float) -> float:
 	return clampf((distance - EXACT_WITHIN) * FUZZ_PER_METRE, 0.0, MAX_FUZZ)
@@ -130,7 +139,7 @@ func _sweep() -> void:
 		var shift := Vector2.from_angle(_rng.randf() * TAU) * sqrt(_rng.randf()) * off
 		spots.append({"pos": p + Vector3(shift.x, 0.0, shift.y), "radius": maxf(0.5, off * 1.3),
 			"strength": lerpf(1.0, 0.4, d / RANGE), "heat": 0.0, "lit": false,
-			"reveal_at": d / RANGE * SWEEP_TIME, "distance": d})
+			"reveal_at": sqrt(d / RANGE) * SWEEP_TIME, "distance": d})
 	var nearest: float = spots[0]["distance"] if not spots.is_empty() else INF
 	signal_bars = 0 if spots.is_empty() else clampi(5 - int(nearest / 12.0), 1, 5)
 	for i in _signal_bars.size():
@@ -155,7 +164,7 @@ func _push() -> void:
 	_material.set_shader_parameter("scan_amount", _overlay)
 	_material.set_shader_parameter("scan_spots_on", 1.0 if any else 0.0)
 	_material.set_shader_parameter("scan_origin", _origin)
-	_material.set_shader_parameter("scan_wave", _time / SWEEP_TIME * RANGE if on and _time < SWEEP_TIME else -100.0)
+	_material.set_shader_parameter("scan_wave", wave_radius())
 	_material.set_shader_parameter("scan_range", RANGE)
 	_material.set_shader_parameter("scan_spots", centres)
 	_material.set_shader_parameter("scan_spot_heat", heat)

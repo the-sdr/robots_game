@@ -34,6 +34,7 @@ func _ready() -> void:
 	if Game.get_flag(_flag()):
 		queue_free()
 		return
+	add_to_group("detectable")
 	var model_path := MODEL % item_id
 	if ResourceLoader.exists(model_path):
 		# the item's own model (tools/item_models_bake.gd) replaces the placeholder gear
@@ -61,6 +62,10 @@ func _ready() -> void:
 		cylinder.height = (col.shape as CylinderShape3D).height
 		col.shape = cylinder
 	pickup.body_entered.connect(_on_body_entered)
+
+## Where the detector senses it.
+func detect_position() -> Vector3:
+	return global_position
 
 func _process(delta: float) -> void:
 	_time += delta

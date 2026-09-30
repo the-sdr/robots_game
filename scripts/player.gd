@@ -71,6 +71,10 @@ var _focus: Interactable = null
 ## The right trigger is an axis: it sends a stream of values while held, so a
 ## pull uses the tool once and the next pull needs a release first.
 var _tool_held := false
+## Set when play resumes after a pause (menu, card, build screen): the press that
+## closed it (A / Space) must not also jump. Cleared once jump is let go.
+var _jump_locked := false
+var _last_physics_frame := 0
 ## Last solid ground (sampled while driving): a robot that falls off the edge
 ## of the world (the tiny curse slips out through the trees) is put back here.
 var _last_safe := Vector3.ZERO
@@ -246,6 +250,12 @@ func tool_pulled(event: InputEvent) -> bool:
 	return true
 
 func _physics_process(delta: float) -> void:
+	var frame := Engine.get_physics_frames()
+	if frame - _last_physics_frame > 1:
+		_jump_locked = true              # we were paused: a menu just closed
+	_last_physics_frame = frame
+	if _jump_locked and not Input.is_action_pressed("jump"):
+		_jump_locked = false
 	# Re-arm from the input state, which is kept even while the game is paused
 	# (a trigger released during a menu or a fight still counts as released).
 	if _tool_held and not Input.is_action_pressed("use_tool"):
@@ -268,11 +278,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		hovering = false
 		if not is_on_floor():
-			if Game.has_tool("hover") and Input.is_action_pressed("jump") and Energy.current > 0.0:
+			if Game.has_tool("hover") and Input.is_action_pressed("jump") and not _jump_locked and Energy.current > 0.0:
 				_hover(delta)
 			else:
 				velocity.y -= GRAVITY * delta
-		if Input.is_action_pressed("jump") and is_on_floor():
+		if Input.is_action_pressed("jump") and not _jump_locked and is_on_floor():
 			velocity.y = JUMP_VELOCITY * (TINY_JUMP if tiny else 1.0)
 			jumped.emit()
 

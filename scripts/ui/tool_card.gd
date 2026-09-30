@@ -16,6 +16,8 @@ const CARDS := {
 		"rows": [["move", "Drive"], ["look", "Look around"], ["jump", "Jump"], ["interact", "Use, dock, dig"],
 			["detector", "Detector on / off"], ["inventory", "Parts and building"], ["use_tool", "Use the tool"],
 			["cycle_tool", "Next tool"], ["pause", "Pause"]], "pattern": ""},
+	"parts": {"title": "Parts and building", "text": "You found a part! Everything you pick up goes into your store. Open the build screen to see what the parts can make - when a recipe lights up, pick it to build it.",
+		"rows": [["inventory", "Open the build screen"], ["interact", "Pick things up, open, dig"]], "pattern": "press"},
 	"detector": {"title": "Detector", "text": "Every few seconds it sweeps. Warm spots show where something is: far away they are big and drift about, closer in they tighten into a ring. Dig on the ring.",
 		"rows": [["detector", "On / off"], ["interact", "Dig on the ring"]], "pattern": "sweep"},
 	"smasher": {"title": "Smasher", "text": "Bash! Quick presses hit harder and harder. Keep the rhythm going.",

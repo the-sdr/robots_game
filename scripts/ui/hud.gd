@@ -26,6 +26,7 @@ const MESSAGE_SECONDS := 7.0
 @onready var inventory_panel: Control = $InventoryPanel
 
 var _notice_time := 0.0
+var _message_hint: Label
 ## Tool cards and the Tools & controls page (scripts/ui/tool_card.gd).
 var tool_card: CanvasLayer
 ## Tool feedback (tool_rig.gd): the cutter's heat, the smasher's combo, the laser's aim.
@@ -51,6 +52,7 @@ func _ready() -> void:
 	tool_card.name = "ToolCard"
 	add_child(tool_card)
 	Game.tool_added.connect(queue_card)
+	Game.inventory_changed.connect(_check_first_parts)
 	Glyphs.device_changed.connect(func(_pad: bool) -> void:
 		_refresh_tool()
 		set_prompt(_prompt_target))
@@ -70,10 +72,6 @@ func _process(delta: float) -> void:
 				notice_label.visible = false
 			else:
 				_show_next_notice()
-	if _message_time > 0.0:
-		_message_time -= delta
-		if _message_time <= 0.0:
-			message_panel.visible = false
 
 ## The solar readout: how much sun a panel gets right now, and the charger you
 ## rely on (the one you're docked at, else the last one you docked at, else home):
@@ -153,11 +151,31 @@ func _show_next_notice() -> void:
 	_notice_time = NOTICE_SECONDS
 
 ## A story beat or a longer explanation; stays up for a while.
+## A story card at the top of the screen. It stays (the game keeps going) until
+## the player closes it (B / Esc) or the next one replaces it (owner, save_48).
 func show_message(title: String, text: String) -> void:
 	message_title.text = title
 	message_text.text = text
 	message_panel.visible = true
-	_message_time = MESSAGE_SECONDS + text.length() * 0.03
+	if _message_hint == null:
+		_message_hint = Label.new()
+		_message_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_message_hint.add_theme_font_size_override("font_size", 15)
+		_message_hint.add_theme_color_override("font_color", Color(0.6, 0.66, 0.7))
+		message_text.add_sibling(_message_hint)
+	_message_hint.text = "%s close" % Glyphs.text("ui_cancel")
+
+func message_open() -> bool:
+	return message_panel.visible
+
+func close_message() -> void:
+	message_panel.visible = false
+
+# Before the player's pause: with a story card up, B / Esc closes the card.
+func _input(event: InputEvent) -> void:
+	if message_panel.visible and event.is_action_pressed("ui_cancel") and not get_tree().paused:
+		close_message()
+		get_viewport().set_input_as_handled()
 
 # --- dialogue (Pythia and later NPC robots) ------------------------------------------------
 signal dialogue_finished(speaker: String)
@@ -335,6 +353,22 @@ class AimDot extends Control:
 ## A tool card, shown once when nothing else is on screen.
 func queue_card(id: String) -> void:
 	tool_card.queue_card(id)
+
+## The first part picked up shows the parts card; the first time a recipe can be
+## built, a story card says so (and which button opens the build screen).
+func _check_first_parts() -> void:
+	var inventory: Dictionary = Game.data["inventory"]
+	if inventory.is_empty():
+		return
+	queue_card("parts")
+	for recipe_id in Catalog.RECIPES:
+		var recipe: Dictionary = Catalog.RECIPES[recipe_id]
+		if not recipe.has("tool") or Game.has_tool(String(recipe["tool"])):
+			continue
+		if Game.craft_blocker(recipe_id) == "" and not Game.get_flag("hint_ready:" + recipe_id):
+			Game.set_flag("hint_ready:" + recipe_id, true)
+			show_message("Ready to build", "You have everything for the %s. Open the build screen (%s) and pick it." % [recipe["name"], Glyphs.label("inventory")])
+			return
 
 ## The pause menu's Tools & controls page.
 func open_controls_page() -> void:
