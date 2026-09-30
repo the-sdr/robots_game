@@ -76,3 +76,18 @@
   - **Note:** empty building
 - **save_41** — 2026-09-29 20:28:55 — X    -1.1  Y    +4.5  Z  -107.6  Facing  S  158°  Camera  S  202°  Pitch    -25°  FPS 30
   - **Note:** I can't find anything else to do after the sentry, is that meant to be? answer on next session
+- **save_42** — 2026-09-30 08:35:17 — X    +0.4  Y    +0.1  Z    -3.5  Facing  E  111°  Camera  NW 302°  Pitch    -60°  FPS 40  —  shot: playtest/shots/save_42.jpg
+  - **Note:** when we press a to exit menu the robot jumps
+- **save_43** — 2026-09-30 08:36:03 — X    +0.1  Y    +0.1  Z    -5.4  Facing  S  171°  Camera  S  178°  Pitch    -25°  FPS 35  —  shot: playtest/shots/save_43.jpg
+  - **Note:** can we include a sweeping ring when the detector turns on even if the parts are close
+- **save_44** — 2026-09-30 08:37:00 — X    -0.7  Y    +0.1  Z    -5.1  Facing  SW 203°  Camera  SW 209°  Pitch     -9°  FPS 31  —  shot: playtest/shots/save_44.jpg
+  - **Note:** needs more hand holding to explain collecting parts and opening up the crafting menu
+- **save_45** — 2026-09-30 08:37:25 — X    -1.5  Y    +0.1  Z    -5.5  Facing  NW 337°  Camera  NW 310°  Pitch    -11°  FPS 18  —  shot: playtest/shots/save_45.jpg
+  - **Note:** lets put an extra part inside a crate
+- **save_46** — 2026-09-30 08:38:24 — X    +0.2  Y    -0.2  Z   -22.9  Facing  NW 335°  Camera  NW 317°  Pitch     +6°  FPS 17  —  shot: playtest/shots/save_46.jpg
+- **save_47** — 2026-09-30 08:38:31 — X    +0.2  Y    -0.2  Z   -22.9  Facing  NW 335°  Camera  NW 317°  Pitch     +6°  FPS 17  —  shot: playtest/shots/save_47.jpg
+  - **Note:** looks awesome!
+- **save_48** — 2026-09-30 08:39:32 — X    +0.2  Y    -0.2  Z   -22.9  Facing  NW 335°  Camera  NE 059°  Pitch    -47°  FPS 25  —  shot: playtest/shots/save_48.jpg
+  - **Note:** problem is the story prompts are still flashing fast. let's have B on controller to dismiss and an appropriate keyboard key like Esc. Overlay rather than locking the game is good. if user doesn't close it, a new prompt can just replace the old one
+- **save_49** — 2026-09-30 14:38:15 — X   -32.2  Y    -1.6  Z   -34.1  Facing  SW 243°  Camera  SW 237°  Pitch    -22°  FPS 36  —  shot: playtest/shots/save_49.jpg
+  - **Note:** why isn't detector on full for this? Should there not be somethign to do to get this item?
