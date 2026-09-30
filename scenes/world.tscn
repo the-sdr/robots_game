@@ -1,0 +1,339 @@
+[gd_scene format=3 uid="uid://cgaxwrphyu0fu"]
+
+[ext_resource type="PackedScene" path="res://scenes/level/generated_level.tscn" id="gen"]
+
+[ext_resource type="PackedScene" path="res://scenes/level_hub/generated_hub.tscn" id="gen_hub"]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1"]
+
+[ext_resource type="PackedScene" uid="uid://cufb1p8kwmkno" path="res://assets/quaternius_buildings/Finished Textured Buildings/FBX/1Story.fbx" id="2"]
+
+[ext_resource type="Script" uid="uid://ci4vl0ll5r5yj" path="res://scripts/house_setup.gd" id="17"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/charging_station.tscn" id="20"]
+
+[ext_resource type="Script" uid="uid://ome0x60fqcih" path="res://scripts/sky_dressing.gd" id="22"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/coord_overlay.tscn" id="30"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="31"]
+
+[ext_resource type="Script" path="res://scripts/world.gd" id="32"]
+
+[ext_resource type="Script" path="res://scripts/day_night.gd" id="33"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/house_door.tscn" id="34"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/crate.tscn" id="35"]
+
+[ext_resource type="PackedScene" path="res://scenes/props/collectible_part.tscn" id="36"]
+
+[ext_resource type="Script" path="res://scripts/interact/story_trigger.gd" id="37"]
+
+[ext_resource type="PackedScene" path="res://assets/quaternius_medieval/Floor_WoodDark.gltf" id="38"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_floor"]
+size = Vector3(5.4, 0.06, 5.4)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_trigger3"]
+radius = 3.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_trigger5"]
+radius = 5.0
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_morning"]
+sky_top_color = Color(0.3, 0.55, 0.85, 1)
+sky_horizon_color = Color(0.75, 0.85, 0.92, 1)
+ground_bottom_color = Color(0.3, 0.55, 0.3, 1)
+ground_horizon_color = Color(0.75, 0.85, 0.92, 1)
+
+[sub_resource type="Sky" id="Sky_morning"]
+sky_material = SubResource("ProceduralSkyMaterial_morning")
+
+[sub_resource type="Environment" id="Environment_morning"]
+background_mode = 2
+sky = SubResource("Sky_morning")
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.75, 0.85, 0.92, 1)
+fog_density = 0.9
+fog_sky_affect = 0.3
+fog_depth_begin = 25.0
+fog_depth_end = 130.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_side"]
+size = Vector3(0.2, 4.18, 5.44)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_far"]
+size = Vector3(5.39, 4.18, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_near_seg"]
+size = Vector3(1.99, 4.18, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_house_ceiling"]
+size = Vector3(5.6, 0.2, 5.6)
+
+[node name="World" type="Node3D" unique_id=1237908528]
+script = ExtResource("32")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=14414355]
+environment = SubResource("Environment_morning")
+
+[node name="Clouds" type="Node3D" parent="." unique_id=1205373525]
+script = ExtResource("22")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1406318878]
+transform = Transform3D(0.49999997, 0.4967318, -0.70940655, 0, 0.81915206, 0.57357645, 0.86602545, -0.2867882, 0.409576, 0, 0, 0)
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_mode = 1
+directional_shadow_max_distance = 30.0
+
+[node name="DayNight" type="Node" parent="."]
+script = ExtResource("33")
+
+[node name="Player" parent="." unique_id=821479118 groups=["player"] instance=ExtResource("1")]
+transform = Transform3D(-0.7950667, 0, 0.60652184, 0, 1, 0, -0.60652184, 0, -0.7950667, -0.93140256, 0.1018011, -4.322591)
+
+[node name="House" parent="." unique_id=2060891932 instance=ExtResource("2")]
+transform = Transform3D(-2.5, 0, -2.1855695e-07, 0, 2.5, 0, 2.1855695e-07, 0, -2.5, 0, 0, -5)
+script = ExtResource("17")
+
+[node name="HouseCollision" type="StaticBody3D" parent="." unique_id=88086202]
+
+[node name="WallWest" type="CollisionShape3D" parent="HouseCollision" unique_id=327986017]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.69, 2.09, -5.025)
+shape = SubResource("BoxShape3D_house_side")
+
+[node name="WallEast" type="CollisionShape3D" parent="HouseCollision" unique_id=474824885]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.69, 2.09, -5.025)
+shape = SubResource("BoxShape3D_house_side")
+
+[node name="WallFar" type="CollisionShape3D" parent="HouseCollision" unique_id=2073607531]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.09, -2.31)
+shape = SubResource("BoxShape3D_house_far")
+
+[node name="WallNearLeft" type="CollisionShape3D" parent="HouseCollision" unique_id=1625292939]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.695, 2.09, -7.74)
+shape = SubResource("BoxShape3D_house_near_seg")
+
+[node name="WallNearRight" type="CollisionShape3D" parent="HouseCollision" unique_id=214511905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.695, 2.09, -7.74)
+shape = SubResource("BoxShape3D_house_near_seg")
+
+[node name="Ceiling" type="CollisionShape3D" parent="HouseCollision" unique_id=933619733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.18, -5.025)
+shape = SubResource("BoxShape3D_house_ceiling")
+
+[node name="HouseCharger" parent="." unique_id=307491544 instance=ExtResource("20")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0, -3.2)
+is_home = true
+
+[node name="HouseFloor" type="StaticBody3D" parent="."]
+
+[node name="Collision" type="CollisionShape3D" parent="HouseFloor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -5.03)
+shape = SubResource("BoxShape3D_house_floor")
+
+[node name="Tile_0_0" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, -1.8, 0.05, -6.83)
+
+[node name="Tile_0_1" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, -1.8, 0.05, -5.03)
+
+[node name="Tile_0_2" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, -1.8, 0.05, -3.23)
+
+[node name="Tile_1_0" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 0.0, 0.05, -6.83)
+
+[node name="Tile_1_1" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 0.0, 0.05, -5.03)
+
+[node name="Tile_1_2" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 0.0, 0.05, -3.23)
+
+[node name="Tile_2_0" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -6.83)
+
+[node name="Tile_2_1" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -5.03)
+
+[node name="Tile_2_2" parent="HouseFloor" instance=ExtResource("38")]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 0.9, 1.8, 0.05, -3.23)
+
+[node name="HouseDoor" parent="." instance=ExtResource("34")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7.74)
+
+[node name="CrateNorthEast" parent="." instance=ExtResource("35")]
+transform = Transform3D(0.94, 0, -0.34, 0, 1, 0, 0.34, 0, 0.94, 1.95, 0, -3.0)
+
+[node name="CrateSouthWest" parent="." instance=ExtResource("35")]
+transform = Transform3D(0.99, 0, 0.14, 0, 1, 0, -0.14, 0, 0.99, -1.95, 0, -6.4)
+
+[node name="ActuatorArm" parent="." instance=ExtResource("36")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.95, 0.55, -3.0)
+part_name = "Actuator arm"
+item_id = "actuator_arm"
+color = Color(0.9, 0.55, 0.25, 1)
+
+[node name="HammerHead" parent="." instance=ExtResource("36")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.95, -0.3, -7.25)
+part_name = "Hammer head"
+item_id = "hammer_head"
+color = Color(0.75, 0.75, 0.8, 1)
+
+[node name="StoryTriggers" type="Node3D" parent="."]
+
+[node name="Gate" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -12)
+script = ExtResource("37")
+beat = "gate"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Gate"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Fork" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -24)
+script = ExtResource("37")
+beat = "fork"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Fork"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Giant" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, -45)
+script = ExtResource("37")
+beat = "giant"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Giant"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="UnderGiant" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, -51)
+script = ExtResource("37")
+beat = "under_giant"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/UnderGiant"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Ruin" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, -58)
+script = ExtResource("37")
+beat = "ruin"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Ruin"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="Clearing" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1, -56)
+script = ExtResource("37")
+beat = "clearing"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Clearing"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="Exit" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -78)
+script = ExtResource("37")
+beat = "exit"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Exit"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Crest" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -86)
+script = ExtResource("37")
+beat = "crest"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Crest"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="Spring" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 1, -33)
+script = ExtResource("37")
+beat = "spring"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Spring"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="HollowTree" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1, -20)
+script = ExtResource("37")
+beat = "hollow_tree"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/HollowTree"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="PineEnd" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 1, -16)
+script = ExtResource("37")
+beat = "pine_end"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/PineEnd"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="GardenNook" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 1, 4)
+script = ExtResource("37")
+beat = "garden_nook"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/GardenNook"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="RuinFar" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 1, -69)
+script = ExtResource("37")
+beat = "ruin_far"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/RuinFar"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Brambles" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1, -45)
+script = ExtResource("37")
+beat = "brambles"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Brambles"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="EastPocket" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, -46)
+script = ExtResource("37")
+beat = "east_pocket"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/EastPocket"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="Hub" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -99)
+script = ExtResource("37")
+beat = "hub"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/Hub"]
+shape = SubResource("SphereShape3D_trigger5")
+
+[node name="EastYard" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 1, -114)
+script = ExtResource("37")
+beat = "east_yard"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/EastYard"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="WestYard" type="Area3D" parent="StoryTriggers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 1, -124)
+script = ExtResource("37")
+beat = "west_yard"
+
+[node name="Shape" type="CollisionShape3D" parent="StoryTriggers/WestYard"]
+shape = SubResource("SphereShape3D_trigger3")
+
+[node name="HUD" parent="." instance=ExtResource("31")]
+
+[node name="CoordOverlay" parent="." instance=ExtResource("30")]
+
+[node name="GeneratedLevel" parent="." instance=ExtResource("gen")]
+
+[node name="GeneratedHub" parent="." instance=ExtResource("gen_hub")]

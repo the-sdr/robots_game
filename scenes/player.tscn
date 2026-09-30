@@ -1,0 +1,344 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/tools/tool_rig.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.66, 0.68, 0.7, 1)
+metallic = 0.6
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.17, 0.18, 0.19, 1)
+metallic = 0.3
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="Mat_blue"]
+albedo_color = Color(0.16, 0.24, 0.62, 1)
+metallic = 0.4
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_yellow"]
+albedo_color = Color(0.88, 0.62, 0.15, 1)
+metallic = 0.3
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_lens"]
+albedo_color = Color(0.05, 0.07, 0.1, 1)
+emission_enabled = true
+emission = Color(0.45, 0.8, 1, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="BoxMesh" id="Mesh_tread"]
+material = SubResource("Mat_dark")
+size = Vector3(0.16, 0.24, 0.52)
+
+[sub_resource type="CylinderMesh" id="Mesh_wheel"]
+material = SubResource("Mat_dark")
+top_radius = 0.12
+bottom_radius = 0.12
+height = 0.16
+
+[sub_resource type="BoxMesh" id="Mesh_tread_plate"]
+material = SubResource("Mat_metal")
+size = Vector3(0.02, 0.14, 0.44)
+
+[sub_resource type="BoxMesh" id="Mesh_axle"]
+material = SubResource("Mat_metal")
+size = Vector3(0.34, 0.08, 0.12)
+
+[sub_resource type="BoxMesh" id="Mesh_hip"]
+material = SubResource("Mat_metal")
+size = Vector3(0.16, 0.12, 0.16)
+
+[sub_resource type="CylinderMesh" id="Mesh_torso"]
+material = SubResource("Mat_metal")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 0.34
+
+[sub_resource type="CylinderMesh" id="Mesh_band"]
+material = SubResource("Mat_blue")
+top_radius = 0.076
+bottom_radius = 0.076
+height = 0.12
+
+[sub_resource type="BoxMesh" id="Mesh_chest"]
+material = SubResource("Mat_metal")
+size = Vector3(0.46, 0.18, 0.22)
+
+[sub_resource type="BoxMesh" id="Mesh_chest_panel"]
+material = SubResource("Mat_dark")
+size = Vector3(0.2, 0.1, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_backpack"]
+material = SubResource("Mat_dark")
+size = Vector3(0.3, 0.14, 0.1)
+
+[sub_resource type="CylinderMesh" id="Mesh_shoulder"]
+material = SubResource("Mat_dark")
+top_radius = 0.05
+bottom_radius = 0.05
+height = 0.08
+
+[sub_resource type="BoxMesh" id="Mesh_upper_arm"]
+material = SubResource("Mat_metal")
+size = Vector3(0.06, 0.24, 0.06)
+
+[sub_resource type="BoxMesh" id="Mesh_elbow"]
+material = SubResource("Mat_dark")
+size = Vector3(0.07, 0.07, 0.07)
+
+[sub_resource type="BoxMesh" id="Mesh_forearm"]
+material = SubResource("Mat_metal")
+size = Vector3(0.05, 0.05, 0.22)
+
+[sub_resource type="BoxMesh" id="Mesh_palm"]
+material = SubResource("Mat_dark")
+size = Vector3(0.08, 0.03, 0.04)
+
+[sub_resource type="BoxMesh" id="Mesh_finger"]
+material = SubResource("Mat_blue")
+size = Vector3(0.015, 0.06, 0.015)
+
+[sub_resource type="CylinderMesh" id="Mesh_collar"]
+material = SubResource("Mat_yellow")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.04
+
+[sub_resource type="CylinderMesh" id="Mesh_neck"]
+material = SubResource("Mat_dark")
+top_radius = 0.025
+bottom_radius = 0.025
+height = 0.2
+
+[sub_resource type="BoxMesh" id="Mesh_head_plate"]
+material = SubResource("Mat_metal")
+size = Vector3(0.28, 0.06, 0.12)
+
+[sub_resource type="CylinderMesh" id="Mesh_eye"]
+material = SubResource("Mat_metal")
+top_radius = 0.05
+bottom_radius = 0.05
+height = 0.12
+
+[sub_resource type="CylinderMesh" id="Mesh_lens"]
+material = SubResource("Mat_lens")
+top_radius = 0.038
+bottom_radius = 0.038
+height = 0.01
+
+[sub_resource type="BoxMesh" id="Mesh_brow"]
+material = SubResource("Mat_dark")
+size = Vector3(0.1, 0.015, 0.08)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.38
+height = 1.2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_probe"]
+radius = 1.8
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="TreadLeft" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0, 0)
+
+[node name="Body" type="MeshInstance3D" parent="Visual/TreadLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+mesh = SubResource("Mesh_tread")
+
+[node name="WheelFront" type="MeshInstance3D" parent="Visual/TreadLeft"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0.12, -0.26)
+mesh = SubResource("Mesh_wheel")
+
+[node name="WheelBack" type="MeshInstance3D" parent="Visual/TreadLeft"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0.12, 0.26)
+mesh = SubResource("Mesh_wheel")
+
+[node name="SidePlate" type="MeshInstance3D" parent="Visual/TreadLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 0.12, 0)
+mesh = SubResource("Mesh_tread_plate")
+
+[node name="TreadRight" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0, 0)
+
+[node name="Body" type="MeshInstance3D" parent="Visual/TreadRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+mesh = SubResource("Mesh_tread")
+
+[node name="WheelFront" type="MeshInstance3D" parent="Visual/TreadRight"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0.12, -0.26)
+mesh = SubResource("Mesh_wheel")
+
+[node name="WheelBack" type="MeshInstance3D" parent="Visual/TreadRight"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0.12, 0.26)
+mesh = SubResource("Mesh_wheel")
+
+[node name="SidePlate" type="MeshInstance3D" parent="Visual/TreadRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 0.12, 0)
+mesh = SubResource("Mesh_tread_plate")
+
+[node name="Axle" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.18, 0)
+mesh = SubResource("Mesh_axle")
+
+[node name="Hip" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+mesh = SubResource("Mesh_hip")
+
+[node name="Torso" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("Mesh_torso")
+
+[node name="TorsoBand" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.44, 0)
+mesh = SubResource("Mesh_band")
+
+[node name="Chest" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.76, 0)
+mesh = SubResource("Mesh_chest")
+
+[node name="ChestPanel" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.76, -0.115)
+mesh = SubResource("Mesh_chest_panel")
+
+[node name="Backpack" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0.15)
+mesh = SubResource("Mesh_backpack")
+
+[node name="ArmLeft" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.27, 0.8, 0)
+
+[node name="Shoulder" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_shoulder")
+
+[node name="UpperArm" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+mesh = SubResource("Mesh_upper_arm")
+
+[node name="Elbow" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
+mesh = SubResource("Mesh_elbow")
+
+[node name="Forearm" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, -0.12)
+mesh = SubResource("Mesh_forearm")
+
+[node name="Palm" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, -0.25)
+mesh = SubResource("Mesh_palm")
+
+[node name="FingerA" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, -0.2, -0.26)
+mesh = SubResource("Mesh_finger")
+
+[node name="FingerB" type="MeshInstance3D" parent="Visual/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, -0.2, -0.26)
+mesh = SubResource("Mesh_finger")
+
+[node name="ArmRight" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.27, 0.8, 0)
+
+[node name="Shoulder" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_shoulder")
+
+[node name="UpperArm" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+mesh = SubResource("Mesh_upper_arm")
+
+[node name="Elbow" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
+mesh = SubResource("Mesh_elbow")
+
+[node name="Forearm" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, -0.12)
+mesh = SubResource("Mesh_forearm")
+
+[node name="Palm" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, -0.25)
+mesh = SubResource("Mesh_palm")
+
+[node name="FingerA" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, -0.2, -0.26)
+mesh = SubResource("Mesh_finger")
+
+[node name="FingerB" type="MeshInstance3D" parent="Visual/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03, -0.2, -0.26)
+mesh = SubResource("Mesh_finger")
+
+[node name="ToolRig" type="Node3D" parent="Visual/ArmRight"]
+script = ExtResource("2")
+
+[node name="Collar" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.87, 0)
+mesh = SubResource("Mesh_collar")
+
+[node name="Neck" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+mesh = SubResource("Mesh_neck")
+
+[node name="Head" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.08, 0)
+
+[node name="HeadPlate" type="MeshInstance3D" parent="Visual/Head"]
+mesh = SubResource("Mesh_head_plate")
+
+[node name="EyeLeft" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.07, 0.04, -0.03)
+mesh = SubResource("Mesh_eye")
+
+[node name="LensLeft" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.07, 0.04, -0.093)
+mesh = SubResource("Mesh_lens")
+
+[node name="BrowLeft" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0.1, -0.03)
+mesh = SubResource("Mesh_brow")
+
+[node name="EyeRight" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0.07, 0.04, -0.03)
+mesh = SubResource("Mesh_eye")
+
+[node name="LensRight" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0.07, 0.04, -0.093)
+mesh = SubResource("Mesh_lens")
+
+[node name="BrowRight" type="MeshInstance3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.1, -0.03)
+mesh = SubResource("Mesh_brow")
+
+[node name="Headlight" type="SpotLight3D" parent="Visual/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.12)
+light_color = Color(0.85, 0.92, 1, 1)
+light_energy = 0.0
+spot_range = 14.0
+spot_angle = 38.0
+spot_angle_attenuation = 0.6
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="InteractProbe" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+monitorable = false
+
+[node name="ProbeShape" type="CollisionShape3D" parent="InteractProbe"]
+shape = SubResource("SphereShape3D_probe")
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+[node name="CameraArm" type="Node3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/CameraArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+current = true
