@@ -117,3 +117,15 @@
   - **Note:** Let's make this setting a part of the world where night time is shorter. Let's call it summer in the mid north or mid south around the solstice. 15/24 hours daylight
 - **save_62** — 2026-09-30 18:46:18 — X   +23.8  Y    +1.0  Z   -59.6  Facing  E  084°  Camera  NW 335°  Pitch    -28°  FPS 28  —  shot: playtest/shots/save_62.jpg
   - **Note:** also F3 doesn't work when a menu is open. I need it to show you what's on the menu screen. I have cutter equipped right now. There is no action. Instructions have been great though
+- **save_63** — 2026-09-30 21:13:29 — X   +21.1  Y    -2.0  Z   -41.3  Facing  SW 228°  Camera  SW 206°  Pitch    -12°  FPS 24  —  shot: playtest/shots/save_63.jpg
+  - **Note:** brightness of the blobs in detector are a bit unclear for how close something is. might need to fiddle witht he dynamic range. prompt me for conversation
+- **save_64** — 2026-09-30 21:14:21 — X   +31.1  Y    -0.8  Z   -44.5  Facing  E  077°  Camera  E  078°  Pitch    -24°  FPS 47  —  shot: playtest/shots/save_64.jpg
+  - **Note:** cutter is good. needs to be quicker to respond. is this a difficulty issue?
+- **save_65** — 2026-09-30 21:16:25 — X   +50.6  Y    +0.7  Z    -6.1  Facing  S  177°  Camera  S  169°  Pitch     -3°  FPS 57  —  shot: playtest/shots/save_65.jpg
+  - **Note:** where am I? I feel lost and bored. combat might need to come in sooner with sentry as a boss
+- **save_66** — 2026-09-30 21:16:55 — X   +46.3  Y    +0.6  Z   +11.5  Facing  SW 204°  Camera  SW 209°  Pitch     -6°  FPS 60  —  shot: playtest/shots/save_66.jpg
+  - **Note:** by might I often mean "will". everytime I say "might" check if that's a "will". add to claude.md
+- **save_67** — 2026-09-30 21:17:37 — X   +22.1  Y    +7.9  Z   +78.6  Facing  SE 127°  Camera  E  078°  Pitch    -26°  FPS 60  —  shot: playtest/shots/save_67.jpg
+  - **Note:** I shouldn't be here. fix this high priority
+- **save_68** — 2026-09-30 21:18:37 — X   +45.8  Y    -0.1  Z   -46.4  Facing  NW 300°  Camera  W  285°  Pitch    -22°  FPS 15  —  shot: playtest/shots/save_68.jpg
+  - **Note:** the escape issue would be here
