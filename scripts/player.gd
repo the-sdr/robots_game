@@ -145,7 +145,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("cycle_tool") and not shut_down:
 		tool_rig.cycle()
 	if event.is_action_pressed("detector") and not shut_down:
-		detector.toggle()
+		detector.scan()
 	if event.is_action_pressed("zoom_in"):
 		target_zoom = clamp(target_zoom - ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 	if event.is_action_pressed("zoom_out"):

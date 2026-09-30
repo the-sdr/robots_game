@@ -1,8 +1,9 @@
 extends Node
 
-# The robot's detector: "robot vision" (owner, 2026-09-29). Toggled with the
-# detector key (R, pad Y). While it is on, a sweep rolls out from the robot every
-# SWEEP_PERIOD seconds: for about a second the ground turns into the robot's
+# The robot's detector: "robot vision" (owner, 2026-09-29). One press of the
+# detector button (right mouse button or R, pad LB; owner 2026-09-30: "on button
+# press", not a toggle or a timer) sends one sweep out from the robot: for about
+# a second the ground turns into the robot's
 # view (a grid with height contours, drawn by the terrain shader) and warm spots
 # flare where the front passes something to recover - anything in the group
 # "detectable" with a detect_position() (buried finds, parts, crates...).
@@ -11,17 +12,19 @@ extends Node
 # sweep, so it only gives a direction; closer in it tightens; within EXACT_WITHIN
 # it is a crisp ring on the exact spot. Purely visual, so it works without sound.
 # Far spots also glow as a warm haze above the trees (the forest would hide the
-# ground). The world should look good enough to want the detector off, so it
-# costs a little energy while on.
+# ground). Each scan costs a little energy; the spots and the signal bars stay
+# a few seconds so the player can walk towards them, then scan again.
 
-const SWEEP_PERIOD := 5.0
+const SCAN_COOLDOWN := 0.8       # seconds before the next scan can go out
+const SCAN_ENERGY := 0.5
+const SIGNAL_SHOW := 5.0         # seconds the signal bars stay after a scan
 const SWEEP_TIME := 1.2          # the front's trip out to RANGE (it starts slow, so the ring
                                  # is seen rolling out from the robot even when a find is close)
 const OVERLAY_IN := 0.15         # seconds for the robot view to come up
 const OVERLAY_OUT := 0.5         # and to fade after the sweep
 const RANGE := 60.0
 const MAX_SPOTS := 12            # must match the terrain shader's arrays
-const SPOT_GLOW := 3.0           # seconds a spot keeps glowing after the front reaches it
+const SPOT_GLOW := 4.0           # seconds a spot keeps glowing after the front reaches it
 const EXACT_WITHIN := 2.5        # metres: closer than this, the fix is exact
 const FUZZ_PER_METRE := 0.3      # how far off a far fix can land, per metre of distance
 const MAX_FUZZ := 12.0
@@ -39,12 +42,11 @@ void fragment() {
 
 @onready var player: Node3D = get_parent()
 
-var on := false
 ## Sweeps sent since the game started (tests).
 var sweeps := 0
 ## The spots from the last sweep: {pos: Vector3, radius, strength, heat, lit, reveal_at, distance}.
 var spots: Array[Dictionary] = []
-var _time := SWEEP_PERIOD        # since the last sweep started
+var _time := 100.0               # since the last sweep started
 var _overlay := 0.0
 var _origin := Vector3.ZERO
 var _material: ShaderMaterial
@@ -66,20 +68,24 @@ func _ready() -> void:
 	_build_hazes()
 	_push()
 
-func toggle() -> void:
-	set_on(not on)
+## The detector button: one sweep (false while the last one is still going out).
+func scan() -> bool:
+	if _time < SCAN_COOLDOWN:
+		return false
+	if not player.get("god_mode"):
+		Energy.drain(SCAN_ENERGY)
+	get_tree().call_group("hud", "queue_card", "detector")
+	_sweep()
+	return true
 
-func set_on(enabled: bool) -> void:
-	on = enabled
-	if on:
-		_time = SWEEP_PERIOD             # the first sweep goes out straight away
-		get_tree().call_group("hud", "queue_card", "detector")
-	get_tree().call_group("hud", "show_notice", "Detector on" if on else "Detector off")
+## True while a sweep's front is rolling out.
+func sweeping() -> bool:
+	return _time < SWEEP_TIME
 
 ## The sweep front's distance from where it started (-100 = no front): it eases
 ## out from the robot, so the ring near the robot lasts long enough to see.
 func wave_radius() -> float:
-	if not on or _time >= SWEEP_TIME:
+	if _time >= SWEEP_TIME:
 		return -100.0
 	var t := _time / SWEEP_TIME
 	return RANGE * t * t
@@ -89,14 +95,9 @@ static func fuzz(distance: float) -> float:
 	return clampf((distance - EXACT_WITHIN) * FUZZ_PER_METRE, 0.0, MAX_FUZZ)
 
 func _process(delta: float) -> void:
-	if on:
-		_time += delta
-		if _time >= SWEEP_PERIOD:
-			_sweep()
-		if not player.get("god_mode"):
-			Energy.drain(Energy.idle_drain() * delta)
-	var sweeping := on and _time < SWEEP_TIME
-	_overlay = move_toward(_overlay, 1.0 if sweeping else 0.0, delta / (OVERLAY_IN if sweeping else OVERLAY_OUT))
+	_time += delta
+	var rolling := sweeping()
+	_overlay = move_toward(_overlay, 1.0 if rolling else 0.0, delta / (OVERLAY_IN if rolling else OVERLAY_OUT))
 	for s in spots:
 		if not s["lit"]:
 			if _time >= s["reveal_at"]:
@@ -104,7 +105,7 @@ func _process(delta: float) -> void:
 				s["heat"] = s["strength"]
 		else:
 			s["heat"] = maxf(float(s["heat"]) - delta * float(s["strength"]) / SPOT_GLOW, 0.0)
-	var busy := on or _overlay > 0.0 or _any_glowing()
+	var busy := _time < SIGNAL_SHOW or _overlay > 0.0 or _any_glowing()
 	if busy or not _idle_pushed:
 		_push()
 		_update_hazes()
@@ -171,7 +172,7 @@ func _push() -> void:
 
 func _exit_tree() -> void:
 	# the material is shared and outlives the robot: leave the normal look behind
-	on = false
+	_time = 100.0
 	_overlay = 0.0
 	spots.clear()
 	_push()
@@ -226,7 +227,7 @@ func _hud_label(text: String) -> Label:
 func _update_screen() -> void:
 	_screen_rect.visible = _overlay > 0.0
 	(_screen_rect.material as ShaderMaterial).set_shader_parameter("amount", _overlay)
-	_signal_box.visible = on
+	_signal_box.visible = _time < SIGNAL_SHOW
 
 # --- the warm haze above far spots -------------------------------------------------------
 func _build_hazes() -> void:

@@ -76,6 +76,12 @@ ARM64 = Surface).
   (double-tap Space to fly, Space up / Shift down, no collision).
 - **F1** (pad: D-pad down) opens Help in the game: controls, the testing notes,
   and the as-built map with the robot on it.
+- **When a control or mechanic changes, update everything that tells the
+  player about it** in the same commit: tool cards (`scripts/ui/tool_card.gd`),
+  F1 help (`scripts/ui/help_menu.gd`), fight coach texts, HUD prompts and
+  notices, the main menu bar and the testing notes. Button names always come
+  from `Glyphs`, never typed into the text. Grep for the old wording before
+  committing.
 - **Testing notes** (`playtest/testing_notes.json`) are what the owner sees on
   the main menu and in F1: this sprint's playtest targets, each with "try" and
   "ask". **Keep them current**: rewrite them whenever a sprint's targets

@@ -88,11 +88,22 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.is_action_pressed("help")):
 		close()
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cycle_tool"):
+	elif _tab_step(event) != 0:
 		var tabs := _tabs()
-		var step := -1 if event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_LEFT_SHOULDER else 1
-		_show_tab(tabs[(tabs.find(tab) + step + tabs.size()) % tabs.size()])
+		_show_tab(tabs[(tabs.find(tab) + _tab_step(event) + tabs.size()) % tabs.size()])
 		get_viewport().set_input_as_handled()
+
+## LB / RB (or Q) switch tabs: -1, +1, or 0 for any other input.
+func _tab_step(event: InputEvent) -> int:
+	if event is InputEventJoypadButton and event.is_pressed():
+		match (event as InputEventJoypadButton).button_index:
+			JOY_BUTTON_LEFT_SHOULDER:
+				return -1
+			JOY_BUTTON_RIGHT_SHOULDER:
+				return 1
+	if (event is InputEventKey or event is InputEventAction) and event.is_action_pressed("cycle_tool"):
+		return 1
+	return 0
 
 func _process(delta: float) -> void:
 	if not visible:
@@ -196,7 +207,7 @@ func _fill_controls() -> void:
 	grid.add_theme_constant_override("v_separation", 8)
 	_content.add_child(grid)
 	for row in [["move", "Drive"], ["look", "Look around"], ["jump", "Jump"], ["interact", "Use, dock, dig, open"],
-			["use_tool", "Use the tool"], ["cycle_tool", "Next tool"], ["detector", "Detector on / off"],
+			["use_tool", "Use the tool"], ["cycle_tool", "Next tool"], ["detector", "Scan (detector)"],
 			["inventory", "Parts and building"], ["pause", "Pause"], ["help", "This help"], ["ui_cancel", "Back / close a card"]]:
 		_row(row[0], row[1], grid)
 	_heading("In a fight")

@@ -976,7 +976,7 @@ func _initialize() -> void:
 	var terrain_mat: ShaderMaterial = load("res://materials/terrain_painterly.tres")
 	var fork_find: Node3D = world.get_node("GeneratedLevel/Finds/Find_fork_scrap")
 	var far_find: Node3D = world.get_node("GeneratedLevel/Finds/Find_clearing_gears")
-	check(fork_find.is_in_group("detectable") and not det.on, "buried finds are detectable; the detector starts off")
+	check(fork_find.is_in_group("detectable") and not det.sweeping(), "buried finds are detectable; no scan until the button is pressed")
 	player.global_position = fork_find.global_position + Vector3(1.6, 0.3, -1.0)
 	for i in 10:
 		await physics_frame
@@ -987,7 +987,7 @@ func _initialize() -> void:
 	Input.parse_input_event(det_ev)
 	for i in 4:                      # the key lands just before a frame's _process: give the detector a frame of its own
 		await process_frame
-	check(det.on and det.sweeps == sweeps_before + 1, "the detector key turns it on and a sweep goes out at once")
+	check(det.sweeping() and det.sweeps == sweeps_before + 1, "the detector button sends one scan out")
 	var near_spot: Dictionary = det.spots[0]
 	var far_spot: Dictionary = {}
 	for sp in det.spots:
@@ -1005,7 +1005,11 @@ func _initialize() -> void:
 	var far_pos_before: Vector3 = far_spot["pos"]
 	for i in 60 * 3:
 		await process_frame
-	check(det.sweeps == sweeps_before + 2, "the next sweep comes about five seconds later")
+	check(det.sweeps == sweeps_before + 1, "no scan goes out by itself (no timer)")
+	Input.parse_input_event(det_ev.duplicate())
+	for i in 4:
+		await process_frame
+	check(det.sweeps == sweeps_before + 2, "each press is another scan")
 	var far_again: Dictionary = {}
 	for sp in det.spots:
 		if (sp["distance"] as float) > 40.0:
@@ -1028,11 +1032,9 @@ func _initialize() -> void:
 		await process_frame
 	check(fork_find.recovered and Game.count("scrap_metal") == dig_scrap_before + 1 and dig_energy - Energy.current >= 0.99, "the find comes up into the inventory (digging costs a little energy)")
 	check(Game.get_flag("dug:" + String(fork_find.get_path()).trim_prefix("/root/")), "and it stays dug in the save")
-	Input.parse_input_event(det_ev)
-	await process_frame
-	for i in 60 * 4:
+	for i in 60 * 6:
 		await process_frame
-	check(not det.on and float(terrain_mat.get_shader_parameter("scan_amount")) < 0.01 and float(terrain_mat.get_shader_parameter("scan_spots_on")) < 0.5, "switched off: the world looks normal again")
+	check(float(terrain_mat.get_shader_parameter("scan_amount")) < 0.01 and float(terrain_mat.get_shader_parameter("scan_spots_on")) < 0.5, "a few seconds after a scan the world looks normal again")
 
 	print("== button pictures and tool cards")
 	var glyphs: Node = root.get_node("Glyphs")
@@ -1042,7 +1044,7 @@ func _initialize() -> void:
 	check(glyphs.label("interact") == "E" and glyphs.label("use_tool") == "Left click" and glyphs.label("detector") == "R" and glyphs.label("move") == "WASD",
 		"keyboard names (%s, %s, %s)" % [glyphs.label("interact"), glyphs.label("use_tool"), glyphs.label("detector")])
 	glyphs.pad = true
-	check(glyphs.label("interact") == "X" and glyphs.label("use_tool") == "RT" and glyphs.label("detector") == "Y" and glyphs.label("inventory") == "Menu" and glyphs.label("pause") == "View" and glyphs.label("cycle_tool") == "LB",
+	check(glyphs.label("interact") == "X" and glyphs.label("use_tool") == "RT" and glyphs.label("detector") == "LB" and glyphs.label("inventory") == "Menu" and glyphs.label("pause") == "View" and glyphs.label("cycle_tool") == "RB",
 		"pad names (%s, %s, %s, %s, %s, %s)" % [glyphs.label("interact"), glyphs.label("use_tool"), glyphs.label("detector"), glyphs.label("inventory"), glyphs.label("pause"), glyphs.label("cycle_tool")])
 	glyphs.pad = false
 	var pad_tap := InputEventJoypadButton.new()
@@ -1282,11 +1284,10 @@ func _initialize() -> void:
 		await process_frame
 	check(not fix_hud.message_open() and not fix_hud.pause_menu.visible, "B / Esc closes it (and doesn't pause)")
 	var sweep_det: Node = player.get_node("Detector")
-	sweep_det.set_on(true)
+	sweep_det.scan()
 	for i in 18:
 		await process_frame
 	check(sweep_det.wave_radius() > 0.0 and sweep_det.wave_radius() < 12.0, "the sweep ring starts slow near the robot (%.1f m after 0.3 s)" % sweep_det.wave_radius())
-	sweep_det.set_on(false)
 	var old_part: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0) if world.get_node("GeneratedLevel/Collectibles").get_child_count() > 0 else null
 	check(old_part == null or old_part.is_in_group("detectable"), "loose parts are detectable too")
 	Game.set_flag("hint_ready:smasher", false)

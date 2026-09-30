@@ -11,8 +11,8 @@
   },
   {
    "title": "The detector",
-   "try": "Switch it on (R / Y). Walk towards the warm spots until the ring is tight, then dig (E / X). Try the garden gate first, then the Dry Clearing.",
-   "ask": "Is the sweep rhythm nice? Too bright, too faint? Does the warm haze above the trees help from far away?"
+   "try": "Press to scan: right mouse button (or R), LB on the pad. Walk towards a warm spot and scan again until it is a tight ring, then dig (E / X). Try the garden gate first, then the Dry Clearing. (Tools now cycle on RB / Q.)",
+   "ask": "Does scanning on a button feel better than the timer did? Too bright, too faint? Does the warm haze above the trees help from far away?"
   },
   {
    "title": "Parts inside things that belong there",
