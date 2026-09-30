@@ -30,6 +30,8 @@ OLD_PLACEMENTS = os.path.join(BUILD_DIR, "placements.json")
 
 TERRAIN = {"x0": -110, "x1": 110, "z0": -200, "z1": 80}
 DENSE_BAND = 6.0          # full-density trees within this distance of reachable ground
+FOREST_BORDER = 5         # metres of forest planted outside the forest's west, east and south edges:
+                          # dead ends near an edge (the Spring, the Pocket) leaked through (2026-09-30)
 INDIVIDUAL_REACH = 1.5    # trees nearer than this to reachable ground stay individual nodes (draw calls!)
 SHOULDER = 0.1            # extra clearance between a trunk and the path edge (small: trees crowd the path)
 DEAD_END_CLEARING = 2.0
@@ -483,12 +485,14 @@ def main():
     tree_models = sorted({m for a in f.areas.values() for m in a["trees"]})
     trees_individual = trees_merged = skipped = 0
     fbx0, fbx1, fbz0, fbz1 = f.fb["x_min"], f.fb["x_max"], f.north["z_min"], f.fb["z_max"]
-    open_x1 = int(max([fbx1] + [r["x_max"] + 6 for r in f.open_areas]))
-    for x in range(fbx0, open_x1 + 1):
-        for z in range(fbz0, fbz1 + 1):
+    open_x1 = int(max([fbx1 + FOREST_BORDER] + [r["x_max"] + 6 for r in f.open_areas]))
+    for x in range(fbx0 - FOREST_BORDER, open_x1 + 1):
+        for z in range(fbz0, fbz1 + FOREST_BORDER + 1):
             if (x + z) % 2:
                 continue
-            in_forest = z >= f.fb["z_min"] and x <= fbx1
+            in_rect = fbx0 <= x <= fbx1 and f.fb["z_min"] <= z <= fbz1
+            border = (not in_rect) and z >= f.fb["z_min"] and                 lc.box_distance(x, z, (fbx0, f.fb["z_min"]), (fbx1, fbz1)) <= FOREST_BORDER
+            in_forest = in_rect or border
             if not in_forest:
                 if z >= f.fb["z_min"]:
                     continue                                      # east of the forest: background only
@@ -500,7 +504,7 @@ def main():
             if in_forest and reach > DENSE_BAND and (x % 2 or z % 2):
                 continue                                          # deep interior: half density
             house_d = min(lc.box_distance(x, z, lc.HOUSE_MIN, lc.HOUSE_MAX), f.structure_distance(x, z))
-            area = f.area_at(x, z) if in_forest else "edge"
+            area = f.area_at(x, z) if in_rect else "edge"
             weights = f.areas[area]["trees"]
             models = sorted(weights, key=lambda m: -math.log((lc.cell_hash(x, z, tree_models.index(m)) % 100000 + 1) / 100001.0) / weights[m])
             chosen = None

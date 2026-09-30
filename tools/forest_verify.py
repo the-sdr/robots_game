@@ -22,14 +22,21 @@ from forest_build import Forest, GIANT_BLOCKERS
 
 CELL = 0.25
 LEAK_MARGIN = 2.5        # reachable this far beyond a path edge counts as a leak (small nooks are fine)
+OUTSIDE = 15.0           # metres of ground checked beyond the playable areas
+ESCAPE_TOLERANCE = 1.0   # reachable this far outside a playable area counts as an escape
 
 
 def main():
     f = Forest()
     level = json.load(open(os.path.join(lc.ROOT, "level_design", "build", "level.json")))
     fb, north = f.fb, f.north
-    x0, x1 = fb["x_min"] - 1, fb["x_max"] + 1
-    z0, z1 = north["z_min"] - 1, fb["z_max"] + 1
+    # The grid reaches OUTSIDE well past the playable areas, so a robot that walks
+    # out of the forest shows up as an escape instead of stopping at the grid's
+    # edge (the Pocket escape, 2026-09-30: the old 1 m margin hid it).
+    extras = f.d.get("open_extra", [])
+    x0 = min([fb["x_min"], north["x_min"]] + [e["x_min"] for e in extras]) - OUTSIDE
+    x1 = max([fb["x_max"], north["x_max"]] + [e["x_max"] for e in extras]) + OUTSIDE
+    z0, z1 = north["z_min"] - 1, fb["z_max"] + OUTSIDE
     nx, nz = int((x1 - x0) / CELL) + 1, int((z1 - z0) / CELL) + 1
     GX, GZ = np.meshgrid(x0 + np.arange(nx) * CELL, z0 + np.arange(nz) * CELL)
     blocked = np.zeros((nz, nx), dtype=bool)
@@ -82,7 +89,6 @@ def main():
                  ((hx0, hz0), (-0.7, hz0)), ((0.7, hz0), (hx1, hz0))]:
         segment(a[0], a[1], b[0], b[1], 0.1)
     blocked[0, :] = blocked[-1, :] = blocked[:, 0] = blocked[:, -1] = True
-    blocked[(GZ < fb["z_min"]) & ((GX < north["x_min"]) | (GX > north["x_max"]))] = True
     open_blocked = blocked.copy()                      # every blocker cleared (brambles cut)
     for bx0, bz0, bx1, bz1 in behind_boxes.values():
         box(bx0, bz0, bx1, bz1)
@@ -145,8 +151,37 @@ def main():
         sd = np.hypot(np.maximum(np.maximum(sx0 - GX, GX - sx1), 0), np.maximum(np.maximum(sz0 - GZ, GZ - sz1), 0))
         allowed |= sd < 3.5         # the canopy rule keeps trees back a little further than round the house
     leaks = seen_open & ~allowed              # with every blocker cleared, still nothing leaks
+    # escapes: reachable ground outside every playable area (forest, hill+city, districts)
+    inside = np.zeros_like(seen)
+    for a in [fb, north] + list(extras):
+        # districts' own walls aren't in this file (district_verify.py checks them): a wider allowance there
+        tol = ESCAPE_TOLERANCE if a in (fb, north) else 3.0
+        inside |= (GX > a["x_min"] - tol) & (GX < a["x_max"] + tol) & (GZ > a["z_min"] - tol) & (GZ < a["z_max"] + tol)
+    escapes = seen_open & ~inside
+    leaks |= escapes
 
     print("trees %d | reachable ground %.0f m2 | leak cells %d" % (trees, seen.sum() * CELL * CELL, leaks.sum()))
+    if escapes.any():
+        # where does the robot first get out? walk the flood from the door, in steps
+        grid, frontier, seen_b, step = open_blocked, [start], np.zeros_like(seen), 0
+        seen_b[start] = True
+        first = []
+        while frontier and not first:
+            step += 1
+            nxt = []
+            for i, j in frontier:
+                for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    a2, b2 = i + di, j + dj
+                    if not grid[a2, b2] and not seen_b[a2, b2]:
+                        seen_b[a2, b2] = True
+                        nxt.append((a2, b2))
+                        if escapes[a2, b2]:
+                            first.append((round(float(GX[a2, b2]), 1), round(float(GZ[a2, b2]), 1)))
+            frontier = nxt
+        print("  ESCAPE starts at %s (%.0f m of walking from the door)" % (first[:3], step * CELL))
+        ei, ej = np.nonzero(escapes)
+        epts = sorted({(round(GX[i, j]), round(GZ[i, j])) for i, j in zip(ei, ej)})
+        print("  ESCAPE: %d cells outside the playable areas, near %s" % (escapes.sum(), epts[:: max(1, len(epts) // 8)]))
     if leaks.any():
         li, lj = np.nonzero(leaks)
         pts = sorted({(round(GX[i, j]), round(GZ[i, j])) for i, j in zip(li, lj)})

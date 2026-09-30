@@ -147,6 +147,41 @@ func _initialize() -> void:
 		print("trees reaching into %s: %s" % [house, bad])
 		ok = ok and bad.is_empty()
 
+	# Escape probes (2026-09-30: the robot walked out of the forest at the Spring
+	# and the Pocket). From every dead end near the forest's west, east or south
+	# edge, drive straight at the edge and along two diagonals: it must stay in.
+	var design: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://level_design/forest_design.json"))
+	var fb: Dictionary = design["forest_bounds"]
+	var outward := {"west": Vector2(-1, 0), "east": Vector2(1, 0), "south": Vector2(0, 1)}
+	var escaped := []
+	var probes := 0
+	for n in design["nodes"]:
+		var node: Dictionary = design["nodes"][n]
+		if node["kind"] != "dead_end":
+			continue
+		var at := Vector2(node["pos"][0], node["pos"][1])
+		var gaps := {"west": at.x - float(fb["x_min"]), "east": float(fb["x_max"]) - at.x, "south": float(fb["z_max"]) - at.y}
+		for side in gaps:
+			if gaps[side] > 8.0:
+				continue
+			for angle in [-0.6, 0.0, 0.6]:
+				probes += 1
+				p.global_position = Vector3(at.x, 12.0, at.y)
+				p.velocity = Vector3.ZERO
+				for i in 90:                                   # drop onto the ground
+					var vy: float = p.velocity.y - 9.8 / 60.0 if not p.is_on_floor() else 0.0
+					p.velocity = Vector3(0, vy, 0)
+					p.move_and_slide()
+					await physics_frame
+				var target: Vector2 = at + (outward[side] as Vector2).rotated(angle) * 16.0
+				await drive_to(target, 60 * 7)
+				var end := Vector2(p.global_position.x, p.global_position.z)
+				# the forest runs FOREST_BORDER (5 m) past the line: getting 3 m out means it got through
+				if end.x < float(fb["x_min"]) - 3.0 or end.x > float(fb["x_max"]) + 3.0 or end.y > float(fb["z_max"]) + 3.0:
+					escaped.append("%s -> %s (%.1f, %.1f)" % [n, side, end.x, end.y])
+	print("escape probes: %d drives out of dead ends near the edge, escaped: %s" % [probes, escaped])
+	ok = ok and escaped.is_empty()
+
 	var ray := PhysicsRayQueryParameters3D.create(Vector3(0, 60, -84), Vector3(0, -60, -84))
 	ray.exclude = [p.get_rid()]
 	p.global_position = p.get_world_3d().direct_space_state.intersect_ray(ray).position + Vector3(0, 0.3, 0)
