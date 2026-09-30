@@ -26,19 +26,22 @@ Also read before substantial work:
    the yes ones. Durable project knowledge goes into `CLAUDE_NOTES.md`.
 6. **Every interior needs a fully sealed collision shell** — walls AND ceiling —
    or the camera escapes through the top.
-7. **Communication style:** one short, plain sentence before each action about
+7. **"Might" often means "will".** When the owner writes that something
+   "might" need doing, treat it as a likely request: check whether it's a
+   "will" (do it, or ask in one line) rather than filing it as an idea.
+8. **Communication style:** one short, plain sentence before each action about
    *that* action (no bundled "I'll do X, then Y, then Z"). Explain *why*, not
    just what. The owner's feedback is terse — treat it as a precise course
    correction, don't soften or over-explain it back. Flag real risks (scale,
    collision, destructive changes, performance) *before* acting. Report
    outcomes faithfully, including failures.
-8. **Don't switch renderers** (`project.godot`) without the owner agreeing to
+9. **Don't switch renderers** (`project.godot`) without the owner agreeing to
    test it. Renderer is **Mobile** (Forward+ hung the owner's laptop).
-9. **Never push to `main`** (only the working branch). Before every push,
+10. **Never push to `main`** (only the working branch). Before every push,
    check what is going out (`git diff --stat origin/<branch>..HEAD`); if it
    deletes files you didn't mean to delete, stop and tell the owner. (On
    2026-09-30 a push from a failed clone emptied `main`; restored in f96fe92.)
-10. **Standing permission to commit and push to the working branch** — no need
+11. **Standing permission to commit and push to the working branch** — no need
    to ask first. After each one, give a brief plain-language summary of what
    was committed and why. Merging into `main`, force-pushing, and deleting
    branches still need the owner's go-ahead. End commit messages with the
