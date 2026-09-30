@@ -1,0 +1,356 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+== catalog
+  ok   recipe smasher needs known item hammer_head
+  ok   recipe smasher needs known item actuator_arm
+  ok   recipe smasher builds known tool smasher
+  ok   recipe cutter needs known item servo_motor
+  ok   recipe cutter needs known item gear_train
+  ok   recipe cutter needs known item blade_strip
+  ok   recipe cutter needs known item power_cell
+  ok   recipe cutter builds known tool cutter
+  ok   recipe laser needs known item optic_lens
+  ok   recipe laser needs known item circuit_board
+  ok   recipe laser needs known item antenna_coil
+  ok   recipe laser builds known tool laser
+  ok   recipe hover_pack needs known item lift_fan
+  ok   recipe hover_pack needs known item gyro
+  ok   recipe hover_pack builds known tool hover
+  ok   recipe panel_extension needs known item solar_cell
+  ok   recipe fit_sun_tracker needs known item sun_tracker
+  ok   recipe battery_bank needs known item capacitor
+  ok   recipe blade_strip needs known item scrap_metal
+  ok   recipe blade_strip gives known item blade_strip
+  ok   recipe fabricator needs known item printer_core
+  ok   recipe fabricator needs known item nozzle
+  ok   recipe fabricator builds known tool fabricator
+  ok   recipe print_power_cell needs known item scrap_metal
+  ok   recipe print_power_cell gives known item power_cell
+  ok   recipe print_solar_cell needs known item scrap_metal
+  ok   recipe print_solar_cell gives known item solar_cell
+  ok   recipe print_capacitor needs known item scrap_metal
+  ok   recipe print_capacitor gives known item capacitor
+  ok   tool smasher has name
+  ok   tool smasher has effect
+  ok   tool smasher has power
+  ok   tool smasher has energy
+  ok   tool smasher has range
+  ok   tool smasher has cooldown
+  ok   tool cutter has name
+  ok   tool cutter has effect
+  ok   tool cutter has power
+  ok   tool cutter has energy
+  ok   tool cutter has range
+  ok   tool cutter has cooldown
+  ok   tool laser has name
+  ok   tool laser has effect
+  ok   tool laser has power
+  ok   tool laser has energy
+  ok   tool laser has range
+  ok   tool laser has cooldown
+  ok   tool hover has name
+  ok   tool hover has effect
+  ok   tool hover has power
+  ok   tool hover has energy
+  ok   tool hover has range
+  ok   tool hover has cooldown
+  ok   tool fabricator has name
+  ok   tool fabricator has effect
+  ok   tool fabricator has power
+  ok   tool fabricator has energy
+  ok   tool fabricator has range
+  ok   tool fabricator has cooldown
+== part models
+  ok   every Catalog item has a real model, 0.2-0.8 m (missing or odd: [])
+  ok   a pickup shows its item's model instead of the placeholder gear
+== settings: difficulty
+  ok   difficulty easy has name
+  ok   difficulty easy has ring_speed
+  ok   difficulty easy has good_window
+  ok   difficulty easy has perfect_window
+  ok   difficulty easy has miss_factor
+  ok   difficulty easy has defend_window
+  ok   difficulty easy has now_cue
+  ok   difficulty easy has enemy_damage
+  ok   difficulty easy has enemy_health
+  ok   difficulty easy has tutorial_knockout
+  ok   difficulty medium has name
+  ok   difficulty medium has ring_speed
+  ok   difficulty medium has good_window
+  ok   difficulty medium has perfect_window
+  ok   difficulty medium has miss_factor
+  ok   difficulty medium has defend_window
+  ok   difficulty medium has now_cue
+  ok   difficulty medium has enemy_damage
+  ok   difficulty medium has enemy_health
+  ok   difficulty medium has tutorial_knockout
+  ok   difficulty hard has name
+  ok   difficulty hard has ring_speed
+  ok   difficulty hard has good_window
+  ok   difficulty hard has perfect_window
+  ok   difficulty hard has miss_factor
+  ok   difficulty hard has defend_window
+  ok   difficulty hard has now_cue
+  ok   difficulty hard has enemy_damage
+  ok   difficulty hard has enemy_health
+  ok   difficulty hard has tutorial_knockout
+  ok   timing windows narrow from Easy to Hard
+  ok   Easy: slow ring, half-second dodge window, a missed press still hits
+  ok   the tutorial fight can't be lost on Easy
+  ok   Easy -> Medium
+  ok   Hard wraps back to Easy
+  ok   difficulty saved to settings.cfg
+  ok   main menu shows the difficulty (Difficulty: Hard)
+  ok   pressing it cycles to Easy
+== fight rules (combat_state.gd)
+  ok   Easy: sentry 42 HP, wide timing windows
+  ok   Easy: a missed press still hits full
+  ok   Easy: the clamp hurts half
+  ok   Easy tutorial: the robot can't be knocked out
+  ok   Medium: perfect 21, good 14, miss 8
+  ok   blocking halves a blow, dodging takes none
+  ok   Brace: a third of a blocked clamp lands, and it bonks back ({ "damage": 2, "countered": 8, "skipped": false, "dodged": 0 })
+  ok   Dazzle: the sentry loses its turn
+  ok   Medium: the tutorial can be lost
+  ok   easy, pressing nothing at all: won in 3 turns
+  ok   hard, pressing nothing at all: lost in 4 turns
+== inventory and crafting
+  ok   smasher blocked without parts
+  ok   smasher crafted
+  ok   smasher attached and equipped
+  ok   parts consumed
+  ok   no second smasher
+  ok   blade strip from scrap
+  ok   cutter crafted from forest parts
+  ok   fight kit fills as tools are built (["smasher", "cutter", ""])
+  ok   laser crafted from the forest's other three parts
+  ok   three tools: a full fight kit
+  ok   a kit slot can be emptied
+  ok   and filled again (no tool twice)
+  ok   an old save without a kit gets the first three tools
+== clock and sun
+  ok   noon sun high, panel near full
+  ok   noon sun points up
+  ok   midnight dark, no solar
+  ok   dawn sun in the east (+X)
+  ok   dusk sun in the west (-X)
+  ok   midnight rolls the day
+  ok   skip to next morning
+== energy
+  ok   spend 10
+  ok   cannot overspend
+  ok   drain to zero emits depleted
+  ok   add returns what fit
+== world: new game, dock, save, load
+  ok   new game spawns beside the house charger (1.3 m)
+  ok   spawn inside the house walls
+  ok   charger pad clear of the west wall (edge -2.45)
+  ok   charger prompt found by the probe
+  ok   docked
+  ok   docking wrote the autosave
+  ok   energy flows from charger to robot (58.0, charger 32.6)
+  ok   undocked
+  ok   new game clears inventory
+  ok   save loads
+  ok   inventory and flags restored
+  ok   energy restored
+  ok   player position restored
+  ok   charger level restored
+== day and night
+  ok   noon: bright white sun (energy 1.20)
+  ok   tilted panel faces the noon sun (1.00)
+  ok   sun light shines down at noon
+  ok   dawn: warm low sun
+  ok   midnight: dim blue moon (energy 0.16)
+  ok   no solar at midnight
+  ok   night ambient is dark
+  ok   headlights on at night
+  ok   headlights off at noon
+== chargers: charge bar, upgrades, solar readout
+  ok   charger upgrades need a dock
+  ok   nearly empty: the first ring blinks ([0, 0])
+  ok   half full: two rings lit, the third blinking ([2, 2])
+  ok   full: all five rings glow
+  ok   docked: the battery bank can be fitted
+  ok   battery bank: holds 60 more, and shows on the charger
+  ok   only one per charger
+  ok   panel extension: fills half again as fast
+  ok   sun tracker: full light in the early morning (0.27 -> 1.00)
+  ok   upgrades are saved and loaded with the charger
+  ok   HUD: sunlight and the docked charger (Sun 88% | House charger 66%  charging you)
+  ok   HUD: the charger's fill rate when not docked (House charger 11%  +0.68/s)
+  ok   HUD at night: no sun, not filling
+== tools and breakables
+  ok   smasher head built on the arm
+  ok   smasher hits the crate
+  ok   crate took 34 damage (26 left)
+  ok   smash cost 3 energy
+  ok   second swing blocked by cooldown
+  ok   Q cycles to the cutter
+  ok   cutter does nothing to a smash-only crate
+  ok   crate unharmed by the wrong tool
+  ok   crate broke
+  ok   crate dropped scrap
+  ok   break flag set
+  ok   no swing without energy
+== the house: sealed door, parts, smasher, way out
+  ok   door present on a new game
+  ok   house model's own door slab cut out of the doorway (258 triangles)
+  ok   door blocks the way out (z -7.25)
+Collected Hammer head
+Collected Actuator arm
+  ok   both smasher parts found in the house
+  ok   smasher built from them (anywhere)
+  ok   door breaks on the third smash (3)
+  ok   door flag set and its story beat played
+  ok   the way out is open
+== the crooked house: Angry Zombie, tiny curse, mouse hole
+  ok   the crooked house is in the forest
+  ok   the Angry Zombie stands inside it ((-25.7, 0.0, 3.0))
+  ok   full size: the mouse hole is too small (0.38 m from the wardrobe front)
+  ok   and the part inside can't be grabbed through it
+  ok   two pokes: just grumbling
+  ok   not cursed yet
+  ok   the third poke casts the curse
+  ok   tiny for two days (2.00 left)
+  ok   the robot shrank (scale 0.40)
+  ok   its collision shrank too
+  ok   HUD shows the curse (Tiny curse: 2 d 0 h left)
+  ok   poking him while tiny only makes him laugh
+  ok   a new game has no curse
+  ok   the curse survives save and load
+Collected Sun tracker
+  ok   tiny: through the mouse hole to the sun tracker (reached true, at (-26.19001, 0.000876, 4.9), nook (-26.29, 0.0, 4.9))
+  ok   no regrowing inside the wardrobe (too cramped)
+  ok   the tiny robot drives back out
+  ok   full size again outside it (at (-25.38999, 0.000876, 4.9))
+Collected Solar cell
+  ok   the solar cell on the shelf
+  ok   the smasher hits the zombie
+  ok   hitting him casts the curse
+  ok   still tiny a little before two days
+  ok   the curse wears off after two days
+  ok   and the robot regrows by itself
+== the Hub: rubble, key, gate, card, tower door
+  ok   rubble breaks on the fourth smash (4)
+  ok   rubble dropped scrap (3)
+Collected Gate key
+  ok   drove into the east yard
+  ok   found the gate key
+  ok   west gate prompt found
+  ok   gate key opens the west gate
+Collected Relay access card
+  ok   drove into the west yard
+  ok   found the relay access card
+  ok   tower door prompt found
+  ok   the card opens the tower: slice complete
+  ok   drove into the tower
+== the laser
+  ok   laser built
+  ok   the laser burns vines 9 m away (20 left)
+  ok   but not through a wall
+== the Hill Sentry: the tutorial fight
+  ok   the sentry stands on the hill
+  ok   walking up to the crest starts the fight
+  ok   Easy: won with good timing, the capacitor dropped (626 frames, 3 presses)
+  ok   the robot drives again with its own camera
+  ok   the sentry sits back down beside the path, inspectable
+  ok   Hard, pressing nothing: lost, rolled back down the hill (z -79.5)
+  ok   the sentry is ready for another try
+== the relay vault: lift, sealed rooms, mirror puzzle, Pythia, hover
+  ok   the tower's lift goes down to the vault ((0.0, -29.99953, -140.8))
+  ok   underground: no sun, the vault's own lamps
+  ok   sealed: driving flat out in 8 directions never leaves the vault ([])
+  ok   the mirrors start the wrong way round
+  ok   all three turned: the beam reaches the receiver ([(-6.6, -10.0), (0.0, -10.0), (0.0, -16.0), (4.5, -16.0), (4.5, -20.0)])
+  ok   at night the shaft is dark: no beam, nothing opens
+  ok   the laser powers the port
+  ok   the beam reaches the lens: the hall is lit
+  ok   the door is open: into Pythia's chamber
+  ok   Pythia talks
+  ok   after her four lines: two lift fans and a gyro
+Collected Solar cell
+  ok   the solar cell behind the door
+  ok   hover pack built
+  ok   hovering climbs to about 2.5 m and holds (2.67 m)
+  ok   hovering drinks energy (7.6 in 2.5 s)
+  ok   let go: back down on the floor
+  ok   the lift goes back up to the tower, and daylight returns
+== the Agora: vines, shutter, fabricator, printing, the ledge, charger
+  ok   the vines hold the way into the Agora
+  ok   the smasher bounces off the vines
+  ok   the laser burns the vines away (2 shots)
+  ok   through the burnt gap into the market square
+Collected Scrap metal
+  ok   up the north lane to the printer shop
+  ok   the jammed shutter holds
+  ok   the shutter gives way to the third smash and drops 2 scrap (3 smashes)
+Collected Printer core
+Collected Print nozzle
+  ok   into the printer shop
+  ok   the printer core and the nozzle are on the shop floor
+  ok   story cards for the square and the shop
+  ok   scrap printing stays hidden until the fabricator exists
+  ok   fabricator built
+  ok   the fabricator prints a power cell from 3 scrap
+  ok   and a solar cell, and a capacitor bank
+  ok   its fight moves: Patch up heals
+  ok   the ledge is too high to drive up
+Collected Scrap metal
+Collected Scrap metal
+  ok   hover up and over: the robot lands on the ledge ((54.0, 1.600935, -106.9998))
+  ok   the scrap cache on top (2)
+  ok   the ramp is only a ghost outline
+  ok   one scrap is not enough to print it
+  ok   the fabricator prints the ramp from 2 scrap
+  ok   drove up the printed ramp onto the ledge (y 1.60)
+  ok   the Agora charger stands in the square
+== menus open and close from the keyboard while paused
+  ok   Tab opens/closes the parts screen, Esc the pause menu, Esc closes the parts screen
+  ok   parts screen open pauses the game
+  ok   Tab closes it again while paused
+== pickups
+Collected Servo motor
+  ok   touching a part puts it in the inventory (servo_motor)
+== a reloaded world remembers what is gone
+  ok   collected part is gone after load
+  ok   broken door stays gone after load
+  ok   house part stays collected after load
+== shutdown and reboot
+  ok   rebooted next morning
+  ok   rebooted with emergency energy (30)
+  ok   rebooted beside the last charger
+  ok   inventory kept through the shutdown
+== the opening cutscene (New Game only)
+  ok   watch: New Game starts the cutscene
+  ok   watch: the robot sleeps, HUD hidden, a film camera
+  ok   watch: a board lies across the roof, the iris is shut
+  ok   watch: the bird came, the charge bar showed one blinking ring (1256 frames, 20.9 s)
+  ok   watch: the board ends on the ground by the south wall
+  ok   watch: control back: robot awake, own camera, HUD, clock
+  ok   watch: charger as the game expects, iris open, flag set
+  ok   watch: the cutscene is gone
+  ok   watch: then the wake-up message
+  ok   skip: New Game starts the cutscene
+  ok   skip: the robot sleeps, HUD hidden, a film camera
+  ok   skip: a board lies across the roof, the iris is shut
+  ok   skip: Esc ends it at once (1 frames)
+  ok   skip: the board ends on the ground by the south wall
+  ok   skip: control back: robot awake, own camera, HUD, clock
+  ok   skip: charger as the game expects, iris open, flag set
+  ok   skip: the cutscene is gone
+  ok   skip: then the wake-up message
+== playtest notes (F3 / F4 ask for a note)
+  ok   F3 opens the note box and pauses the game
+save_1: X    +4.0  Y    +0.0  Z   -20.0  FPS 60  NOTE: a tree floats here, like save_99
+  ok   Enter closes the box and unpauses
+  ok   the save and its trimmed note are on consecutive lines
+save_2: X    +4.0  Y    +0.0  Z   -20.0  FPS 60
+  ok   Esc still saves (save_2: a note naming save_99 doesn't skip numbers)
+  ok   Esc writes no note line
+  ok   F3 does nothing while the game is paused by a menu
+  ok   F4 measures first, no box yet
+  ok   F4 asks for its note after the 5 s sample (301 frames)
+perf_1: avg 16.7 ms (60 FPS), worst 16.7 ms, draw calls 0, triangles 0.00M, objects 0, mobile, arm64, , vulkan  —  X    +4.0  Y    +0.0  Z   -20.0  NOTE: fps drops by the ford
+  ok   perf_1 carries the machine and the note
+RESULT: OK (0 failures)
