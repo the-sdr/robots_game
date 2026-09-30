@@ -5,6 +5,11 @@
  "intro": "Thanks for testing! F3 anything odd (with a note - it takes a picture too), F4 if it feels slow. F1 or D-pad down opens this again.",
  "items": [
   {
+   "title": "Tune it yourself: F10 tools, F9 detector",
+   "try": "F10 opens sliders for the cutter (heat speed, green zone, strength), smasher and laser; F9 for the detector (brightness near/far, vagueness, light pillars). Changes work straight away. Close the panel when it feels right: the values are logged and I bake them in. The cutter now heats faster with a narrower green zone.",
+   "ask": "Which values felt best? (Just close the panel - I read them from the log.)"
+  },
+  {
    "title": "The first fight (the Hill Sentry)",
    "try": "The fight now slows down and teaches each step: a pop-up before your first move, your first ring and its first attack, and a banner every turn. On the Surface, start the game with D3D12 (Surface: run Godot with --rendering-driver d3d12 --rendering-method mobile) - the last fight froze under Vulkan.",
    "ask": "Is the pace right, or too slow now? Does it freeze again? If it does, push the newest log from AppData (it now records every step of the fight)."
@@ -17,7 +22,7 @@
   {
    "title": "The detector",
    "try": "Press to scan: right mouse button (or R), LB on the pad. Walk towards a warm spot and scan again until it is a tight ring, then dig (E / X). Try the garden gate first, then the Dry Clearing. (Tools now cycle on RB / Q.)",
-   "ask": "Does scanning on a button feel better than the timer did? Too bright, too faint? Does the warm haze above the trees help from far away?"
+   "ask": "Far finds now show as a light pillar rising from the ground where they are. Does that point you to the right place? Are near finds clearly brighter than far ones?"
   },
   {
    "title": "Parts inside things that belong there",
@@ -48,6 +53,11 @@
    "title": "Small fixes",
    "try": "A to close a menu no longer jumps. B goes back. The detector's ring rolls out even when a find is close. Battery: 15 / 10 / 5 minutes on Easy / Medium / Hard.",
    "ask": "Anything still fighting you?"
+  },
+  {
+   "title": "Headlight follows your look",
+   "try": "Look up and down: the head tilts a little and the headlight with it.",
+   "ask": "Nice touch, or too much / too little?"
   }
  ]
 }

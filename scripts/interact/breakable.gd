@@ -136,7 +136,7 @@ func _setup_trace() -> void:
 		_trace_centre = shape.global_position
 		_trace_axis = shape_basis[longest].normalized()
 		_trace_length = lengths[longest]
-		var seconds := EASY_TRACE_SECONDS if Settings.difficulty == "easy" else TRACE_SECONDS
+		var seconds: float = preload("res://scripts/game/tuning.gd").v("laser_trace_seconds")
 		for k in maxi(int(ceil(_trace_length / TRACE_SEGMENT)), 2):
 			_trace_left.append(seconds)
 		return

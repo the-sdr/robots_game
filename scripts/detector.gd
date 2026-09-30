@@ -9,7 +9,7 @@ extends Node
 # "detectable" with a detect_position() (buried finds, parts, crates...).
 #
 # Far away a spot is big and soft and lands somewhere a little different each
-# sweep, so it only gives a direction; closer in it tightens; within EXACT_WITHIN
+# sweep, so it only gives a direction; closer in it tightens; within a couple of metres
 # it is a crisp ring on the exact spot. Purely visual, so it works without sound.
 # Far spots also glow as a warm haze above the trees (the forest would hide the
 # ground). Each scan costs a little energy; the spots and the signal bars stay
@@ -18,17 +18,10 @@ extends Node
 const SCAN_COOLDOWN := 0.8       # seconds before the next scan can go out
 const SCAN_ENERGY := 0.5
 const SIGNAL_SHOW := 5.0         # seconds the signal bars stay after a scan
-const SWEEP_TIME := 1.2          # the front's trip out to RANGE (it starts slow, so the ring
-                                 # is seen rolling out from the robot even when a find is close)
 const OVERLAY_IN := 0.15         # seconds for the robot view to come up
 const OVERLAY_OUT := 0.5         # and to fade after the sweep
-const RANGE := 60.0
 const MAX_SPOTS := 12            # must match the terrain shader's arrays
-const SPOT_GLOW := 4.0           # seconds a spot keeps glowing after the front reaches it
-const EXACT_WITHIN := 2.5        # metres: closer than this, the fix is exact
-const FUZZ_PER_METRE := 0.3      # how far off a far fix can land, per metre of distance
-const MAX_FUZZ := 12.0
-const HAZE_BEYOND := 12.0        # metres: farther than this a spot also glows above the trees
+const T := preload("res://scripts/game/tuning.gd")
 const TERRAIN_MATERIAL := "res://materials/terrain_painterly.tres"
 const SCREEN_SHADER := """
 shader_type canvas_item;
@@ -80,19 +73,24 @@ func scan() -> bool:
 
 ## True while a sweep's front is rolling out.
 func sweeping() -> bool:
-	return _time < SWEEP_TIME
+	return _time < T.v("detector_sweep_time")
 
 ## The sweep front's distance from where it started (-100 = no front): it eases
 ## out from the robot, so the ring near the robot lasts long enough to see.
 func wave_radius() -> float:
-	if _time >= SWEEP_TIME:
+	if _time >= T.v("detector_sweep_time"):
 		return -100.0
-	var t := _time / SWEEP_TIME
-	return RANGE * t * t
+	var t: float = _time / T.v("detector_sweep_time")
+	return T.v("detector_range") * t * t
+
+## How bright a find glows from this far: near finds clearly brighter (owner, save_63).
+static func strength(distance: float) -> float:
+	var k := clampf(distance / T.v("detector_range"), 0.0, 1.0)
+	return lerpf(T.v("detector_near_strength"), T.v("detector_far_strength"), pow(k, T.v("detector_strength_curve")))
 
 ## How far off a fix from this distance may land (0 = exact).
 static func fuzz(distance: float) -> float:
-	return clampf((distance - EXACT_WITHIN) * FUZZ_PER_METRE, 0.0, MAX_FUZZ)
+	return clampf((distance - T.v("detector_exact_within")) * T.v("detector_fuzz_per_metre"), 0.0, T.v("detector_max_fuzz"))
 
 func _process(delta: float) -> void:
 	_time += delta
@@ -104,7 +102,7 @@ func _process(delta: float) -> void:
 				s["lit"] = true
 				s["heat"] = s["strength"]
 		else:
-			s["heat"] = maxf(float(s["heat"]) - delta * float(s["strength"]) / SPOT_GLOW, 0.0)
+			s["heat"] = maxf(float(s["heat"]) - delta * float(s["strength"]) / T.v("detector_spot_glow"), 0.0)
 	var busy := _time < SIGNAL_SHOW or _overlay > 0.0 or _any_glowing()
 	if busy or not _idle_pushed:
 		_push()
@@ -130,7 +128,7 @@ func _sweep() -> void:
 			continue
 		var p: Vector3 = node.call("detect_position")
 		var d := Vector2(p.x - _origin.x, p.z - _origin.z).length()
-		if d <= RANGE:
+		if d <= T.v("detector_range"):
 			found.append([d, p])
 	found.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	for f in found.slice(0, MAX_SPOTS):
@@ -139,13 +137,13 @@ func _sweep() -> void:
 		var off := fuzz(d)
 		var shift := Vector2.from_angle(_rng.randf() * TAU) * sqrt(_rng.randf()) * off
 		spots.append({"pos": p + Vector3(shift.x, 0.0, shift.y), "radius": maxf(0.5, off * 1.3),
-			"strength": lerpf(1.0, 0.4, d / RANGE), "heat": 0.0, "lit": false,
-			"reveal_at": sqrt(d / RANGE) * SWEEP_TIME, "distance": d})
+			"strength": strength(d), "heat": 0.0, "lit": false,
+			"reveal_at": sqrt(d / T.v("detector_range")) * T.v("detector_sweep_time"), "distance": d})
 	var nearest: float = spots[0]["distance"] if not spots.is_empty() else INF
 	signal_bars = 0 if spots.is_empty() else clampi(5 - int(nearest / 12.0), 1, 5)
 	for i in _signal_bars.size():
 		_signal_bars[i].color = Color(0.45, 0.95, 1.0) if i < signal_bars else Color(0.1, 0.18, 0.2, 0.8)
-	_signal_note.text = "no signal" if spots.is_empty() else ("right here!" if nearest < EXACT_WITHIN else "")
+	_signal_note.text = "no signal" if spots.is_empty() else ("right here!" if nearest < T.v("detector_exact_within") else "")
 
 func _push() -> void:
 	if _material == null:
@@ -162,11 +160,11 @@ func _push() -> void:
 		else:
 			centres.append(Vector4.ZERO)
 			heat.append(0.0)
-	_material.set_shader_parameter("scan_amount", _overlay)
+	_material.set_shader_parameter("scan_amount", _overlay * T.v("detector_overlay"))
 	_material.set_shader_parameter("scan_spots_on", 1.0 if any else 0.0)
 	_material.set_shader_parameter("scan_origin", _origin)
 	_material.set_shader_parameter("scan_wave", wave_radius())
-	_material.set_shader_parameter("scan_range", RANGE)
+	_material.set_shader_parameter("scan_range", T.v("detector_range"))
 	_material.set_shader_parameter("scan_spots", centres)
 	_material.set_shader_parameter("scan_spot_heat", heat)
 
@@ -229,16 +227,18 @@ func _update_screen() -> void:
 	(_screen_rect.material as ShaderMaterial).set_shader_parameter("amount", _overlay)
 	_signal_box.visible = _time < SIGNAL_SHOW
 
-# --- the warm haze above far spots -------------------------------------------------------
+# --- light pillars over far spots ------------------------------------------------------------
+# Owner, 2026-09-30: a blob floating ahead above the trees read as "straight
+# ahead", but the loot is on the ground. A far find now shows as a soft column
+# of warm light rising from the ground where it is, seen through the trees.
 func _build_hazes() -> void:
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color(1, 1, 1, 1))
-	gradient.set_color(1, Color(1, 1, 1, 0))
-	var texture := GradientTexture2D.new()
-	texture.gradient = gradient
-	texture.fill = GradientTexture2D.FILL_RADIAL
-	texture.fill_from = Vector2(0.5, 0.5)
-	texture.fill_to = Vector2(1.0, 0.5)
+	var image := Image.create(16, 64, false, Image.FORMAT_RGBA8)
+	for y in 64:
+		for x in 16:
+			var across := 1.0 - absf(x / 15.0 - 0.5) * 2.0          # soft at the sides
+			var up := 1.0 - y / 63.0                               # y 0 is the top: bright at the ground
+			image.set_pixel(x, y, Color(1, 1, 1, pow(across, 1.5) * pow(up, 1.2)))
+	var texture := ImageTexture.create_from_image(image)
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE
 	for i in MAX_SPOTS:
@@ -247,27 +247,37 @@ func _build_hazes() -> void:
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 		mat.no_depth_test = true                # seen through the trees
-		mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y   # stays upright, turns to face you
 		mat.billboard_keep_scale = true
 		mat.albedo_texture = texture
-		var haze := MeshInstance3D.new()
-		haze.name = "Haze%d" % i
-		haze.mesh = quad
-		haze.material_override = mat
-		haze.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		haze.top_level = true
-		haze.visible = false
-		add_child(haze)
-		_hazes.append(haze)
+		var pillar := MeshInstance3D.new()
+		pillar.name = "Pillar%d" % i
+		pillar.mesh = quad
+		pillar.material_override = mat
+		pillar.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		pillar.top_level = true
+		pillar.visible = false
+		add_child(pillar)
+		_hazes.append(pillar)
 
 func _update_hazes() -> void:
+	var height := T.v("detector_pillar_height")
 	for i in _hazes.size():
-		var haze := _hazes[i]
-		var show := i < spots.size() and float(spots[i]["heat"]) > 0.0 and float(spots[i]["distance"]) > HAZE_BEYOND
-		haze.visible = show
+		var pillar := _hazes[i]
+		var show := i < spots.size() and float(spots[i]["heat"]) > 0.0 and float(spots[i]["distance"]) > T.v("detector_pillar_beyond")
+		pillar.visible = show
 		if show:
 			var s: Dictionary = spots[i]
-			var r: float = s["radius"]
-			haze.global_position = (s["pos"] as Vector3) + Vector3(0, 3.0 + r * 0.3, 0)
-			haze.scale = Vector3.ONE * r * 2.2
-			(haze.material_override as StandardMaterial3D).albedo_color = Color(1.0, 0.55, 0.15, 0.55 * float(s["heat"]))
+			var width := clampf(float(s["radius"]) * 0.35, 0.4, 3.5)   # a vague fix is a wider pillar
+			pillar.global_position = (s["pos"] as Vector3) + Vector3(0, height * 0.5, 0)
+			pillar.scale = Vector3(width, height, 1.0)
+			var heat: float = s["heat"]
+			(pillar.material_override as StandardMaterial3D).albedo_color = Color(1.0, 0.55, 0.15).lerp(Color(1.0, 0.85, 0.4), clampf(float(s["strength"]), 0.0, 1.0)) * Color(1, 1, 1, 0.8 * heat)
+
+## The light pillars showing now (tests).
+func pillars_shown() -> int:
+	var n := 0
+	for pillar in _hazes:
+		if pillar.visible:
+			n += 1
+	return n

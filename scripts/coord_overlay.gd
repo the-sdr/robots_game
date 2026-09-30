@@ -21,6 +21,10 @@ extends CanvasLayer
 # Claude can see what the player saw (owner, 2026-09-29).
 #
 # While the player's god mode (F7) is on, a status line is shown as well.
+#
+# F10 / F9 open the tuning panels (scripts/ui/tuning_panel.gd): tool and
+# detector feel numbers, live; closing one logs its values to TUNING_FILE as
+# tune_N, and F3 entries list any values changed from the game's.
 
 const DIRECTIONS: Array[String] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 const SAVE_FILE := "playtest/saves.md"
@@ -52,8 +56,15 @@ var _pending: Dictionary = {}          # the entry waiting for its note
 var _was_paused := false
 var _old_mouse_mode := Input.MOUSE_MODE_CAPTURED
 
+var tuning: CanvasLayer
+
 func _ready() -> void:
 	panel.visible = false
+	add_to_group("coord_overlay")
+	tuning = preload("res://scripts/ui/tuning_panel.gd").new()
+	tuning.name = "TuningPanel"
+	tuning.logger = self
+	add_child(tuning)
 	# Debug overlay only; gameplay notices go to the HUD (group "hud").
 	# Always processing so the note box works while the game is paused for it;
 	# _process and the F-keys below still stop while anything else pauses.
@@ -71,6 +82,14 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if note_open() or get_tree().paused:
+		return
+	if event.is_action_pressed("tune_tools"):
+		tuning.toggle("tools")
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("tune_detector"):
+		tuning.toggle("detector")
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("toggle_coords"):
 		_pinned_visible = not _pinned_visible
@@ -137,6 +156,10 @@ func _save_position() -> void:
 	if not _find_player():
 		return
 	var details: String = "  ".join(_describe_position()) + "  FPS %d" % roundi(1000.0 / maxf(_frame_ms, 0.1))
+	var T := preload("res://scripts/game/tuning.gd")
+	var tuned := (T.summary("tools", true) + " " + T.summary("detector", true)).strip_edges()
+	if tuned != "":
+		details += "  —  tuned: " + tuned
 	_ask_note({
 		"file": SAVE_FILE, "prefix": "save", "details": details, "notice": "Saved %s",
 		"shot": _grab_screen(),
@@ -218,6 +241,15 @@ func _finish_note(note: String) -> void:
 		show_notice(String(entry["notice"]) % written)
 
 ## What is on screen right now (null when nothing is rendered, e.g. headless).
+const TUNING_FILE := "playtest/tuning.md"
+
+## The tuning panel's log (tune_1, tune_2...): every value on the panel as it closed.
+func log_tuning(_panel: String, details: String) -> void:
+	var entry := _append_entry(TUNING_FILE, "tune",
+		"# Tuning (F10 tools, F9 detector): the values as each panel closed. * = changed from the game's.", details)
+	if entry != "":
+		show_notice("Logged %s" % entry)
+
 func _grab_screen() -> Image:
 	if DisplayServer.get_name() == "headless":
 		return null

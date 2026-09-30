@@ -1058,7 +1058,7 @@ func _initialize() -> void:
 		await process_frame
 	check(glyphs.pad and card_hud.tool_label.text.contains("RT"), "touching the pad switches prompts to pad buttons (%s)" % card_hud.tool_label.text)
 	var key_e := InputEventKey.new()
-	key_e.physical_keycode = KEY_F9
+	key_e.physical_keycode = KEY_F12
 	key_e.pressed = true
 	Input.parse_input_event(key_e)
 	var key_up := key_e.duplicate() as InputEventKey
@@ -1152,9 +1152,12 @@ func _initialize() -> void:
 	for i in 3:
 		await physics_frame
 	var cuts_before: int = feel_rig.clean_cuts
+	var tuning: Script = load("res://scripts/game/tuning.gd")
 	feel_rig.press()
-	for i in 120:
+	for i in 300:                                      # hold until the heat is in the green
 		await process_frame
+		if feel_rig.heat >= tuning.v("cutter_clean_from") + 0.02:
+			break
 	var heat_at_release: float = feel_rig.heat
 	feel_rig.release()
 	check(feel_rig.clean_cuts == cuts_before + 1 and 500.0 - thicket.health > 60.0, "cutter: let go in the green (heat %.2f) for a clean cut (%.0f cut)" % [heat_at_release, 500.0 - thicket.health])
@@ -1404,6 +1407,66 @@ func _initialize() -> void:
 	await process_frame
 	check(not rest_hud.asking(), "by day docking asks nothing")
 	rest_charger.undock()
+
+	print("== F10 / F9 tuning, detector pillars, headlight tilt")
+	var tune: Script = load("res://scripts/game/tuning.gd")
+	tune.reset()
+	var overlay_w: CanvasLayer = world.get_node("CoordOverlay")
+	overlay_w.log_root = "res://.godot/test_playtest"
+	var tune_log := "res://.godot/test_playtest/playtest/tuning.md"
+	if FileAccess.file_exists(tune_log):
+		DirAccess.remove_absolute(tune_log)
+	var f10 := InputEventAction.new()
+	f10.action = "tune_tools"
+	f10.pressed = true
+	Input.parse_input_event(f10)
+	for i in 3:
+		await process_frame
+	var panel_t: CanvasLayer = overlay_w.tuning
+	check(panel_t.is_open() and panel_t.panel_name == "tools" and not paused, "F10 opens the tool tuning panel, and the game keeps going")
+	panel_t.set_slider("cutter_heat_seconds", 3.0)
+	check(absf(tune.v("cutter_heat_seconds") - 3.0) < 0.001 and tune.is_tuned("cutter_heat_seconds"), "a slider changes the value live")
+	Input.parse_input_event(f10.duplicate())
+	for i in 3:
+		await process_frame
+	var logged := FileAccess.get_file_as_string(tune_log)
+	check(not panel_t.is_open() and logged.contains("- **tune_1**") and logged.contains("cutter_heat_seconds") and logged.contains("=3.0*"), "closing it logs every value (tune_1, changed ones marked *)")
+	check(tune.summary("tools", true).begins_with("cutter_heat_seconds"), "F3 can list just the changed values (%s)" % tune.summary("tools", true))
+	tune.reset()
+	var det2: Node = player.get_node("Detector")
+	check(det2.strength(3.0) > det2.strength(40.0) + 0.3, "near finds glow clearly brighter than far ones (%.2f vs %.2f)" % [det2.strength(3.0), det2.strength(40.0)])
+	player.global_position = world.get_node("GeneratedLevel/Finds/Find_gate_scrap").global_position + Vector3(0, 0.3, 2.0)
+	for i in 10:
+		await physics_frame
+	det2._time = 100.0
+	det2.scan()
+	for i in 90:
+		await process_frame
+	check(det2.pillars_shown() >= 1, "far finds show as light pillars (%d)" % det2.pillars_shown())
+	var pillar: MeshInstance3D = null
+	for child in det2.get_children():
+		if child is MeshInstance3D and child.visible:
+			pillar = child
+	var ground_ok := false
+	if pillar != null:
+		var bottom: float = pillar.global_position.y - pillar.scale.y * 0.5
+		for sp in det2.spots:
+			if absf((sp["pos"] as Vector3).x - pillar.global_position.x) < 0.01:
+				ground_ok = absf(bottom - (sp["pos"] as Vector3).y) < 0.05
+	check(ground_ok, "a pillar rises from the ground where the find is")
+	var fx_head: Node3D = player.get_node("Visual/Head")
+	var arm: Node3D = player.camera_arm
+	var arm_before: float = arm.rotation.x
+	arm.rotation.x = -0.35
+	for i in 60:
+		await physics_frame
+	var level_x: float = fx_head.rotation.x
+	arm.rotation.x = 0.3
+	for i in 60:
+		await physics_frame
+	check(fx_head.rotation.x > level_x + 0.2 and fx_head.rotation.x < level_x + 0.35, "looking up tilts the head (and headlight) up a little (%.2f rad)" % (fx_head.rotation.x - level_x))
+	arm.rotation.x = arm_before
+	overlay_w.log_root = ""
 
 	print("== pickups")
 	var loose: Node = world.get_node("GeneratedLevel/Collectibles")

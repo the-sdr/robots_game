@@ -24,6 +24,13 @@ const LAND_MIN_AIR := 0.12           # seconds airborne before a landing counts
 const LAND_MIN_SPEED := 1.2          # m/s fall speed before a landing counts
 const DUST_SPEED := 3.0              # m/s fall speed for a dust puff
 const CAMERA_DIP := 0.07             # metres, at the hardest landing
+# The head (and its headlight) tilts a little with the camera (owner, save_53:
+# "not a full 90 or even 45 degrees, just a nice touch"): level at the usual
+# look-down, up to ~17 degrees when looking up.
+const LOOK_LEVEL := -0.35            # camera pitch (rad) at which the head is level
+const LOOK_TILT := 0.6               # head tilt per radian of camera pitch past that
+const LOOK_TILT_MIN := -0.12
+const LOOK_TILT_MAX := 0.3
 
 const PlayerScript := preload("res://scripts/player.gd")
 
@@ -46,6 +53,7 @@ var _air_time := 0.0
 var _fall_speed := 0.0
 var _was_on_floor := true
 var _jumped_this_frame := false
+var _look_tilt := 0.0
 ## How many landings played (tests).
 var landings := 0
 
@@ -100,7 +108,10 @@ func _physics_process(delta: float) -> void:
 	_tread_offset = lerpf(_tread_offset, 0.0, clampf(8.0 * delta, 0.0, 1.0))
 	for i in treads.size():
 		treads[i].position.y = _tread_rest[i] + _tread_offset
-	head.rotation.x = _head_rest - (1.0 - squash.y) * HEAD_NOD
+	var pitch: float = player.camera_arm.rotation.x
+	var tilt_target := clampf((pitch - LOOK_LEVEL) * LOOK_TILT, LOOK_TILT_MIN, LOOK_TILT_MAX)
+	_look_tilt = lerpf(_look_tilt, 0.0 if still and player.shut_down else tilt_target, clampf(6.0 * delta, 0.0, 1.0))
+	head.rotation.x = _head_rest - (1.0 - squash.y) * HEAD_NOD + _look_tilt
 	_camera_dip = lerpf(_camera_dip, 0.0, clampf(10.0 * delta, 0.0, 1.0))
 	player.camera_rig.position.y = player.CAMERA_HEIGHT * player.size_scale - _camera_dip
 

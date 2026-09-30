@@ -17,33 +17,20 @@ const TINY_POWER := 0.5
 const RANGED_AIM_WIDTH := 1.6
 const RANGED_AIM_HEIGHT := 2.0
 const HAMMER_MODEL := "res://scenes/props/items/hammer_head.res"
+const T := preload("res://scripts/game/tuning.gd")          # the feel numbers (F10 tunes them live)
 
 # --- how each tool feels (owner, 2026-09-29): Catalog.TOOLS "pattern" ---------------
 # The player presses and releases (press/release, from player.gd); use() stays a
 # single complete action (tests, the fight screen). Easy softens every pattern.
 ## Smasher, "rapid": each press is a hit; quick presses build a combo.
-const RAPID_COOLDOWN := 0.14
-const COMBO_WINDOW := 0.55       # seconds between presses that keep a combo going
 const COMBO_MAX := 5
-const COMBO_BONUS := 0.2         # extra power per combo step
 const RAPID_ENERGY := 1.5        # per hit
 const EASY_AUTO_HIT := 0.3       # Easy: holding the button hits this often
 ## Cutter, "hold_heat": cuts while held; heat climbs. Let go in the green zone for
 ## a clean cut (a bonus); hold to the top and it overheats and must cool.
-const HEAT_SECONDS := 2.8
-const EASY_HEAT_SECONDS := 4.2
-const CLEAN_FROM := 0.6
-const CLEAN_TO := 0.88
-const EASY_CLEAN_FROM := 0.5
-const EASY_CLEAN_TO := 0.94
-const CUT_RATE := 0.9            # damage per second = power x this
-const CLEAN_BONUS := 1.0         # a clean cut adds power x this
-const OVERHEAT_SECONDS := 2.0
-const COOL_RATE := 0.8           # heat lost per second when not cutting
 const HELD_TICK := 0.15          # held tools deal damage in ticks
 ## Laser, "trace": a steady beam aimed with the camera; long things (vines) burn
 ## segment by segment as the beam is swept along them (Breakable.burn_at).
-const BEAM_RATE := 1.0           # damage per second on short things = power x this
 const LASER_ENERGY_RATE := 1.0   # energy per second = the tool's energy x this
 const NOZZLE_MODEL := "res://scenes/props/items/nozzle.res"
 
@@ -104,7 +91,7 @@ func _process(delta: float) -> void:
 			"trace":
 				_fire_laser(delta)
 	if not (holding and pattern == "hold_heat"):
-		heat = maxf(heat - COOL_RATE * delta, 0.0)
+		heat = maxf(heat - T.v("cutter_cool_rate") * delta, 0.0)
 		overheated = maxf(overheated - delta, 0.0)
 	if pattern == "hold_heat" or heat > 0.0:
 		var clean := _clean_zone()
@@ -158,7 +145,7 @@ func release() -> void:
 			var clean := _clean_zone()
 			if overheated <= 0.0 and heat >= clean.x and heat <= clean.y and is_instance_valid(_cut_target):
 				clean_cuts += 1
-				var bonus: float = float(definition()["power"]) * CLEAN_BONUS * _power_scale()
+				var bonus: float = float(definition()["power"]) * T.v("cutter_clean_bonus") * _power_scale()
 				_cut_target.call("apply", "cut", bonus, player.global_position)
 				_spark(1.8)
 				get_tree().call_group("hud", "show_notice", "Clean cut!")
@@ -167,7 +154,7 @@ func release() -> void:
 			get_tree().call_group("hud", "show_aim", false)
 
 func _clean_zone() -> Vector2:
-	return Vector2(EASY_CLEAN_FROM, EASY_CLEAN_TO) if _easy() else Vector2(CLEAN_FROM, CLEAN_TO)
+	return Vector2(T.v("cutter_clean_from"), T.v("cutter_clean_to"))
 
 func _power_scale() -> float:
 	return TINY_POWER if player.get("tiny") else 1.0
@@ -180,16 +167,16 @@ func _rapid_hit() -> void:
 	if Energy.current < RAPID_ENERGY:
 		get_tree().call_group("hud", "show_notice", "Not enough energy to use the %s" % def["name"])
 		return
-	combo = mini(combo + 1, COMBO_MAX) if _now - _last_hit_time <= COMBO_WINDOW else 1
+	combo = mini(combo + 1, COMBO_MAX) if _now - _last_hit_time <= T.v("smasher_combo_window") else 1
 	_last_hit_time = _now
-	_cooldown_left = RAPID_COOLDOWN
+	_cooldown_left = T.v("smasher_cooldown")
 	_swing(0.28)
 	var target := _find_target(def["range"])
 	if target == null:
 		Energy.spend(RAPID_ENERGY * DRY_SWING_COST_FRACTION)
 		return
 	Energy.spend(RAPID_ENERGY)
-	var power: float = float(def["power"]) * (1.0 + COMBO_BONUS * (combo - 1)) * _power_scale()
+	var power: float = float(def["power"]) * (1.0 + T.v("smasher_combo_bonus") * (combo - 1)) * _power_scale()
 	if _apply_once(target, "smash", power):
 		_spark(2.5 + combo)
 		if combo > 1:
@@ -209,20 +196,20 @@ func _cut(delta: float) -> void:
 	if overheated > 0.0:
 		return
 	var def := definition()
-	heat += delta / (EASY_HEAT_SECONDS if _easy() else HEAT_SECONDS)
+	heat += delta / T.v("cutter_heat_seconds")
 	Energy.drain(float(def["energy"]) * delta)
 	_tick -= delta
 	if _tick <= 0.0:
 		_tick = HELD_TICK
 		var target := _find_target(def["range"])
 		if target != null:
-			if _apply_once(target, "cut", float(def["power"]) * CUT_RATE * HELD_TICK * _power_scale()):
+			if _apply_once(target, "cut", float(def["power"]) * T.v("cutter_rate") * HELD_TICK * _power_scale()):
 				_cut_target = target
 				_spark(1.2)
 		_recoil_small()
 	if heat >= 1.0:
 		heat = 1.0
-		overheated = OVERHEAT_SECONDS
+		overheated = T.v("cutter_overheat_seconds")
 		holding = false
 		get_tree().call_group("hud", "show_notice", "Overheated! Let it cool.")
 
@@ -247,13 +234,13 @@ func _fire_laser(delta: float) -> void:
 	if body == null:
 		return
 	if body.has_method("burn_at"):
-		body.call("burn_at", hit_point, delta, player.global_position, float(def["power"]) * BEAM_RATE * _power_scale())
+		body.call("burn_at", hit_point, delta, player.global_position, float(def["power"]) * T.v("laser_beam_rate") * _power_scale())
 		return
 	_tick -= delta
 	if _tick <= 0.0:
 		_tick = HELD_TICK
 		if body.has_method("apply"):
-			_apply_once(body, "burn", float(def["power"]) * BEAM_RATE * HELD_TICK * _power_scale())
+			_apply_once(body, "burn", float(def["power"]) * T.v("laser_beam_rate") * HELD_TICK * _power_scale())
 
 ## Where the laser hits: along the camera's centre line, within reach of the robot.
 ## {point: Vector3, body: Node3D or null}.

@@ -244,7 +244,8 @@ func _fill_controls() -> void:
 			_content.add_child(line)
 	_heading("Testing keys (keyboard)")
 	for row in [["F2", "Position, facing and FPS"], ["F3", "Save this spot with a note and a picture"],
-			["F4", "Log 5 seconds of performance"], ["F7", "God mode: double-tap jump to fly"], ["F11", "Fullscreen"]]:
+			["F4", "Log 5 seconds of performance"], ["F7", "God mode: double-tap jump to fly"],
+			["F9", "Detector tuning (sliders, logged when closed)"], ["F10", "Tool tuning (sliders, logged when closed)"], ["F11", "Fullscreen"]]:
 		var line := HBoxContainer.new()
 		line.add_theme_constant_override("separation", 12)
 		var b := STYLE.badge(row[0])

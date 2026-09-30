@@ -76,7 +76,9 @@ ARM64 = Surface).
   playtest note (`- **Note:**` line under it) and a screenshot
   (`playtest/shots/save_N.jpg`, look at it), **F4** logs a
   5-second performance sample (`playtest/perf.md`: perf_1…), **F7** god mode
-  (double-tap Space to fly, Space up / Shift down, no collision).
+  (double-tap Space to fly, Space up / Shift down, no collision), **F9 / F10**
+  detector / tool tuning panels (sliders; closing one logs the values to
+  `playtest/tuning.md` as tune_N: bake good values into `scripts/game/tuning.gd`).
 - **F1** (pad: D-pad down) opens Help in the game: controls, the testing notes,
   and the as-built map with the robot on it.
 - **When a control or mechanic changes, update everything that tells the
