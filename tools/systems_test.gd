@@ -617,14 +617,20 @@ func _initialize() -> void:
 	check(combat != null and player.in_combat, "walking up to the crest starts the fight")
 	var frames := 0
 	var presses := 0
+	var coach_seen := {}
 	while is_instance_valid(combat) and combat.phase != "done" and frames < 60 * 90:
-		if combat.phase == "choose":
+		if combat.phase == "coach":
+			coach_seen[combat._coach_title.text] = true
+			combat.dismiss_coach()
+		elif combat.phase == "choose":
 			combat.input_move(0, "")                      # 1: Smash
 		elif combat.phase == "timing" and combat.seconds_to_beat() <= 0.0:
 			combat.input_timing()                         # right on the beat
 			presses += 1
 		await process_frame
 		frames += 1
+	check(coach_seen.has("A fight!") and coach_seen.has("Your turn: pick a tool") and coach_seen.has("Hit on the beat") and coach_seen.has("Its turn: get ready to dodge"),
+		"the first fight stops to teach each step (%s)" % ", ".join(coach_seen.keys()))
 	check(Game.get_flag("defeated:hill_sentry") and Game.count("capacitor") == 1, "Easy: won with good timing, the capacitor dropped (%d frames, %d presses)" % [frames, presses])
 	for i in 120:
 		await process_frame
@@ -639,7 +645,9 @@ func _initialize() -> void:
 	combat = sentry.start_fight(player)
 	frames = 0
 	while is_instance_valid(combat) and combat.phase != "done" and frames < 60 * 120:
-		if combat.phase == "choose":
+		if combat.phase == "coach":
+			combat.dismiss_coach()
+		elif combat.phase == "choose":
 			combat.input_move(0, "")
 		await process_frame
 		frames += 1

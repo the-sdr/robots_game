@@ -179,7 +179,9 @@ func close_message() -> void:
 
 # Before the player's pause: with a story card up, B / Esc closes the card.
 func _input(event: InputEvent) -> void:
-	if message_panel.visible and event.is_action_pressed("ui_cancel") and not get_tree().paused:
+	var player := get_tree().get_first_node_in_group("player")
+	var fighting: bool = player != null and bool(player.get("in_combat"))
+	if message_panel.visible and event.is_action_pressed("ui_cancel") and not get_tree().paused and not fighting:
 		close_message()
 		get_viewport().set_input_as_handled()
 

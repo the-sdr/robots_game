@@ -1,22 +1,48 @@
 {
  "_about": "What the owner is asked to playtest this sprint. Shown on the main menu and in the F1 menu (scripts/ui/help_menu.gd). Claude keeps it current: rewrite it whenever a sprint's playtest targets change.",
  "sprint": "Sprint 3: the detector, tools that feel different, finds that make sense",
- "updated": "2026-09-30",
+ "updated": "2026-09-30 (evening)",
  "intro": "Thanks for testing! F3 anything odd (with a note - it takes a picture too), F4 if it feels slow. F1 or D-pad down opens this again.",
  "items": [
-  {"title": "The detector", "try": "Switch it on (R / Y). Walk towards the warm spots until the ring is tight, then dig (E / X). Try the garden gate first, then the Dry Clearing.",
-   "ask": "Is the sweep rhythm nice? Too bright, too faint? Does the warm haze above the trees help from far away?"},
-  {"title": "Parts inside things that belong there", "try": "The forest's parts are now inside a pump at the Spring, a fallen camera by the ruin's hatch, a birdbox at the hollow tree, a junction box under the Giant, the hose reel behind the house and a weather station in the pines. Smash them open.",
-   "ask": "Do they read as what they are? Anything that still feels like a 1999 crate?"},
-  {"title": "The Dry Clearing", "try": "Weeds to cut, a toolbox to smash, a wreck to salvage. Salvage the wreck with the laser along its glowing seam for a bonus part.",
-   "ask": "Is it clear which tool opens what?"},
-  {"title": "Tools feel different", "try": "Smasher: tap fast for a combo. Cutter: hold, let go in the green for a clean cut, don't overheat. Laser: hold and sweep it along vines.",
-   "ask": "Does each tool feel like its own thing? Laser aiming OK with mouse and stick?"},
-  {"title": "Help and cards", "try": "The Getting around card after waking, a card for each new tool, the Parts card, the Ready to build card. F1 / D-pad down for help, controls and the map.",
-   "ask": "Too many pop-ups, or just right? Is anything still confusing?"},
-  {"title": "Story cards", "try": "They now stay on screen until you close them (B / Esc); a new one replaces the old.",
-   "ask": "Can you read them in time now?"},
-  {"title": "Small fixes", "try": "A to close a menu no longer jumps. B goes back. The detector's ring rolls out even when a find is close. Battery: 15 / 10 / 5 minutes on Easy / Medium / Hard.",
-   "ask": "Anything still fighting you?"}
+  {
+   "title": "The first fight (the Hill Sentry)",
+   "try": "The fight now slows down and teaches each step: a pop-up before your first move, your first ring and its first attack, and a banner every turn. On the Surface, start the game with D3D12 (Surface: run Godot with --rendering-driver d3d12 --rendering-method mobile) - the last fight froze under Vulkan.",
+   "ask": "Is the pace right, or too slow now? Does it freeze again? If it does, push the newest log from AppData (it now records every step of the fight)."
+  },
+  {
+   "title": "The detector",
+   "try": "Switch it on (R / Y). Walk towards the warm spots until the ring is tight, then dig (E / X). Try the garden gate first, then the Dry Clearing.",
+   "ask": "Is the sweep rhythm nice? Too bright, too faint? Does the warm haze above the trees help from far away?"
+  },
+  {
+   "title": "Parts inside things that belong there",
+   "try": "The forest's parts are now inside a pump at the Spring, a fallen camera by the ruin's hatch, a birdbox at the hollow tree, a junction box under the Giant, the hose reel behind the house and a weather station in the pines. Smash them open.",
+   "ask": "Do they read as what they are? Anything that still feels like a 1999 crate?"
+  },
+  {
+   "title": "The Dry Clearing",
+   "try": "Weeds to cut, a toolbox to smash, a wreck to salvage. Salvage the wreck with the laser along its glowing seam for a bonus part.",
+   "ask": "Is it clear which tool opens what?"
+  },
+  {
+   "title": "Tools feel different",
+   "try": "Smasher: tap fast for a combo. Cutter: hold, let go in the green for a clean cut, don't overheat. Laser: hold and sweep it along vines.",
+   "ask": "Does each tool feel like its own thing? Laser aiming OK with mouse and stick?"
+  },
+  {
+   "title": "Help and cards",
+   "try": "The Getting around card after waking, a card for each new tool, the Parts card, the Ready to build card. F1 / D-pad down for help, controls and the map.",
+   "ask": "Too many pop-ups, or just right? Is anything still confusing?"
+  },
+  {
+   "title": "Story cards",
+   "try": "They now stay on screen until you close them (B / Esc); a new one replaces the old.",
+   "ask": "Can you read them in time now?"
+  },
+  {
+   "title": "Small fixes",
+   "try": "A to close a menu no longer jumps. B goes back. The detector's ring rolls out even when a find is close. Battery: 15 / 10 / 5 minutes on Easy / Medium / Hard.",
+   "ask": "Anything still fighting you?"
+  }
  ]
 }

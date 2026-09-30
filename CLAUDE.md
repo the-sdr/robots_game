@@ -34,7 +34,11 @@ Also read before substantial work:
    outcomes faithfully, including failures.
 8. **Don't switch renderers** (`project.godot`) without the owner agreeing to
    test it. Renderer is **Mobile** (Forward+ hung the owner's laptop).
-9. **Standing permission to commit and push to the working branch** — no need
+9. **Never push to `main`** (only the working branch). Before every push,
+   check what is going out (`git diff --stat origin/<branch>..HEAD`); if it
+   deletes files you didn't mean to delete, stop and tell the owner. (On
+   2026-09-30 a push from a failed clone emptied `main`; restored in f96fe92.)
+10. **Standing permission to commit and push to the working branch** — no need
    to ask first. After each one, give a brief plain-language summary of what
    was committed and why. Merging into `main`, force-pushing, and deleting
    branches still need the owner's go-ahead. End commit messages with the
