@@ -369,7 +369,11 @@
    ],
    "kind": "dead_end",
    "reward": "collectible",
-   "note": "Behind the house - an old greenhouse frame"
+   "note": "Behind the house - an old greenhouse frame",
+   "cache": {
+    "model": "hose_reel",
+    "item": "gear_train"
+   }
   },
   "fork": {
    "pos": [
@@ -393,7 +397,11 @@
    ],
    "kind": "dead_end",
    "reward": "collectible",
-   "note": "A hollow in a twisted giant"
+   "note": "A hollow in a twisted giant",
+   "cache": {
+    "model": "birdbox",
+    "item": "power_cell"
+   }
   },
   "west_ford": {
    "pos": [
@@ -410,7 +418,11 @@
    ],
    "kind": "dead_end",
    "reward": "collectible",
-   "note": "Stream source - water runs out of an old concrete pipe"
+   "note": "Stream source - water runs out of an old concrete pipe",
+   "cache": {
+    "model": "pump",
+    "item": "servo_motor"
+   }
   },
   "pine_mid": {
    "pos": [
@@ -426,7 +438,11 @@
    ],
    "kind": "dead_end",
    "reward": "collectible",
-   "note": "Deep in the pines"
+   "note": "Deep in the pines",
+   "cache": {
+    "model": "weather",
+    "item": "antenna_coil"
+   }
   },
   "east_ford": {
    "pos": [
@@ -474,7 +490,11 @@
    ],
    "kind": "dead_end",
    "reward": "collectible",
-   "note": "Beyond the ruin, a sealed hatch in the ground"
+   "note": "Beyond the ruin, a sealed hatch in the ground",
+   "cache": {
+    "model": "camera",
+    "item": "optic_lens"
+   }
   },
   "edge_west": {
    "pos": [
@@ -506,7 +526,11 @@
    ],
    "kind": "dead_end",
    "reward": "collectible",
-   "note": "A short spur in under the Giant's body - a hollow you can stand inside. Blocked beyond."
+   "note": "A short spur in under the Giant's body - a hollow you can stand inside. Blocked beyond.",
+   "cache": {
+    "model": "junction",
+    "item": "circuit_board"
+   }
   },
   "edge_join": {
    "pos": [
@@ -1267,7 +1291,8 @@
     ],
     "item": "scrap_metal",
     "amount": 2,
-    "note": "An old crate on the clearing's north-west side. Smash it open."
+    "note": "A rusted toolbox someone dropped on the clearing's north-west side. Smash it open.",
+    "model": "toolbox"
    },
    {
     "id": "clearing_wreck",

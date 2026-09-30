@@ -68,6 +68,7 @@ func _initialize() -> void:
 		start_pos = Vector3(sp[0], 0.3, sp[1])
 		routes.erase("_start")
 	var cleared := {}          # blockers an earlier route already cleared (several places can sit behind one)
+	var finds: Node = props.get_parent().get_node_or_null("Finds")
 	for name in routes:
 		var points: Array = routes[name]["points"]
 		var behind: Variant = routes[name]["behind"]
@@ -100,8 +101,27 @@ func _initialize() -> void:
 			failures += 1
 			var end := Vector2(p.global_position.x, p.global_position.z)
 			print("  STUCK  %-12s end (%.1f, %.1f)%s" % [name, end.x, end.y, " after clearing %s" % behind if behind != null else ""])
+			continue
+		# a dead end whose part is inside something: it must be right there, and smash open
+		var cache: Node = finds.get_node_or_null("Find_%s" % name) if finds != null else null
+		if cache != null and cache.has_method("accepts") and cache.get("model") != null:
+			var near: float = Vector2(p.global_position.x, p.global_position.z).distance_to(Vector2(cache.global_position.x, cache.global_position.z))
+			var hits := 0
+			while is_instance_valid(cache) and not cache.is_queued_for_deletion() and hits < 10:
+				cache.apply("smash", 34.0, p.global_position)
+				hits += 1
+			if near > 2.6 or hits >= 10:
+				failures += 1
+				print("  CACHE  %-12s %.1f m from the robot, %d smashes" % [name, near, hits])
+			await physics_frame
 	var left := props.get_parent().get_node("Collectibles").get_children().filter(func(n): return not n.is_queued_for_deletion()).size()
-	print("routes: %d of %d reached | collectibles left: %d" % [routes.size() - failures, routes.size(), left])
+	var caches_left := 0
+	if finds != null:
+		for f in finds.get_children():
+			if f.get("model") != null and routes.has(String(f.name).trim_prefix("Find_")) and not f.is_queued_for_deletion():
+				caches_left += 1
+	left += caches_left
+	print("routes: %d of %d reached | collectibles left: %d (%d in caches)" % [routes.size() - failures, routes.size(), left, caches_left])
 	ok = ok and failures == 0 and left == 0
 	if district != "":
 		print("RESULT: %s" % ("OK" if ok else "PROBLEMS FOUND"))

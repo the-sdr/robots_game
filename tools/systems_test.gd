@@ -1292,14 +1292,42 @@ func _initialize() -> void:
 	if had_smasher:
 		Game.data["tools"].append("smasher")
 
+	print("== the forest's parts are inside things that belong there")
+	var cache_items := {"spring": "servo_motor", "ruin_far": "optic_lens", "hollow_tree": "power_cell",
+		"under_giant": "circuit_board", "garden_nook": "gear_train", "pine_end": "antenna_coil"}
+	var cache_inventory: Dictionary = (Game.data["inventory"] as Dictionary).duplicate()
+	var caches_ok := 0
+	for spot in cache_items:
+		var cache: Node3D = world.get_node_or_null("GeneratedLevel/Finds/Find_%s" % spot)
+		if cache == null:
+			check(false, "a cache at %s" % spot)
+			continue
+		var before: int = Game.count(cache_items[spot])
+		var meshes := cache.find_children("*", "MeshInstance3D", true, false).size()
+		var refuses: bool = not cache.apply("cut", 26.0, cache.global_position + Vector3(1, 0, 0))
+		for i in 4:
+			if is_instance_valid(cache) and not cache.is_queued_for_deletion():
+				cache.apply("smash", 34.0, cache.global_position + Vector3(1, 0, 0))
+		if meshes >= 3 and refuses and Game.count(cache_items[spot]) == before + 1:
+			caches_ok += 1
+		else:
+			check(false, "%s: %d meshes, refuses the cutter %s, gave %s" % [spot, meshes, refuses, cache_items[spot]])
+	check(caches_ok == 6, "six caches (pump, camera, birdbox, junction box, hose reel, weather station): each smashes open with its part")
+	Game.data["inventory"] = cache_inventory
+	Game.inventory_changed.emit()
+
 	print("== pickups")
-	var pickup: Node3D = world.get_node("GeneratedLevel/Collectibles").get_child(0)
+	var loose: Node = world.get_node("GeneratedLevel/Collectibles")
+	if loose.get_child_count() == 0:
+		loose = world.get_node("GeneratedHub/Collectibles")      # the forest's parts are all in caches now
+	var pickup: Node3D = loose.get_child(0)
 	var pickup_path := String(pickup.get_path())
 	var pickup_item: String = pickup.item_id
+	var pickup_count: int = Game.count(pickup_item) + 1
 	player.global_position = pickup.global_position + Vector3(0, 0.2, 0)
 	for i in 5:
 		await physics_frame
-	check(Game.count(pickup_item) == 1, "touching a part puts it in the inventory (%s)" % pickup_item)
+	check(Game.count(pickup_item) == pickup_count, "touching a part puts it in the inventory (%s)" % pickup_item)
 	Game.save(player, "HouseCharger")
 
 	print("== a reloaded world remembers what is gone")
@@ -1326,7 +1354,7 @@ func _initialize() -> void:
 	check(Clock.day == day_before + 1 and absf(Clock.time - 0.30) < 0.01, "rebooted next morning")
 	check(Energy.current > 0.0 and not player.shut_down, "rebooted with emergency energy (%.0f)" % Energy.current)
 	check(player.global_position.distance_to(charger.global_position) < 2.5, "rebooted beside the last charger")
-	check(Game.count(pickup_item) == 1, "inventory kept through the shutdown")
+	check(Game.count(pickup_item) == pickup_count, "inventory kept through the shutdown")
 	world.free()
 
 	print("== the opening cutscene (New Game only)")

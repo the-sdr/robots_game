@@ -21,6 +21,7 @@ const CRATE_SCENE := "res://scenes/props/crate.tscn"
 const BURIED_SCENE := "res://scenes/props/buried_find.tscn"
 const WEEDS_SCENE := "res://scenes/props/weed_patch.tscn"
 const WRECK_SCENE := "res://scenes/props/wreck.tscn"
+const CACHE_SCENE := "res://scenes/props/cache.tscn"
 const BUSH_SCRIPT := "res://scripts/bush_sway.gd"
 const BREAKABLE_SCRIPT := "res://scripts/interact/breakable.gd"
 const TERRAIN_SHADER := "res://shaders/terrain_painterly.gdshader"
@@ -142,7 +143,11 @@ func _initialize() -> void:
 				if finds == null:
 					finds = _group("Finds")
 				var scene: String = {"weeds": WEEDS_SCENE, "container": CRATE_SCENE, "wreck": WRECK_SCENE}[kind]
+				if kind == "container" and o.get("model", "") != "":
+					scene = CACHE_SCENE                  # something that belongs there (cache.gd), not a crate
 				var holder := _instance(scene, finds, "Find_%s" % o["id"], xf)
+				if o.get("model", "") != "":
+					holder.set("model", o["model"])
 				holder.set("drops", {o["item"]: int(o.get("amount", 1))})
 				if kind == "wreck":
 					holder.set("bonus", o.get("bonus", {}))

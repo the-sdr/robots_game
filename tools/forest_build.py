@@ -88,6 +88,25 @@ def curve_dist(x, z, curve):
     return min(seg_dist(x, z, a[0], a[1], b[0], b[1]) for a, b in zip(curve[:-1], curve[1:]))
 
 
+CACHE_BEYOND = 1.2        # a dead end's cache sits this far past the end of its path
+
+
+def dead_end_direction(f, node, x, z):
+    """Unit (dx, dz) pointing into a dead end: along the last step of the path that ends there."""
+    for p in f.design.paths.values():
+        pts, curve = p["points"], p["curve"]
+        if pts[-1] == node:
+            ax, az = curve[-2]
+        elif pts[0] == node:
+            ax, az = curve[1]
+        else:
+            continue
+        dx, dz = x - ax, z - az
+        length = math.hypot(dx, dz) or 1.0
+        return dx / length, dz / length
+    return 0.0, -1.0
+
+
 class Forest:
     def __init__(self):
         self.design = Design()
@@ -379,10 +398,22 @@ def main():
     for b in d.get("solids", {}).get("boxes", []):
         blockers.append(("box", tuple(b)))
 
-    # Collectibles at dead ends
+    # Collectibles at dead ends. A node with "cache" holds its part inside something
+    # that belongs there (scripts/interact/cache.gd), set just past the end of the
+    # path so the robot can drive right up to it; otherwise a loose part.
     names =[n for n, v in d["nodes"].items() if v["kind"] == "dead_end" and v.get("reward") == "collectible"]
     for i, n in enumerate(sorted(names, key=lambda n: d["nodes"][n]["pos"][0]), start=1):
         x, z = d["nodes"][n]["pos"]
+        cache = d["nodes"][n].get("cache")
+        if cache:
+            dx, dz = dead_end_direction(f, n, x, z)
+            cx, cz = x + dx * CACHE_BEYOND, z + dz * CACHE_BEYOND
+            heading = math.degrees(math.atan2(-dx, dz)) % 360          # its front faces the way in
+            objects.append({"code": "CACHE%d" % i, "asset": "cache", "kind": "container", "path": "",
+                            "basis": [float(v) for v in lc.heading_to_basis(heading)],
+                            "origin": [cx, ground(cx, cz, 0.5), cz], "id": n, "model": cache["model"],
+                            "item": cache["item"], "amount": 1, "node": n})
+            continue
         objects.append({"code": "CP%d" % i, "asset": "collectible", "kind": "collectible", "path": "",
                         "basis": [1, 0, 0, 0, 1, 0, 0, 0, 1], "origin": [x, ground(x, z), z], "node": n})
 
@@ -394,7 +425,7 @@ def main():
                         "basis": [float(v) for v in lc.heading_to_basis(fd.get("heading", 0))],
                         "origin": [x, ground(x, z, 0.0 if fd["kind"] == "buried" else 0.6), z],
                         "id": fd["id"], "item": fd["item"], "amount": fd.get("amount", 1),
-                        "bonus": fd.get("bonus", {})})
+                        "bonus": fd.get("bonus", {}), "model": fd.get("model", "")})
 
     # Stream: rocks on the banks, flat stones in the bed
     curve = f.stream["curve"]
