@@ -276,6 +276,23 @@ func _initialize() -> void:
 	settings.set_mode(test_mode)
 	Game.new_game()
 
+	print("== story: two voices")
+	var story: Node = root.get_node("Story")
+	var one_mode := {"zombie": "silly", "tiny": "silly", "tiny_over": "silly", "old_robot": "serious", "old_robot_wakes": "serious"}
+	var voice_gaps := []
+	for id in story.BEATS:
+		for m in Game.MODES:
+			var should: bool = not one_mode.has(id) or one_mode[id] == m
+			var pair: Array = story.BEATS[id].get(m, [])
+			if should != (pair.size() == 2 and String(pair[0]) != "" and String(pair[1]) != ""):
+				voice_gaps.append("%s/%s" % [id, m])
+	check(voice_gaps.is_empty(), "every beat has a Silly and a Serious text; zombie and curse only in Silly, the old robot only in Serious (gaps: %s)" % [voice_gaps])
+	var mirror_text: String = story.beat("mirrors").get("text", "")
+	check(mirror_text != "" and not mirror_text.contains("{"), "button names in beats come from Glyphs (%s)" % mirror_text.right(40))
+	check(story.beat(one_mode.keys()[0] if test_mode == "serious" else "old_robot").is_empty(), "the other mode's beats don't play in %s" % test_mode)
+	var combat_words: Dictionary = load("res://scripts/combat/combat.gd").WORDS
+	check(combat_words["silly"].keys() == combat_words["serious"].keys(), "fight popups have words in both voices")
+
 	print("== fight rules (combat_state.gd)")
 	var State: Script = load("res://scripts/combat/combat_state.gd")
 	var fight = State.new()

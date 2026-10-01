@@ -172,7 +172,7 @@ func _player_turn() -> void:
 			qualities.append(q)
 			_log("  %s attack: %s" % [tool_id, q])
 			_player_lunge()
-			_popup({"perfect": "PERFECT!", "good": "Good", "miss": "Miss..."}[q], enemy_node.global_position + Vector3(0, 2.6, 0), Color(1, 0.9, 0.3))
+			_popup(_word("attack_" + q), enemy_node.global_position + Vector3(0, 2.6, 0), Color(1, 0.9, 0.3))
 			await _wait(0.3)
 	elif kind == "repair":
 		await _coach("attack_" + tool_id, "The fabricator in a fight", "Hold %s to print patches over your dents. Let go when the bar is full." % Glyphs.label("use_tool"), [["use_tool", "hold until full"]])
@@ -219,10 +219,10 @@ func _enemy_turn() -> void:
 		enemy_node.call("strike")
 		if q == "perfect":
 			_player_dodge()
-			_popup(DEFEND_WIN.get(defence, "DODGED!"), player.global_position + Vector3(0, 1.9, 0), Color(0.5, 1, 0.6))
+			_popup(_word("defend_" + (defence if defence != "" else "jump")), player.global_position + Vector3(0, 1.9, 0), Color(0.5, 1, 0.6))
 		else:
 			_player_hit()
-			_popup("Blocked" if q == "good" else "Ouch!", player.global_position + Vector3(0, 1.9, 0), Color(1, 0.8, 0.4) if q == "good" else Color(1, 0.4, 0.3))
+			_popup(_word("blocked" if q == "good" else "hurt"), player.global_position + Vector3(0, 1.9, 0), Color(1, 0.8, 0.4) if q == "good" else Color(1, 0.4, 0.3))
 		await _wait(0.3)
 	var result: Dictionary = state.enemy_move(qualities)
 	if int(result["damage"]) > 0:
@@ -244,7 +244,19 @@ const DEFEND_HOWTO := {
 	"fabricator": "Hold %s while it winds up to print a shield. The longer you hold, the stronger it is.",
 }
 const DEFEND_SHORT := {"smasher": "tap fast to bash it aside", "cutter": "hold, let go as the ring touches", "laser": "beam on its eye", "fabricator": "hold to print a shield"}
-const DEFEND_WIN := {"smasher": "BASHED ASIDE!", "cutter": "PARRIED!", "laser": "DAZZLED!", "fabricator": "SHIELDED!"}
+## The words that pop up in a fight, in each mode's voice (owner, 2026-10-02:
+## Silly is goofy, Serious is gritty).
+const WORDS := {
+	"silly": {"attack_perfect": "KA-POW!", "attack_good": "BONK!", "attack_miss": "Whiff!",
+		"defend_smasher": "BONKED IT AWAY!", "defend_cutter": "BOING! PARRIED!", "defend_laser": "DAZZLED! Ooh, shiny!",
+		"defend_fabricator": "BLOOP! SHIELDED!", "defend_jump": "BOING! DODGED!", "blocked": "Blocked!", "hurt": "Ouchie!"},
+	"serious": {"attack_perfect": "CLEAN HIT", "attack_good": "Hit", "attack_miss": "Missed",
+		"defend_smasher": "KNOCKED ASIDE", "defend_cutter": "PARRIED", "defend_laser": "BLINDED",
+		"defend_fabricator": "SHIELDED", "defend_jump": "DODGED", "blocked": "Blocked", "hurt": "Hit"},
+}
+
+func _word(key: String) -> String:
+	return String(WORDS[Game.mode].get(key, key))
 
 ## Scores (static, so tests can check the rules directly).
 static func smash_quality(taps: int, easy: bool) -> String:

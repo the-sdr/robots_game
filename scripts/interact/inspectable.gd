@@ -13,6 +13,7 @@ func _ready() -> void:
 func _on_interacted(_player: Node3D) -> void:
 	if beat == "":
 		return
-	if not Story.play(beat) and Story.BEATS.has(beat):
-		var b: Dictionary = Story.BEATS[beat]
-		get_tree().call_group("hud", "show_message", b["title"], b["text"])
+	if not Story.play(beat):
+		var b: Dictionary = Story.beat(beat)       # this mode's text, again
+		if not b.is_empty():
+			get_tree().call_group("hud", "show_message", b["title"], b["text"])
