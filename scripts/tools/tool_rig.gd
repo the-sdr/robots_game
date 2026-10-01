@@ -179,6 +179,7 @@ func _rapid_hit() -> void:
 	var power: float = float(def["power"]) * (1.0 + T.v("smasher_combo_bonus") * (combo - 1)) * _power_scale()
 	if _apply_once(target, "smash", power):
 		_spark(2.5 + combo)
+		Sfx.play("bonk", 0.4 + 0.15 * combo)
 		if combo > 1:
 			get_tree().call_group("hud", "show_combo", combo)
 

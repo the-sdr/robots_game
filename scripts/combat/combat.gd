@@ -182,6 +182,7 @@ func _player_turn() -> void:
 	var result: Dictionary = state.player_move(move, qualities, weak)
 	match kind:
 		"attack":
+			Sfx.play("bonk", 0.8)
 			_popup(str(result["damage"]), enemy_node.global_position + Vector3(0, 2.2, 0), Color(1, 0.4, 0.3))
 			enemy_node.call("flinch")
 		"repair":
@@ -647,11 +648,13 @@ func _player_lunge() -> void:
 	t.tween_property(player.visual, "position", Vector3.ZERO, 0.2)
 
 func _player_dodge() -> void:
+	Sfx.play("boing", 0.5)
 	var t := create_tween()
 	t.tween_property(player.visual, "position", Vector3(0.6, 0.35, 0).rotated(Vector3.UP, player.visual.rotation.y), 0.12)
 	t.tween_property(player.visual, "position", Vector3.ZERO, 0.25)
 
 func _player_hit() -> void:
+	Sfx.play("wahwah", 0.7)
 	var t := create_tween()
 	t.tween_property(player.visual, "position", Vector3(0, 0, 0.35).rotated(Vector3.UP, player.visual.rotation.y), 0.08)
 	t.tween_property(player.visual, "position", Vector3.ZERO, 0.25)

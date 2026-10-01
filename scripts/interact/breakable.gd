@@ -165,6 +165,7 @@ func _char_segment(i: int) -> void:
 
 func _break(from: Vector3) -> void:
 	_debris(from, debris_count)
+	Sfx.play("honk")
 	_burst(from)
 	for id in drops:
 		Game.add_item(id, int(drops[id]))

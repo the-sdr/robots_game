@@ -112,6 +112,7 @@ func _on_jumped() -> void:
 	_squash_velocity = Vector3.ZERO
 	_tread_offset = -TREAD_PUSH
 	_arm_out = ARM_OUT_TAKEOFF
+	Sfx.play("boing", 0.6)
 
 func _still() -> bool:
 	return player.flying or player.hovering or player.docked or player.shut_down or player.in_combat
@@ -225,6 +226,7 @@ func _bump(strength: float) -> void:
 	squash = Vector3(1.0 + 0.15 * strength, 1.0 - 0.12 * strength, 1.0 - 0.1 * strength)
 	_squash_velocity = Vector3.ZERO
 	bumped.emit(strength)
+	Sfx.play("bonk", strength)
 
 func _land() -> void:
 	if _air_time < LAND_MIN_AIR or _fall_speed < LAND_MIN_SPEED:
@@ -237,6 +239,7 @@ func _land() -> void:
 	_arm_out = -0.15                                              # arms slap down past rest
 	_camera_dip = CAMERA_DIP * hard * player.size_scale
 	landed.emit(hard)
+	Sfx.play("splat", hard)
 	if _fall_speed >= DUST_SPEED:
 		dust.scale = Vector3.ONE * player.size_scale
 		dust.amount = int(lerpf(8.0, 16.0, hard))

@@ -64,6 +64,7 @@ func poke(player: Node3D = null) -> bool:
 		_laugh_at_tiny()
 		return false
 	Story.play("zombie")
+	Sfx.play("squeak")
 	pokes += 1
 	_calm_timer = CALM_DOWN_SECONDS
 	_shake = 0.3 + 0.3 * pokes
@@ -100,6 +101,7 @@ func _curse(player: Node3D) -> void:
 	_zapping = true
 	_shake = 1.2
 	_say("Angry Zombie: \"ROOOAAAR!\"")
+	Sfx.play("wahwah")
 	var beam := _zap_beam(player)
 	var tween := create_tween()
 	tween.tween_property(zap_light, "light_energy", 6.0, 0.08)

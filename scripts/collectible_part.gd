@@ -76,6 +76,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if not body.is_in_group("player"):
 		return
 	Game.add_item(item_id, amount)
+	Sfx.play("pop")
 	Game.set_flag(_flag(), true)
 	get_tree().call_group("hud", "show_notice", "Collected %s" % part_name)
 	print("Collected %s" % part_name)

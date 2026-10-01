@@ -276,6 +276,27 @@ func _initialize() -> void:
 	settings.set_mode(test_mode)
 	Game.new_game()
 
+	print("== Silly sounds")
+	var sfx: Node = root.get_node("Sfx")
+	var bad_sounds := []
+	for id in sfx.SOUNDS:
+		var wav: AudioStreamWAV = sfx.streams.get(id)
+		var loudest := 0
+		if wav != null:
+			for i in range(0, wav.data.size() - 1, 64):
+				loudest = maxi(loudest, absi(wav.data.decode_s16(i)))
+		if wav == null or absf(wav.get_length() - float(sfx.SOUNDS[id][2])) > 0.01 or loudest < 3000:
+			bad_sounds.append(id)
+	check(bad_sounds.is_empty(), "every sound is synthesized, the right length and audible (bad: %s)" % [bad_sounds])
+	var playing_before := 0
+	for p in sfx.get_children():
+		playing_before += 1 if (p as AudioStreamPlayer).playing else 0
+	sfx.play("boing")
+	var playing_after := 0
+	for p in sfx.get_children():
+		playing_after += 1 if (p as AudioStreamPlayer).playing else 0
+	check((playing_after > playing_before) == Game.silly(), "%s: play() %s" % [test_mode, "sounds" if Game.silly() else "stays silent"])
+
 	print("== story: two voices")
 	var story: Node = root.get_node("Story")
 	var one_mode := {"zombie": "silly", "tiny": "silly", "tiny_over": "silly", "old_robot": "serious", "old_robot_wakes": "serious"}
