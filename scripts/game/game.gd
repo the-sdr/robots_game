@@ -157,6 +157,8 @@ func _now_days() -> float:
 	return float(Clock.day) + Clock.time
 
 func curse_tiny(days: float = TINY_DAYS) -> void:
+	if serious():
+		return               # Serious has no Angry Zombie and no curse (owner, 2026-10-02)
 	data["tiny_until"] = _now_days() + days
 
 func is_tiny() -> bool:

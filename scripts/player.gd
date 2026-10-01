@@ -38,6 +38,8 @@ const IRIS_BLADE_HALF_WIDTH = 0.012
 
 signal jumped                        # the jump animation listens (player_jump_fx.gd)
 
+const PAINT := preload("res://scripts/robot_paint.gd")
+
 @onready var visual: Node3D = $Visual
 @onready var camera_rig: Node3D = $CameraRig
 @onready var camera_arm: Node3D = $CameraRig/CameraArm
@@ -111,6 +113,7 @@ func _ready() -> void:
 	_lens_material = (lenses[0] as MeshInstance3D).mesh.material.duplicate()
 	for lens in lenses:
 		(lens as MeshInstance3D).material_override = _lens_material
+	PAINT.apply(visual, Game.mode)       # toy plastic in Silly, worn metal in Serious
 	Energy.changed.connect(_on_energy_changed)
 	_on_energy_changed(Energy.current, Energy.MAX)
 

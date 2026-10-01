@@ -71,6 +71,10 @@ const BEATS := {
 		"ZAP! Everything is suddenly enormous. You are tiny for two days. Tiny robots use less power... and fit through tiny holes."},
 	"tiny_over": {"title": "Pop!", "text":
 		"Back to full size. Maybe don't poke him next time. Or maybe do."},
+	"old_robot": {"title": "The old robot", "text":
+		"A robot slumped in the corner. Same treads, same arms, same head as yours, under a coat of rust. One lens still flickers. Its battery reads empty."},
+	"old_robot_wakes": {"title": "Unit four", "text":
+		"The old robot drinks the charge and lifts its head. \"You are a Model Four. So was I. They told me to wait here for her. I waited until the house leaned and the trees came in.\" It reaches into the wardrobe and hands you something it kept all this time. \"The city is north, past the hill. Take this. Don't wait like I did.\""},
 	"sentry_won": {"title": "Sentry down", "text":
 		"The sentry sits down with a clunk. Its big eye blinks... and turns green. Friendly now. Its shield plating clatters off beside it, and something is still wired in there: salvage it. The way to the city is open."},
 	"sentry_down": {"title": "The Hill Sentry", "text":

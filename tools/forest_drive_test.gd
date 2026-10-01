@@ -3,6 +3,8 @@ extends SceneTree
 # Headless physics test of the built level (run tools/forest_routes.py first):
 #   <godot> --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd
 # (--fixed-fps drops the wall-clock pacing: ~10 s instead of ~7 min.)
+# Add `++ serious` (or `++ hub serious`) to drive the Serious mode's world
+# (the old robot in the crooked house instead of the Angry Zombie).
 # 1. Drives the real robot body from the house door along every route in
 #    level_design/build/routes.json (the design's own path curves) at
 #    player speed, on the real terrain and collision. Reports any route that
@@ -46,10 +48,15 @@ func drive_route(points: Array) -> bool:
 	return stuck == 0 or end.distance_to(goal) < 2.5
 
 func _initialize() -> void:
-	var user_args := OS.get_cmdline_user_args()
-	if user_args.size() > 0:
-		district = user_args[0]
-		ROUTES = "res://level_design/build/%s_routes.json" % district
+	var game: Node = root.get_node("Game")
+	game.save_prefix = "test_"                 # docking on a route autosaves: never over the player's own save
+	for arg in OS.get_cmdline_user_args():     # ++ [district] [silly|serious]
+		if game.MODES.has(arg):
+			game.set_mode(arg)                 # not Settings.set_mode: that writes the player's settings
+		else:
+			district = arg
+			ROUTES = "res://level_design/build/%s_routes.json" % district
+	print("mode: %s" % game.mode)
 	var world: Node = load("res://scenes/world.tscn").instantiate()
 	root.add_child(world)
 	for i in 5:
@@ -60,6 +67,10 @@ func _initialize() -> void:
 	root.get_node("Game").set_flag("defeated:hill_sentry")     # routes over the crest must not start the tutorial fight
 	var ok := true
 
+	if not FileAccess.file_exists(ROUTES):      # a script error here used to hang the run
+		print("RESULT: no %s - run tools/forest_routes.py first (it's a build output, not in git)" % ROUTES)
+		quit(2)
+		return
 	var routes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROUTES))
 	var failures := 0
 	var props: Node = world.get_node("GeneratedLevel/Props") if district == "" else world.get_node("Generated%s/Props" % district.capitalize())

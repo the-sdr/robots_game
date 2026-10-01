@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/zombie_robot.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interact/interactable.gd" id="2"]
+
+[sub_resource type="CapsuleShape3D" id="Shape_body"]
+radius = 0.35
+height = 1.2
+
+[sub_resource type="SphereShape3D" id="Shape_talk"]
+radius = 1.3
+
+[node name="ZombieRobot" type="StaticBody3D"]
+script = ExtResource("1")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("Shape_body")
+
+[node name="Interactable" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+script = ExtResource("2")
+prompt = "Look at the old robot"
+
+[node name="Shape" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("Shape_talk")
