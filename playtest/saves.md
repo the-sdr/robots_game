@@ -129,3 +129,29 @@
   - **Note:** I shouldn't be here. fix this high priority
 - **save_68** — 2026-09-30 21:18:37 — X   +45.8  Y    -0.1  Z   -46.4  Facing  NW 300°  Camera  W  285°  Pitch    -22°  FPS 15  —  shot: playtest/shots/save_68.jpg
   - **Note:** the escape issue would be here
+- **save_69** — 2026-09-30 23:05:33 — X    +0.2  Y    +0.1  Z    -5.0  Facing  NW 328°  Camera  N  338°  Pitch    +20°  FPS 13  —  shot: playtest/shots/save_69.jpg
+  - **Note:** F8 tool - edit content on the screen to rewrite it. click mouse to edit text. let me know if this is a performance drag or bloats the code a lot and we'll find a more efficient way
+- **save_70** — 2026-09-30 23:06:25 — X    +0.2  Y    +0.0  Z   -11.5  Facing  N  014°  Camera  E  075°  Pitch    -18°  FPS 31  —  shot: playtest/shots/save_70.jpg
+  - **Note:** can we have a prompt here that reminds the user to use the detector
+- **save_71** — 2026-09-30 23:09:38 — X   +18.2  Y    +1.2  Z   -24.8  Facing  E  069°  Camera  E  094°  Pitch    -11°  FPS 35  —  shot: playtest/shots/save_71.jpg
+  - **Note:** much better on the detector indicator. the hard edge up the top is not aesthetically pleasing, so we'll round it off
+- **save_72** — 2026-09-30 23:11:12 — X    -0.1  Y    +0.0  Z    -1.6  Facing  E  092°  Camera  SE 118°  Pitch    -45°  FPS 48  —  shot: playtest/shots/save_72.jpg
+  - **Note:** the planks covering the solar panel. nice touch.
+- **save_73** — 2026-09-30 23:12:26 — X   -26.7  Y    -1.8  Z   -22.3  Facing  E  076°  Camera  NE 031°  Pitch     -4°  FPS 18  —  shot: playtest/shots/save_73.jpg
+  - **Note:** a bit more bashing to get the loot. lets have a bit of skill involved
+- **save_74** — 2026-09-30 23:13:47 — X    -8.9  Y    -2.4  Z   -43.0  Facing  NE 061°  Camera  NE 043°  Pitch     -5°  FPS 24  —  shot: playtest/shots/save_74.jpg
+  - **Note:** we'll start removing these story pop ups and only have the instruction pop us where needed. this needs to be an instruction pop up. or these pop ups need to be fewer and further between. the story ones are a nuisance. talk to me about this
+- **save_75** — 2026-09-30 23:16:08 — X    -2.4  Y    -1.2  Z   -43.7  Facing  E  082°  Camera  NE 049°  Pitch    -18°  FPS 28  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_75.jpg
+  - **Note:** I want blue indicators for power source. do it
+- **save_76** — 2026-09-30 23:17:36 — X    +0.1  Y    +0.1  Z    -6.3  Facing  S  191°  Camera  S  164°  Pitch    -54°  FPS 50  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_76.jpg
+  - **Note:** explain clearly what I'm meant to detect here. there was an icon pointing this way
+- **save_77** — 2026-09-30 23:18:34 — X    +1.0  Y    +0.1  Z   -15.3  Facing  N  358°  Camera  N  346°  Pitch    -32°  FPS 19  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_77.jpg
+  - **Note:** need to build in the memory fragment story mechanic next. need to give players a goal to explore before boredom from being lost. tell them there's a city to find. do it
+- **save_78** — 2026-09-30 23:21:25 — X    +0.4  Y    +6.8  Z   -85.6  Facing  N  000°  Camera  W  270°  Pitch    -15°  FPS 36  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_78.jpg
+  - **Note:** 3did the instructions not say something about holding RT to defend? yet the defense here is A
+- **save_79** — 2026-09-30 23:21:49 — X    +0.4  Y    +6.8  Z   -85.6  Facing  N  000°  Camera  N  002°  Pitch     -9°  FPS 43  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_79.jpg
+  - **Note:** smasher needs to be a circle timer. music will help this game
+- **save_80** — 2026-09-30 23:22:53 — X    +2.9  Y    +5.8  Z   -88.9  Facing  N  353°  Camera  N  003°  Pitch    -60°  FPS 60  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_80.jpg
+  - **Note:** I can't find any loot in the sentry. but gg.
+- **save_81** — 2026-09-30 23:24:09 — X    -5.6  Y    +4.6  Z   -85.4  Facing  SW 241°  Camera  NE 061°  Pitch    +15°  FPS 60  —  tuned: cutter_heat_seconds=0.9* cutter_clean_from=0.6* cutter_clean_to=0.72*  —  shot: playtest/shots/save_81.jpg
+  - **Note:** can I see the robots whole body from this perspective? moving down on the camera doesn't allow seeing the lower half of the body. lets talk about how to do this and waht your constraints are in understanding the physical space and player perspective.
