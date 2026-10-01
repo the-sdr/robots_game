@@ -1106,7 +1106,7 @@ func _initialize() -> void:
 
 	print("== the jump animation")
 	var fx: Node = player.get_node("JumpFx")
-	for i in 40:
+	for i in 150:                            # Silly's looser spring takes ~2 s to settle the last landing
 		await physics_frame
 	check((fx.squash as Vector3).distance_to(Vector3.ONE) < 0.02 and absf(player.visual.scale.y - player.visual_size) < 0.01, "at rest the body keeps its shape")
 	Input.action_press("jump")
@@ -1127,13 +1127,33 @@ func _initialize() -> void:
 	player.global_position += Vector3(0, 4.0, 0)
 	var drop_landings: int = fx.landings
 	var drop_squash := 2.0
+	var most_tumble := 0.0
 	for i in 150:
 		await physics_frame
+		most_tumble = maxf(most_tumble, absf(fx.tumble))
 		if fx.landings > drop_landings:
 			drop_squash = minf(drop_squash, fx.squash.y)
 	check(fx.landings == drop_landings + 1 and drop_squash < hop_squash - 0.03, "a drop from 4 m squashes harder than a hop (%.2f vs %.2f)" % [drop_squash, hop_squash])
 	for i in 60:
 		await physics_frame
+	if Game.silly():
+		check(fx.wobble and most_tumble > 1.0 and fx.tumble == 0.0 and player.visual.position.length() < 0.01 and absf(player.visual.rotation.z) < 0.05,
+			"Silly: the 4 m drop cartwheels (%.1f rad) and lands the turn upright" % most_tumble)
+		var most_lean := 0.0
+		Input.action_press("move_forward")
+		for i in 40:
+			await physics_frame
+			most_lean = maxf(most_lean, fx.lean.length())
+		Input.action_release("move_forward")
+		for i in 30:
+			await physics_frame
+			most_lean = maxf(most_lean, fx.lean.length())
+		check(most_lean > 0.05, "Silly: speeding up and stopping rocks the body (lean up to %.2f rad)" % most_lean)
+		for i in 180:
+			await physics_frame
+		check(fx.lean.length() < 0.01 and absf(player.visual.rotation.x) < 0.01, "and it settles upright again (%.3f)" % fx.lean.length())
+	else:
+		check(not fx.wobble and most_tumble == 0.0 and player.visual.rotation.x == 0.0 and player.visual.rotation.z == 0.0, "Serious: no wobble, the robot never tilts")
 
 	print("== the detector: sweeps, warm spots, digging")
 	var det: Node = player.get_node("Detector")

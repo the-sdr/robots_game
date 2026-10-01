@@ -655,6 +655,9 @@ func _player_hit() -> void:
 	var t := create_tween()
 	t.tween_property(player.visual, "position", Vector3(0, 0, 0.35).rotated(Vector3.UP, player.visual.rotation.y), 0.08)
 	t.tween_property(player.visual, "position", Vector3.ZERO, 0.25)
+	if Game.silly():       # a cartoon spin like a top (a whole turn: it ends facing the same way)
+		var spin := create_tween()
+		spin.tween_property(player.visual, "rotation:y", player.visual.rotation.y + TAU, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 ## A floating word or number in the world that rises and fades.
 func _popup(text: String, at: Vector3, colour: Color) -> void:

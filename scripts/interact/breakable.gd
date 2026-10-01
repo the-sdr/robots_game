@@ -225,7 +225,7 @@ func _burst(from: Vector3) -> void:
 		body.global_position = start
 		body.rotation = Vector3(t * 1.7, i * 0.9, t * 0.6)
 		var spin := Vector3(randf_range(-6, 6), randf_range(-4, 4), randf_range(-6, 6))
-		body.apply_central_impulse((away * randf_range(2.5, 5.0) + Vector3(randf_range(-1.5, 1.5), randf_range(3.0, 6.0), 0)) * body.mass)
+		body.apply_central_impulse((away * randf_range(2.5, 5.0) + Vector3(randf_range(-1.5, 1.5), randf_range(3.0, 6.0), 0)) * body.mass * _fling())
 		body.angular_velocity = spin
 		get_tree().create_timer(3.0 + randf() * 1.5).timeout.connect(body.queue_free)
 
@@ -234,12 +234,12 @@ func _debris(from: Vector3, count: int) -> void:
 	particles.emitting = false
 	particles.one_shot = true
 	particles.amount = count
-	particles.lifetime = 1.1
+	particles.lifetime = 1.1 * sqrt(_fling())        # same count: Silly costs nothing extra
 	particles.explosiveness = 1.0
 	particles.direction = (global_position - from).normalized() + Vector3.UP
 	particles.spread = 55.0
-	particles.initial_velocity_min = 2.0
-	particles.initial_velocity_max = 4.5
+	particles.initial_velocity_min = 2.0 * _fling()
+	particles.initial_velocity_max = 4.5 * _fling()
 	particles.gravity = Vector3(0, -9.8, 0)
 	particles.scale_amount_min = 0.5
 	particles.scale_amount_max = 1.0
@@ -254,6 +254,10 @@ func _debris(from: Vector3, count: int) -> void:
 	particles.global_position = aabb.get_center() if aabb.size != Vector3.ZERO else global_position
 	particles.emitting = true
 	get_tree().create_timer(particles.lifetime + 0.2).timeout.connect(particles.queue_free)
+
+## Silly mode flings bits further (owner, 2026-10-02: goat-simulator physics).
+func _fling() -> float:
+	return 1.7 if Game.silly() else 1.0
 
 func _collision_aabb() -> AABB:
 	var result := AABB()
