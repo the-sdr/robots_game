@@ -191,6 +191,7 @@ func _player_turn() -> void:
 
 func _enemy_turn() -> void:
 	phase = "busy"
+	_hint.text = ""          # "Your turn! ..." stayed up through its turn (save_78)
 	await _show_banner("%s'S TURN" % enemy_name.to_upper(), Color(1.0, 0.55, 0.4))
 	var attack: Dictionary = state.next_attack()
 	_log("its turn: %s, you defend with %s" % [attack.get("name", "dazzled, skips") if not attack.is_empty() else "dazzled, skips", _tool if _tool != "" else "a jump"])
@@ -372,7 +373,7 @@ func _attack_pattern(tool_id: String) -> String:
 
 ## Its blow, defended the way the tool in hand does it; returns the quality.
 func _defence_pattern(tool_id: String, seconds: float) -> String:
-	_ring.visible = true
+	_show_ring("use_tool")
 	match tool_id:
 		"smasher":
 			_begin_pattern("bash")
@@ -435,6 +436,12 @@ func _pattern_frame() -> void:
 	if not get_tree().paused:
 		_t += get_process_delta_time()
 
+## Shows the ring with the button this press uses under it (save_78: it always
+## said the jump button, even when the tool in hand defends with use).
+func _show_ring(action: String) -> void:
+	_ring_key.text = Glyphs.label(action).to_upper()
+	_ring.visible = true
+
 func _ring_progress(seconds: float) -> void:
 	_ring.set("progress", _t / seconds)
 	_ring.set("in_window", absf(_t - seconds) <= float(state.tuning["defend_window"]))
@@ -460,7 +467,7 @@ func _timing(seconds: float, defend: bool) -> String:
 	_press_offset = INF
 	_awaiting = true
 	phase = "timing"
-	_ring.visible = true
+	_show_ring("combat_timing" if defend else "use_tool")     # jump its blows, ram on the beat (the tool card says so)
 	var window: float = float(state.tuning["defend_window"]) * 2.0 if defend else float(state.tuning["good_window"])
 	var cue := bool(state.tuning["now_cue"])
 	while _awaiting and _beat_t < seconds + window and not aborted:
@@ -807,7 +814,7 @@ func _build_ui() -> void:
 	_ring.visible = false
 	_root.add_child(_ring)
 	_anchor(_ring, Control.PRESET_CENTER, -180, -180, 180, 180)
-	_ring_key = _label(Glyphs.label("combat_timing").to_upper(), 22)
+	_ring_key = _label("", 22)          # set by _show_ring for each press
 	_ring.add_child(_ring_key)
 	_anchor(_ring_key, Control.PRESET_TOP_LEFT, 0, 165, 360, 195)
 	_now = _label("NOW!", 72, Color(1, 0.95, 0.3))

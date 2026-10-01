@@ -18,6 +18,7 @@ const EYE_FRIENDLY := Color(0.35, 1.0, 0.45)
 const WRECK := preload("res://scenes/props/wreck.tscn")
 const SALVAGE_AT := Vector3(-1.8, 0, 1.2)        # beside where it sits, in its own frame
 const SALVAGE_BONUS := {"scrap_metal": 2}        # extra for a laser salvage
+const SEAM_GLOW := 3.0                            # the wreck's seam; its default 0.6 vanished at night
 
 @export var enemy_id := "hill_sentry"
 
@@ -62,12 +63,36 @@ func drop_salvage(tell: bool = true) -> Node3D:
 	wreck.set("break_flag", salvage_flag())
 	wreck.set("display_name", "its shield plating")
 	wreck.set("hit_notice", "The Sentry's broken shield plating. A blade or a beam would get the parts out.")
-	wreck.scale = Vector3.ONE * 0.75
+	# On the ground (it floated or sank on the hill's slope), 0.75 size (setting
+	# .scale before global_transform was silently undone), seam bright enough to
+	# read at night (save_80: "I can't find any loot in the sentry").
+	var spot := _ground(_rest * SALVAGE_AT)
 	get_parent().add_child(wreck)
-	wreck.global_transform = Transform3D(_rest.basis, _rest * SALVAGE_AT)
+	wreck.global_transform = Transform3D(_rest.basis.scaled(Vector3.ONE * 0.75), spot)
+	var seam: MeshInstance3D = wreck.get_node_or_null("Chassis/Seam")
+	if seam != null:
+		var glow: StandardMaterial3D = (seam.mesh.surface_get_material(0) as StandardMaterial3D).duplicate()
+		glow.emission_energy_multiplier = SEAM_GLOW
+		seam.material_override = glow
 	if tell:
-		get_tree().call_group("hud", "show_notice", "Its shield plating fell off. Salvage it (cutter or laser) for parts.")
+		get_tree().call_group("hud", "show_notice", "Its shield plating fell off beside it. Cut it or beam its glowing seam for parts.")
 	return wreck
+
+## Beaten, a blade or a beam on the Sentry itself salvages its plating: the
+## story says its parts are "in there", so that's where players aim (save_80).
+func apply(effect: String, power: float, from: Vector3) -> bool:
+	var wreck := _unsalvaged_wreck()
+	return wreck.call("apply", effect, power, from) if wreck != null else false
+
+func burn_at(point: Vector3, delta: float, from: Vector3, power: float) -> void:
+	var wreck := _unsalvaged_wreck()
+	if wreck != null:      # the beam's sweep across the Sentry sweeps the plating's seam
+		wreck.call("burn_at", wreck.global_position + (point - global_position), delta, from, power)
+
+func _unsalvaged_wreck() -> Node3D:
+	if not Game.get_flag(flag()) or Game.get_flag(salvage_flag()):
+		return null
+	return get_parent().get_node_or_null("Salvage_" + enemy_id) as Node3D
 
 func _on_body_entered(body: Node3D) -> void:
 	if fighting or Game.get_flag(flag()) or not body.is_in_group("player"):

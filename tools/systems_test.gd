@@ -621,7 +621,13 @@ func _initialize() -> void:
 	var presses := 0
 	var coach_seen := {}
 	var switched := false
+	var ring_keys := {}                      # the button shown under the ring, per phase (save_78)
+	var hint_in_its_turn := ""
 	while is_instance_valid(combat) and combat.phase != "done" and frames < 60 * 90:
+		if combat.phase in ["defend", "timing"] and combat._ring.visible:
+			ring_keys[combat.phase] = combat._ring_key.text
+		if combat.phase == "defend":
+			hint_in_its_turn += combat._hint.text
 		if combat.phase == "coach":
 			coach_seen[combat._coach_title.text] = true
 			combat.dismiss_coach()
@@ -645,14 +651,23 @@ func _initialize() -> void:
 	var coached := ", ".join(coach_seen.keys())
 	check(coach_seen.has("A fight!") and coach_seen.has("Your turn") and coached.contains("The Smasher in a fight") and coached.contains("Its turn: defend with the Smasher"),
 		"the first fight stops to teach each step (%s)" % coached)
+	var use_key: String = root.get_node("Glyphs").label("use_tool").to_upper()
+	check(ring_keys.get("defend", "") == use_key, "defending with the smasher, the ring shows the use button %s (was the jump button; shown: %s)" % [use_key, ring_keys])
+	check(hint_in_its_turn == "", "its turn: the \"Your turn!\" hint is gone (save_78)")
 	check(Game.get_flag("defeated:hill_sentry") and Game.count("capacitor") == 0, "Easy: won with the smasher (%d frames, %d patterns); the reward isn't handed over..." % [frames, presses])
 	var plating: Node = sentry.get_parent().get_node_or_null("Salvage_hill_sentry")
 	check(plating != null and plating.is_in_group("detectable"), "...its shield plating fell off beside it: salvage to find")
+	var below := PhysicsRayQueryParameters3D.create(plating.global_position + Vector3(0, 0.5, 0), plating.global_position + Vector3(0, -3, 0))
+	below.exclude = [plating.get_rid()]
+	var ground_hit: Dictionary = player.get_world_3d().direct_space_state.intersect_ray(below)
+	check(not ground_hit.is_empty() and absf((ground_hit["position"] as Vector3).y - plating.global_position.y) < 0.15 and absf(plating.scale.x - 0.75) < 0.01,
+		"the plating sits on the hillside at 0.75 size (%s)" % plating.global_position)
 	var caps_before: int = Game.count("capacitor")
 	for i in 4:
 		if is_instance_valid(plating) and not plating.salvaged:
-			plating.apply("cut", 26.0, plating.global_position + Vector3(1, 0, 0))
-	check(Game.count("capacitor") == caps_before + 1 and plating.salvaged, "salvaged with the cutter: the capacitor")
+			sentry.apply("cut", 26.0, sentry.global_position + Vector3(1, 0, 0))      # aimed at the Sentry itself (save_80)
+	check(Game.count("capacitor") == caps_before + 1 and plating.salvaged, "cutting the beaten Sentry itself salvages its plating: the capacitor")
+	check(not sentry.apply("cut", 26.0, sentry.global_position), "stripped: nothing more from the Sentry")
 	check(combat_rules.smash_quality(7, false) == "perfect" and combat_rules.smash_quality(4, false) == "good" and combat_rules.smash_quality(4, true) == "perfect"
 		and combat_rules.cut_quality(0.78, false, 0.72, 0.84) == "perfect" and combat_rules.cut_quality(0.5, false, 0.72, 0.84) == "good" and combat_rules.cut_quality(1.0, true, 0.72, 0.84) == "miss"
 		and combat_rules.trace_quality(5) == "perfect" and combat_rules.trace_quality(3) == "good" and combat_rules.share_quality(0.3) == "miss",
