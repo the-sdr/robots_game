@@ -1,7 +1,9 @@
 extends Control
 
-# Opening menu. Continue loads the autosave (written whenever the robot docks);
-# New Game starts at the house charger.
+# Opening menu. Pick the game first: Silly or Serious (owner, 2026-10-02: two
+# games on one engine, like Breath of the Wild and Tears of the Kingdom). Each
+# has its own save; Continue loads that mode's autosave (written whenever the
+# robot docks), New Game starts it at the house charger. The pick is remembered.
 # On the right, the testing notes slide in at start (owner, 2026-09-30: what
 # this sprint asks the playtester to look at, so nobody has to scroll a
 # terminal to remember). Help and controls opens the same F1 menu as in the
@@ -11,6 +13,10 @@ const WORLD := "res://scenes/world.tscn"
 const STYLE := preload("res://scripts/ui/ui_style.gd")
 const HELP := preload("res://scripts/ui/help_menu.gd")
 
+@onready var silly_button: Button = %SillyButton
+@onready var serious_button: Button = %SeriousButton
+@onready var mode_label: Label = %ModeLabel
+@onready var subtitle: Label = $Left/VBox/Subtitle
 @onready var continue_button: Button = %ContinueButton
 @onready var new_button: Button = %NewButton
 @onready var help_button: Button = %HelpButton
@@ -28,16 +34,17 @@ func _ready() -> void:
 	get_tree().paused = false
 	Clock.running = false
 	title.add_theme_font_override("font", STYLE.title_font())
-	continue_button.disabled = not Game.has_save()
+	var group := ButtonGroup.new()
+	silly_button.button_group = group
+	serious_button.button_group = group
+	silly_button.pressed.connect(pick_mode.bind("silly"))
+	serious_button.pressed.connect(pick_mode.bind("serious"))
 	continue_button.pressed.connect(_continue)
 	new_button.pressed.connect(_new_game)
 	help_button.pressed.connect(func() -> void: help_menu.open("Controls"))
 	notes_button.pressed.connect(func() -> void: help_menu.open("Testing notes"))
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
-	if Game.has_save() and Game.load_save():
-		info_label.text = "Last copy: day %d, %s" % [Game.data["day"], Clock.time_text()]
-	else:
-		info_label.text = ""
+	_show_mode()
 	help_menu = HELP.new()
 	help_menu.name = "HelpMenu"
 	help_menu.in_game = false
@@ -48,6 +55,33 @@ func _ready() -> void:
 
 func focus_first() -> void:
 	(continue_button if not continue_button.disabled else new_button).grab_focus()
+
+# --- which game ------------------------------------------------------------------------------
+const MODE_BLURB := {
+	"silly": "Wobbly robot, grumpy zombie, lots of BOING. For the little ones.",
+	"serious": "Rust, ruins and a long-dead city. Something is still switched on.",
+}
+const MODE_SUBTITLE := {
+	"silly": "Beep boop! Something is still switched on.",
+	"serious": "Something is still switched on.",
+}
+
+func pick_mode(new_mode: String) -> void:
+	Settings.set_mode(new_mode)
+	_show_mode()
+
+## The selected mode's buttons, blurb and save.
+func _show_mode() -> void:
+	var m: String = Game.mode
+	silly_button.set_pressed_no_signal(m == "silly")
+	serious_button.set_pressed_no_signal(m == "serious")
+	mode_label.text = MODE_BLURB[m]
+	subtitle.text = MODE_SUBTITLE[m]
+	continue_button.disabled = not Game.has_save()
+	if Game.has_save() and Game.load_save():
+		info_label.text = "%s: last copy day %d, %s" % [Settings.mode_name(), Game.data["day"], Clock.time_text()]
+	else:
+		info_label.text = "%s: no save yet" % Settings.mode_name()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_action_pressed("help") and not help_menu.is_open():

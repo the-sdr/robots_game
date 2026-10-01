@@ -2,9 +2,12 @@ extends SceneTree
 
 # Headless test of the game systems (no window, no GPU):
 #   <godot> --headless --fixed-fps 60 --path . -s tools/systems_test.gd
+#   <godot> --headless --fixed-fps 60 --path . -s tools/systems_test.gd ++ serious
 # Covers: catalog integrity, inventory + crafting, save/load round trip,
 # the clock and sun, energy drain/depletion, docking at the house charger in
 # the real world scene, and reboot after a shutdown.
+# Runs in one game mode (`++ silly`, the default, or `++ serious`): run it in
+# both. It writes only test_ files, never the player's own saves or settings.
 
 var failures := 0
 # A -s script is compiled before the autoload names exist, so fetch the nodes.
@@ -25,6 +28,11 @@ func drive_to(p: CharacterBody3D, target: Vector2, max_frames: int) -> bool:
 		await physics_frame
 	return false
 
+func _remove_test_files() -> void:
+	for file in ["test_settings.cfg", "test_save.json", "test_save_silly.json", "test_save_serious.json"]:
+		if FileAccess.file_exists("user://" + file):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path("user://" + file))
+
 func check(condition: bool, what: String) -> void:
 	if condition:
 		print("  ok   ", what)
@@ -38,6 +46,16 @@ func _initialize() -> void:
 	Energy = root.get_node("Energy")
 	Catalog = root.get_node("Catalog")
 	await process_frame      # _initialize runs before the root joins the tree
+	# The game run from the editor shares user:// with this test: never touch its
+	# saves or settings (every run used to delete the player's save).
+	var settings: Node = root.get_node("Settings")
+	Game.save_prefix = "test_"
+	settings.path = "user://test_settings.cfg"
+	_remove_test_files()
+	var args := OS.get_cmdline_user_args()
+	var test_mode: String = args[0] if not args.is_empty() and Game.MODES.has(args[0]) else "silly"
+	settings.set_mode(test_mode)
+	print("== mode: %s" % test_mode)
 	load("res://scripts/ui/tool_card.gd").suppressed = true     # cards pause the game; tested on their own below
 	create_timer(480.0).timeout.connect(func() -> void: print("RESULT: WATCHDOG TIMEOUT (a check hung or a script error aborted the run)"); quit(2))
 	print("== catalog")
@@ -72,7 +90,6 @@ func _initialize() -> void:
 	pickup_test.free()
 
 	print("== settings: difficulty")
-	var settings: Node = root.get_node("Settings")
 	var owner_level: String = settings.difficulty          # put back at the end of this section
 	for level in settings.LEVELS:
 		var t: Dictionary = settings.DIFFICULTY[level]
@@ -92,7 +109,7 @@ func _initialize() -> void:
 	check(settings.difficulty == "easy", "Hard wraps back to Easy")
 	settings.set_difficulty("hard")
 	var stored := ConfigFile.new()
-	check(stored.load(settings.PATH) == OK and stored.get_value("game", "difficulty") == "hard", "difficulty saved to settings.cfg")
+	check(stored.load(settings.path) == OK and stored.get_value("game", "difficulty_" + test_mode) == "hard", "difficulty saved to settings.cfg, for this mode")
 	var menu: Control = load("res://scenes/ui/main_menu.tscn").instantiate()
 	root.add_child(menu)
 	await process_frame
@@ -100,8 +117,42 @@ func _initialize() -> void:
 	check(diff_button.text == "Difficulty: Hard", "main menu shows the difficulty (%s)" % diff_button.text)
 	diff_button.pressed.emit()
 	check(settings.difficulty == "easy" and diff_button.text == "Difficulty: Easy", "pressing it cycles to Easy")
+	var other_mode: String = "serious" if test_mode == "silly" else "silly"
+	(menu.get_node("%SillyButton" if other_mode == "silly" else "%SeriousButton") as Button).pressed.emit()
+	check(Game.mode == other_mode and settings.mode == other_mode and settings.difficulty == "easy" and diff_button.text == "Difficulty: Easy",
+		"picking %s on the menu switches the game; its own difficulty (Easy) comes back" % other_mode)
+	settings.set_difficulty("medium")
+	(menu.get_node("%SillyButton" if test_mode == "silly" else "%SeriousButton") as Button).pressed.emit()
+	check(Game.mode == test_mode and settings.difficulty == "easy", "and back: %s keeps its own difficulty" % test_mode)
 	menu.free()
 	settings.set_difficulty(owner_level)
+
+	print("== two games, two saves")
+	var mode_stand_in := Node3D.new()
+	root.add_child(mode_stand_in)
+	for m in Game.MODES:
+		settings.set_mode(m)
+		Game.new_game()
+		Game.save(mode_stand_in, "")
+	settings.set_mode("silly")
+	Game.data["day"] = 7
+	Game.save(mode_stand_in, "")
+	settings.set_mode("serious")
+	check(Game.load_save() and int(Game.data["day"]) == 1 and Game.data["mode"] == "serious", "each mode loads its own save (serious: day %s)" % Game.data["day"])
+	check(Game.save_path("silly").ends_with("test_save_silly.json") and Game.save_path("serious").ends_with("test_save_serious.json"), "one file per mode, test_ files in tests")
+	Game.delete_save()
+	check(not Game.has_save("serious") and Game.has_save("silly"), "deleting one mode's save leaves the other")
+	Game.set_mode("silly")
+	Game.delete_save()
+	var legacy := FileAccess.open("user://test_save.json", FileAccess.WRITE)
+	legacy.store_string("{}")
+	legacy.close()
+	Game._migrate_legacy_save()
+	check(Game.has_save("silly") and not FileAccess.file_exists("user://test_save.json"), "the old single save becomes the Silly save")
+	Game.delete_save()
+	mode_stand_in.free()
+	settings.set_mode(test_mode)
+	Game.new_game()
 
 	print("== fight rules (combat_state.gd)")
 	var State: Script = load("res://scripts/combat/combat_state.gd")
@@ -1705,6 +1756,6 @@ func _initialize() -> void:
 	title_menu.help_menu.close()
 	title_menu.queue_free()
 	await process_frame
-	Game.delete_save()
+	_remove_test_files()
 	print("RESULT: %s (%d failures)" % ["OK" if failures == 0 else "PROBLEMS FOUND", failures])
 	quit(0 if failures == 0 else 1)

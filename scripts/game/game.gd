@@ -13,10 +13,17 @@ signal loaded          # a save was applied to the running world
 signal new_game_started
 signal tool_added(tool_id: String)      # the first time a tool is built (its card shows)
 
-const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
+## Two games on one engine (owner, 2026-10-02): Silly (kids: the Angry Zombie,
+## wobbly, toy paint, silly sounds) and Serious (adults: the old zombie robot,
+## gritty). Each mode has its own save; the main menu picks one (Settings
+## remembers which). Everything mode-specific asks Game.silly() / serious().
+const MODES: Array[String] = ["silly", "serious"]
 
 var data: Dictionary = {}
+var mode := "silly"
+## Tests set this ("test_") so a run never touches the player's own saves.
+var save_prefix := ""
 ## Set by the main menu: the world scene applies the save when it is ready.
 var pending_load := false
 ## Set by the main menu's New Game: the world plays the opening cutscene first.
@@ -26,6 +33,7 @@ var play_intro := false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS    # fullscreen toggle works in menus and while paused
 	_reset_data()
+	_migrate_legacy_save()
 	# Exported builds carry a per-platform name ("Robots Beta"); make sure the window shows it.
 	DisplayServer.window_set_title(String(ProjectSettings.get_setting_with_override("application/config/name")))
 
@@ -41,6 +49,7 @@ func _input(event: InputEvent) -> void:
 func _reset_data() -> void:
 	data = {
 		"version": SAVE_VERSION,
+		"mode": mode,             # for the record: the file name is what decides
 		"flags": {},
 		"inventory": {},          # item id -> count
 		"tools": [],              # tool ids the robot has built (in order)
@@ -208,9 +217,33 @@ func mark_beat(beat_id: String) -> void:
 	if not beat_seen(beat_id):
 		data["seen_beats"].append(beat_id)
 
+# --- the two modes ----------------------------------------------------------------
+func silly() -> bool:
+	return mode == "silly"
+
+func serious() -> bool:
+	return mode == "serious"
+
+## Switches which game is running (the main menu, before Continue / New game).
+func set_mode(new_mode: String) -> void:
+	if MODES.has(new_mode):
+		mode = new_mode
+		data["mode"] = new_mode
+
+## The save file for a mode (default: the current one).
+func save_path(for_mode: String = "") -> String:
+	return "user://%ssave_%s.json" % [save_prefix, for_mode if for_mode != "" else mode]
+
+## The one save from before the split held the Angry Zombie's world: it's Silly's.
+## Before the split there was one save, user://save.json.
+func _migrate_legacy_save() -> void:
+	var legacy := "user://%ssave.json" % save_prefix
+	if FileAccess.file_exists(legacy) and not FileAccess.file_exists(save_path("silly")):
+		DirAccess.rename_absolute(ProjectSettings.globalize_path(legacy), ProjectSettings.globalize_path(save_path("silly")))
+
 # --- persistence --------------------------------------------------------------------
-func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+func has_save(for_mode: String = "") -> bool:
+	return FileAccess.file_exists(save_path(for_mode))
 
 func new_game() -> void:
 	_reset_data()
@@ -231,7 +264,7 @@ func save(player: Node3D, charger_name: String) -> bool:
 	data["day"] = Clock.day
 	for c in get_tree().get_nodes_in_group("charger"):
 		data["chargers"][c.name] = c.save_state()
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(save_path(), FileAccess.WRITE)
 	if file == null:
 		push_error("Could not write save: %s" % error_string(FileAccess.get_open_error()))
 		return false
@@ -243,7 +276,7 @@ func save(player: Node3D, charger_name: String) -> bool:
 func load_save() -> bool:
 	if not has_save():
 		return false
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path()))
 	if not (parsed is Dictionary) or int(parsed.get("version", 0)) != SAVE_VERSION:
 		push_warning("Save file unreadable or old version; ignoring it")
 		return false
@@ -251,6 +284,7 @@ func load_save() -> bool:
 	for key in data:
 		if parsed.has(key):
 			data[key] = parsed[key]
+	data["mode"] = mode
 	Energy.current = float(data["energy"])
 	Clock.time = float(data["time"])
 	Clock.day = int(data["day"])
@@ -272,4 +306,4 @@ func apply_to_world(player: Node3D) -> void:
 
 func delete_save() -> void:
 	if has_save():
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path()))

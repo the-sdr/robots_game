@@ -11,6 +11,7 @@ func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("pause_menu")
+	($Center/VBox/Title as Label).text = "Paused  -  %s mode" % Settings.mode_name()
 	var controls := Button.new()
 	controls.name = "ControlsButton"
 	controls.text = "Help and controls (F1)"

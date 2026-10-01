@@ -57,6 +57,36 @@ text = "Something is still switched on."
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
+[node name="ModeRow" type="HBoxContainer" parent="Left/VBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 12
+
+[node name="SillyButton" type="Button" parent="Left/VBox/ModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(184, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+toggle_mode = true
+text = "Silly"
+
+[node name="SeriousButton" type="Button" parent="Left/VBox/ModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(184, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+toggle_mode = true
+text = "Serious"
+
+[node name="ModeLabel" type="Label" parent="Left/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 3
+text = ""
+
 [node name="ContinueButton" type="Button" parent="Left/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(380, 54)

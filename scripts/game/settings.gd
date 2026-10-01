@@ -8,12 +8,19 @@ extends Node
 # wins without trouble (PROJECT_VISION.md, "Who it's for"): slow timing ring,
 # wide windows, a missed press still hits, a big "NOW!" cue, the tutorial
 # can't be lost, and a full battery lasts 15 minutes of driving.
+#
+# The mode (Silly / Serious, see Game.MODES) last picked on the main menu is
+# remembered here, and so is a difficulty per mode: a child's Silly Easy and a
+# parent's Serious Hard don't overwrite each other (owner, 2026-10-02: mode and
+# difficulty are separate settings). Settings loads after Game and hands it the mode.
 
 signal difficulty_changed(level: String)
+signal mode_changed(mode: String)
 
 const PATH := "user://settings.cfg"
 const LEVELS: Array[String] = ["easy", "medium", "hard"]
 const DEFAULT_LEVEL := "easy"
+const DEFAULT_MODE := "silly"
 
 ## ring_speed: how fast the timing ring closes (1 = normal).
 ## good_window / perfect_window: seconds either side of the beat that count.
@@ -35,15 +42,21 @@ const DIFFICULTY := {
 		"miss_factor": 0.4, "defend_window": 0.12, "now_cue": false,
 		"enemy_damage": 1.4, "enemy_health": 1.3, "tutorial_knockout": true, "battery_minutes": 5.0},
 }
+const MODE_NAMES := {"silly": "Silly", "serious": "Serious"}
 
 var difficulty: String = DEFAULT_LEVEL
+var mode: String = DEFAULT_MODE
+## Tests write to their own file so a run never changes the player's settings.
+var path := PATH
 
 func _ready() -> void:
 	var config := ConfigFile.new()
-	if config.load(PATH) == OK:
-		var saved := String(config.get_value("game", "difficulty", DEFAULT_LEVEL))
-		if LEVELS.has(saved):
-			difficulty = saved
+	if config.load(path) == OK:
+		var saved := String(config.get_value("game", "mode", DEFAULT_MODE))
+		if Game.MODES.has(saved):
+			mode = saved
+	difficulty = _stored_difficulty(mode)
+	Game.set_mode(mode)
 
 ## The fight tuning for the current difficulty (see DIFFICULTY).
 func tuning() -> Dictionary:
@@ -52,16 +65,45 @@ func tuning() -> Dictionary:
 func difficulty_name() -> String:
 	return String(DIFFICULTY[difficulty]["name"])
 
+func mode_name(for_mode: String = "") -> String:
+	return String(MODE_NAMES.get(for_mode if for_mode != "" else mode, "?"))
+
 func set_difficulty(level: String) -> void:
 	if not LEVELS.has(level) or level == difficulty:
 		return
 	difficulty = level
-	var config := ConfigFile.new()
-	config.load(PATH)           # keep any other settings already in the file
-	config.set_value("game", "difficulty", difficulty)
-	config.save(PATH)
+	_store("difficulty_" + mode, difficulty)
 	difficulty_changed.emit(difficulty)
 
 ## Easy -> Medium -> Hard -> Easy (the menus' one-button selector).
 func next_difficulty() -> void:
 	set_difficulty(LEVELS[(LEVELS.find(difficulty) + 1) % LEVELS.size()])
+
+## Picks the game (main menu): remembered, and its own difficulty comes back.
+func set_mode(new_mode: String) -> void:
+	if not Game.MODES.has(new_mode):
+		return
+	var changed := new_mode != mode
+	mode = new_mode
+	Game.set_mode(mode)
+	_store("mode", mode)
+	var level := _stored_difficulty(mode)
+	if level != difficulty:
+		difficulty = level
+		difficulty_changed.emit(difficulty)
+	if changed:
+		mode_changed.emit(mode)
+
+## A mode's difficulty; before the split there was one for both.
+func _stored_difficulty(for_mode: String) -> String:
+	var config := ConfigFile.new()
+	if config.load(path) != OK:
+		return DEFAULT_LEVEL
+	var level := String(config.get_value("game", "difficulty_" + for_mode, config.get_value("game", "difficulty", DEFAULT_LEVEL)))
+	return level if LEVELS.has(level) else DEFAULT_LEVEL
+
+func _store(key: String, value: Variant) -> void:
+	var config := ConfigFile.new()
+	config.load(path)           # keep any other settings already in the file
+	config.set_value("game", key, value)
+	config.save(path)
