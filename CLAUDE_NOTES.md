@@ -213,6 +213,27 @@ Working notes for AI-assisted sessions on this project. Update this as we go
   models to override materials (imported FBX materials can silently fail)
   and force double-sided rendering — a repeatable pattern for any future
   imported structure with the same issue.
+- **Two games on one engine: Silly and Serious** (owner, 2026-10-02, "like
+  Breath of the Wild and Tears of the Kingdom"). `Game.mode` is `"silly"`
+  (kids: the Angry Zombie + tiny curse, the wobble, toy paint, sounds) or
+  `"serious"` (adults: the old zombie robot, gritty grade, worn paint, no
+  curse). Ask `Game.silly()` / `Game.serious()`; nothing else knows. One save
+  per mode (`Game.save_path()` = `user://save_<mode>.json`; the old
+  `save.json` became Silly's). `Settings` remembers the mode last picked on the
+  main menu and a difficulty per mode (`difficulty_<mode>` in settings.cfg;
+  mode and difficulty are separate settings) and hands the mode to `Game` in
+  its `_ready` (Settings loads after Game). Where each mode differs:
+  `Story.BEATS` (every beat `{silly: [title, text], serious: [...]}`; a beat
+  with one mode plays only there; `{action}` becomes a Glyphs button),
+  `combat.gd` `WORDS` (fight popups), `crooked_house.gd` (Serious swaps the
+  zombie for `scenes/npc/zombie_robot.tscn` and drops the mouse-hole sun
+  tracker, which the old robot gives instead), `Game.curse_tiny` (no-op in
+  Serious), `robot_paint.gd` (palettes by material role: silly, serious,
+  rust), `day_night.gd` `GRADES`, `player_jump_fx.gd` `PROFILES` (Silly's
+  wobble), `breakable.gd` `_fling()`, `Sfx` (Silly only).
+- **Sfx** (autoload): the game's sounds are synthesized at start into
+  in-memory AudioStreamWAVs (no files to import or license); a pool of six
+  plain players. `Sfx.play(id, strength)`.
 
 ## Performance (owner's Intel UHD laptop, Mobile renderer, target 25 FPS)
 
@@ -550,11 +571,43 @@ independent so they land in any order. Owner decisions:
   text. **Tool cards** (`scripts/ui/tool_card.gd`, owned by the HUD) pause the
   game when they show: headless tests set `tool_card.gd`'s static `suppressed`
   (systems_test and the drive test do), or a card freezes the physics mid-test.
+- **Tests must never touch the player's saves or settings.** A headless run
+  shares `user://` with the game run from the editor; `systems_test` used to
+  `delete_save()` the real save on every run (found 2026-10-02; any save of
+  the editor-run game on that machine was lost to it). Tests set `Game.save_prefix = "test_"` and
+  `Settings.path` to a test file first; the drive test sets the prefix too
+  (docking on a route autosaves).
+- **Don't pitch the robot's Visual past 90 degrees.** The player steers by
+  reading and writing `Visual.global_rotation.y`; past 90 degrees of pitch the
+  Euler decomposition flips the yaw by 180 degrees and the robot snaps round.
+  Spin about Y or roll (Z) instead: Silly's big-fall tumble is a cartwheel.
+- **`routes.json` and `level.json` are build outputs, not in git.** On a fresh
+  machine run `forest_build.py` and `forest_routes.py` first (they need numpy
+  and Pillow). A missing routes file used to hang the drive test (a script
+  error in a coroutine never quits); it now stops with a message.
+- **Commit messages from Windows PowerShell 5.1:** a here-string with double
+  quotes is split into separate arguments by `git commit -m`. Write the
+  message to a file and `git commit -F` it (from Bash).
+- **Setting `.scale` and then `global_transform`** silently undoes the scale
+  (the Sentry's salvage was full size, not 0.75). Put the scale in the basis.
 
 ## Session log
 
 Newest first. Session ID links follow the
 `https://claude.ai/code/session_...` format.
+
+- **2026-10-02 (Surface)** — `session_01H42njdE69yYUZTgEHFqCkp`. Owner's
+  saves 69-81 logged. Bugs: the fight ring always showed the jump button (A)
+  even when defending with a tool (RT), and the "Your turn" hint stayed up on
+  the enemy's turn (save_78); the beaten Sentry couldn't be salvaged by hitting
+  it, its plating was full size, unsnapped and dark (save_80). Then the
+  owner's major redesign: **Silly and Serious**, two games on one engine -
+  mode foundation (per-mode saves, menu, difficulty per mode), the old zombie
+  robot (Serious), robot paint per mode, story in two voices, colour grade,
+  Silly's wobble, synthesized Silly sounds. Found that systems_test deleted
+  the editor game's save on every run (fixed: test_ files). numpy/Pillow
+  aren't installed on the Surface, so the level tools and the route drive test
+  couldn't run there.
 
 - **2026-09-29 (laptop)** — `session_01Qdya6t4SQXDkCa4BXV8AMD`. Owner's first
   sprint 2 playtest notes (saves 6-8, perf 12-14). Controller: A = ui_accept,

@@ -1,6 +1,51 @@
 # TODO — next session
 
-## Start here: the owner's sprint 2 playtest (feedback + bug fixes)
+## Start here: sprint 4, Silly and Serious (built 2026-10-02, not yet played)
+The owner's redesign: two games on one engine (see `CLAUDE_NOTES.md` →
+Architecture → "Two games on one engine"). Built and headlessly verified in
+both modes on `claude/sync-local-fixes-b85lpn`; the owner plays it next.
+1. Read new `playtest/saves.md` / `perf.md` entries (with their `Note:` lines)
+   and which mode each came from. The testing notes list what to ask.
+2. **Pending owner decisions:** the `PROJECT_VISION.md` wording for the two
+   modes (proposed in chat 2026-10-02, not yet approved); installing numpy +
+   Pillow on the Surface (needed for the level tools and the route drive test
+   there; not run on 2026-10-02).
+3. Then the save_70-81 items, built on top of the modes (below).
+
+### Sprint 4 built (2026-10-02) — playtest each
+- [x] Bugs: fight ring shows the right button; "Your turn" clears on its turn
+      (save_78). Hitting the beaten Sentry salvages its plating; plating on the
+      ground, 0.75 size, bright seam (save_80). **Playtest:** both.
+- [x] Mode foundation: menu pick, one save per mode, difficulty per mode,
+      pause menu shows the mode. Tests never touch real saves now.
+- [x] Serious: the old zombie robot (share 25% battery -> sun tracker +
+      `memory:zombie_robot`). No zombie, no curse.
+- [x] Robot paint per mode; colour grade per mode (**F4 in each mode, both machines**).
+- [x] Story in two voices (drafts), fight words per mode.
+- [x] Silly wobble (visual only) + synthesized sounds.
+
+### Next: the owner's 2026-09-30 notes (saves 70-81), on top of the modes
+- [ ] save_77 ("do it"): **memory fragments** - the story mechanic (see
+      PROJECT_VISION "Memories"), and an early goal: tell the player there's a
+      city to find. The old robot's `memory:zombie_robot` is the first memory.
+- [ ] save_75 ("do it"): **blue indicators for power sources** (chargers,
+      solar cells).
+- [ ] save_74 (talk first): fewer story pop-ups; instruction pop-ups only where
+      needed. Decide per mode (Silly may want even fewer words).
+- [ ] save_81 (talk first): camera framing - see the whole robot when looking
+      down; what Claude can and can't judge about the space and the view.
+- [ ] save_70 / save_76: a prompt to use the detector; explain what it finds.
+- [ ] save_71: round off the detector indicator's hard top edge.
+- [ ] save_73: more skill, less bashing, for loot.
+- [ ] save_79: smasher as a circle timer; music (Silly sounds are the start).
+- [ ] save_75 tuning: bake cutter_heat_seconds 0.9, clean 0.6-0.72 into
+      `scripts/game/tuning.gd` (tune_6).
+- [ ] save_69 (request, not built - no F8 exists yet): an F8 mode to click
+      on-screen text and rewrite it in place, saved back to its source (story
+      beats, notices, cards). Owner asked whether it would cost performance or
+      bloat the code; answer before building. Handy for the story drafts.
+
+## Earlier: the owner's sprint 2 playtest (feedback + bug fixes)
 1. Open `playtest/sprint2_feedback.md`. If the owner hasn't filled it in, go
    through it with them one question at a time (most important first) and
    write each answer on its `Answer:` line. Also read new entries in

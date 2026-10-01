@@ -104,7 +104,7 @@ python tools/forest_build.py          # design -> level_design/build/level.json
 python tools/forest_verify.py --map   # sealed? all places reachable? gated places sealed until cleared? only ways north via ruin/clearing?
 godot --headless --path . -s tools/level_bake.gd        # level.json -> scenes/level/ (generated scene + chunk meshes)
 python tools/forest_routes.py         # drive routes to every design node (routes.json)
-godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd  # real physics: all routes, blockers hold then clear, collectibles, house, hill<->city
+godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd ++ serious  # real physics: all routes, blockers hold then clear, collectibles, house, hill<->city (run with ++ silly too)
 python tools/forest_map.py --built    # as-built map for the owner
 ```
 Hub (Area 3, `hub_design.json`, a district on the forest terrain; the same for any future district `<name>_design.json`):
@@ -122,10 +122,12 @@ python tools/forest_routes.py --design agora --start agora_entry --out agora_rou
 godot --headless --path . -s tools/level_bake.gd ++ agora                            # -> scenes/level_agora/generated_agora.tscn
 godot --headless --fixed-fps 60 --path . -s tools/forest_drive_test.gd ++ agora
 ```
-Game systems (no level change needed):
+Game systems (no level change needed) — run in **both modes** (Silly, Serious):
 ```
-godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, crafting, save/load, sun, energy, docking, tools, house, hub, fights, vault, agora, cutscene, reboot
+godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd ++ silly    # catalog, crafting, save/load, sun, energy, docking, tools, house, hub, fights, vault, agora, cutscene, reboot
+godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd ++ serious  # the same in Serious (the old robot, no curse, grade, paint)
 ```
+Tests write only `test_` save/settings files (never the player's own).
 - `scenes/world.tscn` holds only fixed things (house + door + crates + parts,
   player, HouseCharger, environment, DayNight, story triggers, HUD) and
   instances `scenes/level/generated_level.tscn`, `scenes/level_hub/generated_hub.tscn`,
@@ -181,15 +183,25 @@ godot --headless --fixed-fps 60 --path . -s tools/systems_test.gd   # catalog, c
 - Headless proves logic and collision, never looks or frame rate. The owner
   measures with F4 and reports; read `playtest/perf.md`.
 
-## Current state (2026-09-28, end of sprint 2 — awaiting the owner's playtest)
+## Current state (2026-10-02, sprint 4 — Silly and Serious, awaiting the owner's playtest)
+The owner's redesign: **two games on one engine** (like Breath of the Wild and
+Tears of the Kingdom). **Silly** (kids: Angry Zombie + tiny curse, wobbly
+robot, toy paint, synthesized sounds) and **Serious** (adults: the old zombie
+robot, darker grade, worn metal, no curse). Picked on the main menu; one save
+and one difficulty per mode. Everything mode-specific asks `Game.silly()` /
+`Game.serious()` — see `CLAUDE_NOTES.md` → Architecture. Built and headlessly
+verified in both modes on `claude/sync-local-fixes-b85lpn`. **Next session:
+start at `TODO.md` → "Start here"** (pending: the owner's playtest, the
+`PROJECT_VISION.md` wording for the modes, then the save_70–81 items).
+
+### Sprint 2 (2026-09-28)
 Sprint 2 (for the owner's six-year-old son) is built on
 `claude/sync-local-fixes-b85lpn` and headlessly verified, not yet played:
 Easy/Medium/Hard, the crooked house + Angry Zombie + tiny curse, real part
 models, turn-based timing combat + the Hill Sentry, laser, charger upgrades +
 solar HUD, the opening cutscene, the Relay Vault + Pythia + hover pack, the
 Agora + fabricator. `TODO.md` has a playtest note per phase.
-**Next session: start at `TODO.md` → "Start here"** — the playtest questions
-for the owner are in `playtest/sprint2_feedback.md`.
+Its playtest questions are in `playtest/sprint2_feedback.md`.
 
 ### Sprint 1 (2026-09-27)
 The vertical slice is built and headlessly verified, not yet played by the

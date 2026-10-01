@@ -1,63 +1,48 @@
 {
  "_about": "What the owner is asked to playtest this sprint. Shown on the main menu and in the F1 menu (scripts/ui/help_menu.gd). Claude keeps it current: rewrite it whenever a sprint's playtest targets change.",
- "sprint": "Sprint 3: the detector, tools that feel different, finds that make sense",
- "updated": "2026-09-30 (evening)",
- "intro": "Thanks for testing! F3 anything odd (with a note - it takes a picture too), F4 if it feels slow. F1 or D-pad down opens this again.",
+ "sprint": "Sprint 4: Silly and Serious - two games on one engine",
+ "updated": "2026-10-02",
+ "intro": "Thanks for testing! F3 anything odd (with a note - it takes a picture too), F4 if it feels slow - and say which mode you were in. F1 or D-pad down opens this again.",
  "items": [
   {
+   "title": "Pick a game: Silly or Serious",
+   "try": "The main menu starts with two buttons. Each mode has its own save (Continue / New game follow the pick) and its own difficulty, so a Silly Easy game and a Serious Hard game don't overwrite each other. Your old save is now the Silly one. The pause menu says which mode you're in.",
+   "ask": "Is it clear which game you're starting? Should the choice look bigger or more different?"
+  },
+  {
+   "title": "Serious: the old robot in the crooked house",
+   "try": "No Angry Zombie and no tiny curse. In his place: a rusted robot of your own make, slumped in the corner, one lens flickering. Look at it, then share some battery (25%, it won't take your last bit). It wakes, talks, and gives you what it kept in the wardrobe.",
+   "ask": "Does it read as an old version of you? Is the battery cost fair? Should it give a memory you can look at later (next sprint)?"
+  },
+  {
+   "title": "Silly: the wobbly robot",
+   "try": "Drive and stop suddenly, turn hard, bump into walls, drop off something high (it cartwheels), get hit in the Sentry fight (it spins). Smash things: the bits fly further. Movement and collision are unchanged - it's all in the model.",
+   "ask": "Goofy enough? Too much (seasick), too little? What else should wobble?"
+  },
+  {
+   "title": "Silly: sounds",
+   "try": "The game's first sounds, made in code: boing (jump), splat (landing), bonk (walls, smasher), honk (breaking), pop (pickups), wah-wah (getting hit, the zombie's curse). Serious is silent for now.",
+   "ask": "Fun or annoying? Any that sound cheap? (If they do, a free sound pack is the next step - I'd ask before adding one.)"
+  },
+  {
+   "title": "Two looks",
+   "try": "Serious is darker, greyer and foggier, and your robot is worn metal. Silly is brighter and more colourful, and your robot is toy plastic (yellow, red, blue). Look at the forest and the city in both, day and night.",
+   "ask": "Does each mode feel like its own game? F4 in each mode on the laptop and the Surface, please - the grade should cost almost nothing."
+  },
+  {
+   "title": "Story in two voices",
+   "try": "Every story card now has a Silly text (short, jokey) and a Serious one (gritty; the wake-up says the city is north). The fight words too: KA-POW and BOING in Silly, CLEAN HIT and PARRIED in Serious.",
+   "ask": "Which lines would you change? (These are drafts.) Your save_74 note - fewer story pop-ups - is still to talk through."
+  },
+  {
+   "title": "Fixed: the fight ring's button, the Sentry's loot",
+   "try": "Defending with a tool, the ring now shows RT / left click (it said A). The 'Your turn' line clears on the Sentry's turn. Beaten, cut or beam the Sentry itself to salvage its plating; the plating sits on the ground with a bright seam.",
+   "ask": "Any other place where the screen names the wrong button?"
+  },
+  {
    "title": "Tune it yourself: F10 tools, F9 detector",
-   "try": "F10 opens sliders for the cutter (heat speed, green zone, strength), smasher and laser; F9 for the detector (brightness near/far, vagueness, light pillars). Changes work straight away. Close the panel when it feels right: the values are logged and I bake them in. The cutter now heats faster with a narrower green zone.",
+   "try": "F10 opens sliders for the cutter, smasher and laser; F9 for the detector. Close the panel when it feels right: the values are logged and I bake them in.",
    "ask": "Which values felt best? (Just close the panel - I read them from the log.)"
-  },
-  {
-   "title": "Fights use your tools now (the Hill Sentry)",
-   "try": "Your turn: RB / Q switch tools, RT / click attacks with the one in hand, its own way - smasher: tap fast; cutter: hold, let go in the green; laser: hold and trace the glowing dots. Its turn: defend with the tool in hand - smasher: tap to bash it aside; cutter: hold, let go as the ring touches; laser: beam on its eye. Beat it and its shield plating falls off: salvage it for the capacitor (the laser along the seam gets more). The build screen now attaches tools; the fight kit is gone.",
-   "ask": "Does fighting feel like using your tools? Which tool is most fun in a fight? Too hard, too easy?"
-  },
-  {
-   "title": "Resting through the night",
-   "try": "Dock at a charger at night: it asks whether to rest until morning. Yes skips to 07:12 with the battery topped up from the charger; Not now just docks.",
-   "ask": "Does it feel right? Should nights also be shorter (summer, ~15 hours of daylight)?"
-  },
-  {
-   "title": "The detector",
-   "try": "Press to scan: right mouse button (or R), LB on the pad. Walk towards a warm spot and scan again until it is a tight ring, then dig (E / X). Try the garden gate first, then the Dry Clearing. (Tools now cycle on RB / Q.)",
-   "ask": "Far finds now show as a light pillar rising from the ground where they are. Does that point you to the right place? Are near finds clearly brighter than far ones?"
-  },
-  {
-   "title": "Parts inside things that belong there",
-   "try": "The forest's parts are now inside a pump at the Spring, a fallen camera by the ruin's hatch, a birdbox at the hollow tree, a junction box under the Giant, the hose reel behind the house and a weather station in the pines. Smash them open.",
-   "ask": "Do they read as what they are? Anything that still feels like a 1999 crate?"
-  },
-  {
-   "title": "The Dry Clearing",
-   "try": "Weeds to cut, a toolbox to smash, a wreck to salvage. Salvage the wreck with the laser along its glowing seam for a bonus part.",
-   "ask": "Is it clear which tool opens what?"
-  },
-  {
-   "title": "Tools feel different",
-   "try": "Smasher: tap fast for a combo. Cutter: hold, let go in the green for a clean cut, don't overheat. Laser: hold and sweep it along vines.",
-   "ask": "Does each tool feel like its own thing? Laser aiming OK with mouse and stick?"
-  },
-  {
-   "title": "Help and cards",
-   "try": "The Getting around card after waking, a card for each new tool, the Parts card, the Ready to build card. F1 / D-pad down for help, controls and the map.",
-   "ask": "Too many pop-ups, or just right? Is anything still confusing?"
-  },
-  {
-   "title": "Story cards",
-   "try": "They now stay on screen until you close them (B / Esc); a new one replaces the old.",
-   "ask": "Can you read them in time now?"
-  },
-  {
-   "title": "Small fixes",
-   "try": "A to close a menu no longer jumps. B goes back. The detector's ring rolls out even when a find is close. Battery: 15 / 10 / 5 minutes on Easy / Medium / Hard.",
-   "ask": "Anything still fighting you?"
-  },
-  {
-   "title": "Headlight follows your look",
-   "try": "Look up and down: the head tilts a little and the headlight with it.",
-   "ask": "Nice touch, or too much / too little?"
   }
  ]
 }
