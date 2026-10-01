@@ -447,6 +447,13 @@ func _initialize() -> void:
 	check(charger.sun_factor() == 0.0, "no solar at midnight")
 	var env: Environment = world.get_node("WorldEnvironment").environment
 	check(env.ambient_light_color.r < 0.15, "night ambient is dark")
+	var grade: Dictionary = day_night.GRADES[Game.mode]
+	var base_fog: Array = env.get_meta("base_fog", [0.0, 0.0, 0.0])
+	check(env.adjustment_enabled and is_equal_approx(env.adjustment_saturation, grade["saturation"])
+		and is_equal_approx(env.fog_depth_begin, float(base_fog[0]) * float(grade["fog_near"])),
+		"%s grade: saturation %.2f, fog from %.0f m (scene's %.0f m)" % [Game.mode, env.adjustment_saturation, env.fog_depth_begin, float(base_fog[0])])
+	day_night._apply_grade()
+	check(is_equal_approx(env.fog_depth_begin, float(base_fog[0]) * float(grade["fog_near"])), "grading again never compounds the fog")
 	for i in 3:
 		await process_frame
 	check(player.headlight.light_energy > 2.0, "headlights on at night")

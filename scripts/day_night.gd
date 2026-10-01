@@ -25,6 +25,17 @@ const MOON_COLOUR := Color(0.55, 0.65, 0.95)
 const SUN_ENERGY := 1.2
 const MOON_ENERGY := 0.16
 const INTERIOR_AMBIENT := Color(0.07, 0.075, 0.085)
+## saturation / contrast / brightness: Environment adjustments.
+## fog_near / fog_far / fog_density: multipliers on world.tscn's depth fog.
+## sun_tint / ambient: multiply the day cycle's light colour and ambient.
+const GRADES := {
+	"silly": {"saturation": 1.2, "contrast": 1.0, "brightness": 1.04,
+		"fog_near": 1.3, "fog_far": 1.15, "fog_density": 0.85,
+		"sun_tint": Color(1.0, 0.98, 0.93), "ambient": 1.05},
+	"serious": {"saturation": 0.72, "contrast": 1.12, "brightness": 0.95,
+		"fog_near": 0.7, "fog_far": 0.8, "fog_density": 1.1,
+		"sun_tint": Color(0.9, 0.94, 1.0), "ambient": 0.88},
+}
 
 @onready var sun: DirectionalLight3D = get_node(sun_path)
 @onready var environment: Environment = (get_node(environment_path) as WorldEnvironment).environment
@@ -33,6 +44,7 @@ const INTERIOR_AMBIENT := Color(0.07, 0.075, 0.085)
 
 ## Underground (the Relay Vault): no sun or sky light, only the rooms' own lamps.
 var interior := false
+var _grade: Dictionary = GRADES["silly"]
 
 func set_interior(on: bool) -> void:
 	interior = on
@@ -43,7 +55,23 @@ func _ready() -> void:
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_energy = 1.0
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	_apply_grade()
 	update()
+
+## This mode's grade (see GRADES). The scene's own fog values are kept on the
+## environment as meta, so loading the world again never compounds them.
+func _apply_grade() -> void:
+	_grade = GRADES[Game.mode]
+	environment.adjustment_enabled = true
+	environment.adjustment_saturation = _grade["saturation"]
+	environment.adjustment_contrast = _grade["contrast"]
+	environment.adjustment_brightness = _grade["brightness"]
+	if not environment.has_meta("base_fog"):
+		environment.set_meta("base_fog", [environment.fog_depth_begin, environment.fog_depth_end, environment.fog_density])
+	var fog: Array = environment.get_meta("base_fog")
+	environment.fog_depth_begin = float(fog[0]) * float(_grade["fog_near"])
+	environment.fog_depth_end = float(fog[1]) * float(_grade["fog_far"])
+	environment.fog_density = minf(float(fog[2]) * float(_grade["fog_density"]), 1.0)
 
 func _process(_delta: float) -> void:
 	update()
@@ -83,7 +111,8 @@ func update() -> void:
 	sky.ground_horizon_color = horizon
 	sky.ground_bottom_color = NIGHT_GROUND.lerp(DAY_GROUND, d)
 	environment.fog_light_color = horizon
-	environment.ambient_light_color = NIGHT_AMBIENT.lerp(DAY_AMBIENT, d).lerp(DUSK_HORIZON * 0.6, glow * 0.4)
+	environment.ambient_light_color = NIGHT_AMBIENT.lerp(DAY_AMBIENT, d).lerp(DUSK_HORIZON * 0.6, glow * 0.4) * float(_grade["ambient"])
+	sun.light_color *= _grade["sun_tint"]
 
 	if interior:
 		sun.light_energy = 0.0
