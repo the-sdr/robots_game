@@ -6,10 +6,10 @@ Architecture → "Two games on one engine"). Built and headlessly verified in
 both modes on `claude/sync-local-fixes-b85lpn`; the owner plays it next.
 1. Read new `playtest/saves.md` / `perf.md` entries (with their `Note:` lines)
    and which mode each came from. The testing notes list what to ask.
-2. **Pending owner decisions:** the `PROJECT_VISION.md` wording for the two
-   modes (proposed in chat 2026-10-02, not yet approved); installing numpy +
-   Pillow on the Surface (needed for the level tools and the route drive test
-   there; not run on 2026-10-02).
+2. Done 2026-10-02: `PROJECT_VISION.md` updated for the two modes (owner
+   approved); numpy + Pillow installed on the Surface; forest drive test OK in
+   both modes (24/24 routes, crooked_inside included). Not installed there:
+   openpyxl (forest_build.py needs it; ask before installing).
 3. Then the save_70-81 items, built on top of the modes (below).
 
 ### Sprint 4 built (2026-10-02) — playtest each

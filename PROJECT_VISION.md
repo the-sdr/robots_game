@@ -8,7 +8,12 @@ This is the game's source of truth. It is owned and edited by the project owners
 
 ## Who it's for
 
-Robots is being made for the owner's six-year-old son. On Easy, everything must be playable and fun for a six-year-old: generous timing, clear prompts, nothing that punishes for long. Medium and Hard are there for older players.
+Robots is two games on one engine, like Breath of the Wild and Tears of the Kingdom: the same world, tools and crafting, picked on the main menu, each with its own save.
+
+- **Silly mode** is for the owner's six-year-old son: goofy and wobbly (Goat Simulator / Wobbly Life), bright toy colours, silly sounds, the Angry Zombie and his tiny curse.
+- **Serious mode** is for adults: gritty and melancholic, no zombie and no curse. Instead an ancient, rusted robot like the player's own, barely working, carries part of the story.
+
+Difficulty (Easy, Medium, Hard) is a separate setting in both. On Easy, everything must be playable and fun for a six-year-old: generous timing, clear prompts, nothing that punishes for long.
 
 ## Original gameplay pillars
 
@@ -27,7 +32,7 @@ The world is built as a sequence of enclosed spaces. The starting area/dungeon r
 
 1. **Area 1 — the house.** Enclosed interior. Player spawns here, facing a charging station (placeholder design, functionally and narratively important — this is the robot's actual origin point). One door out. Learn controls, feel contained, get bearings. 
 2. **Area 2 — the garden/forest maze (~3,000 m², about 48 × 62 m).** Immediately surrounding the house. Densely packed trees and strategically placed walls *are* the maze walls — not a separate structure — interwoven with a few reclaimed ancient wall fragments (ruins, vines draped over them) as curated accents, not a corridor system of their own. One single path winds through; everything else is sealed, sight and collision both. Ends at a modest raised vantage point (a small hill) framed by trees parting at the crest. Disorienting, exploration, slow reveal. Player feels lost but curious.
-   - **The crooked house** — a side branch off the garden near Area 1, to the south-west. An old, crooked house; inside lives the Angry Zombie. Annoy him and he casts the tiny curse: the robot is tiny for two days. Tiny robots fit through a mouse hole to a secret.
+   - **The crooked house** — a side branch off the garden near Area 1, to the south-west. An old, crooked house; inside lives the Angry Zombie. Annoy him and he casts the tiny curse: the robot is tiny for two days. Tiny robots fit through a mouse hole to a secret. In Serious mode the Angry Zombie is replaced by the old zombie robot: share your battery with it and it wakes, talks, and gives what it kept in the wardrobe.
    - **The hill sentry** — an enemy robot on top of the hill: the first fight, a tutorial. The Smasher and any tools built in the forest can be used in it.
 3. **Area 3 — the Hub.** The ruined city, revealed at the top of the hill and glimpsed beyond the tree line. Player feels reward from discovery. The Hub is the game's central district: from it, the further dungeons branch off. Parts of the Hub are locked at first and are unlocked by tools, crafted items or story progress, so each unlock opens the way to another dungeon. Each unlocked part plus its dungeon is roughly one sprint of work, which is how the project's scope is staged. Currently a distant skyline (non-walkable depth); the first walkable district is the vertical slice's end point.
 4. **Area 4+ — the town.** Content inside the buildings, more areas as part of the town to explore. Future state of multiple mini dungeons with story, characters and items for crafting.

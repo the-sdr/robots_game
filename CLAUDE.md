@@ -191,8 +191,8 @@ robot, darker grade, worn metal, no curse). Picked on the main menu; one save
 and one difficulty per mode. Everything mode-specific asks `Game.silly()` /
 `Game.serious()` — see `CLAUDE_NOTES.md` → Architecture. Built and headlessly
 verified in both modes on `claude/sync-local-fixes-b85lpn`. **Next session:
-start at `TODO.md` → "Start here"** (pending: the owner's playtest, the
-`PROJECT_VISION.md` wording for the modes, then the save_70–81 items).
+start at `TODO.md` → "Start here"** (pending: the owner's playtest, then
+the save_70–81 items).
 
 ### Sprint 2 (2026-09-28)
 Sprint 2 (for the owner's six-year-old son) is built on
