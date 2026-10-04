@@ -38,8 +38,9 @@ both modes on `claude/sync-local-fixes-b85lpn`; the owner plays it next.
 - [ ] save_71: round off the detector indicator's hard top edge.
 - [ ] save_73: more skill, less bashing, for loot.
 - [ ] save_79: smasher as a circle timer; music (Silly sounds are the start).
-- [ ] save_75 tuning: bake cutter_heat_seconds 0.9, clean 0.6-0.72 into
-      `scripts/game/tuning.gd` (tune_6).
+- [x] save_75 tuning: bake cutter_heat_seconds 0.9, clean 0.6-0.72 into
+      `scripts/game/tuning.gd` (tune_6). Done 2026-10-04, with tune_10's
+      cutter strength / overheat / cooling from the laptop.
 - [ ] save_69 (request, not built - no F8 exists yet): an F8 mode to click
       on-screen text and rewrite it in place, saved back to its source (story
       beats, notices, cards). Owner asked whether it would cost performance or

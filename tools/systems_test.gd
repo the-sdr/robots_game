@@ -1369,8 +1369,10 @@ func _initialize() -> void:
 	for i in 200:
 		await process_frame
 	feel_rig.press()
-	for i in 60 * 3:
+	for i in 60 * 6:                                   # hold until it overheats (not a fixed time: the lock may end first)
 		await process_frame
+		if feel_rig.overheated > 0.0:
+			break
 	check(feel_rig.overheated > 0.0 and not feel_rig.holding, "hold too long and it overheats")
 	feel_rig.release()
 	feel_rig.press()

@@ -1,0 +1,45 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.280 - Forward Mobile - Using Device #0: Intel - Intel(R) UHD Graphics
+
+tune_1: detector (easy): detector_range=60.0 detector_sweep_time=1.2 detector_spot_glow=4.0 detector_fuzz_per_metre=0.3 detector_max_fuzz=12.0 detector_exact_within=2.5 detector_near_strength=1.0 detector_far_strength=0.25 detector_strength_curve=0.7 detector_pillar_beyond=12.0 detector_pillar_height=7.0 detector_overlay=1.0
+tune_2: tools (easy): cutter_heat_seconds_easy=2.6 cutter_clean_from_easy=0.55 cutter_clean_to_easy=0.92 cutter_rate=1.6* cutter_clean_bonus=1.4* cutter_overheat_seconds=1.9* cutter_cool_rate=0.9* smasher_combo_window=0.55 smasher_combo_bonus=0.2 smasher_cooldown=0.14 laser_trace_seconds_easy=0.18 laser_beam_rate=1.0
+Collected Actuator arm
+Collected Hammer head
+dock HouseCharger: charger 65.5/120 (55%), robot 27.2, sun 0.85, 08:56
+undock HouseCharger: gave 65.5, charger now -0.0/120 (0%), robot 95.6, 09:19
+dock HouseCharger: charger 0.9/120 (1%), robot 95.6, sun 0.91, 09:26
+undock HouseCharger: gave 0.9, charger now -0.0/120 (0%), robot 96.5, 09:27
+dock HouseCharger: charger 0.3/120 (0%), robot 96.5, sun 0.91, 09:29
+undock HouseCharger: gave 0.3, charger now -0.0/120 (0%), robot 96.8, 09:29
+dock HouseCharger: charger 0.4/120 (0%), robot 96.8, sun 0.92, 09:31
+undock HouseCharger: gave 0.4, charger now -0.0/120 (0%), robot 97.2, 09:32
+dock HouseCharger: charger 0.4/120 (0%), robot 97.2, sun 0.92, 09:34
+undock HouseCharger: gave 0.4, charger now -0.0/120 (0%), robot 97.6, 09:35
+dock HouseCharger: charger 0.9/120 (1%), robot 97.6, sun 0.93, 09:41
+undock HouseCharger: gave 0.9, charger now -0.0/120 (0%), robot 98.6, 09:42
+dock HouseCharger: charger 0.3/120 (0%), robot 98.6, sun 0.94, 09:44
+undock HouseCharger: gave 0.3, charger now -0.0/120 (0%), robot 98.9, 09:44
+fight: begin hill_sentry (easy), tools ["smasher"], in hand smasher, energy 89
+fight: coach: start
+fight: coach: your_turn
+fight: your turn (50 / 50 HP), in hand: smasher
+fight: you use smasher: Smash (attack)
+fight: coach: attack_smasher
+fight:   smasher attack: miss
+fight: its turn: Clamp, you defend with smasher
+fight: coach: defend_smasher
+fight:   defend smasher: good
+fight: your turn (47 / 50 HP), in hand: smasher
+fight: you use smasher: Smash (attack)
+fight:   smasher attack: miss
+fight: its turn: Double swipe, you defend with smasher
+fight:   defend smasher: miss
+fight:   defend smasher: miss
+fight: your turn (40 / 50 HP), in hand: smasher
+fight: you use smasher: Smash (attack)
+fight:   smasher attack: miss
+fight: end: won
+dock HubCharger: charger 157.1/160 (98%), robot 78.1, sun 0.00, 17:50
+undock HubCharger: gave 21.9, charger now 135.3/160 (85%), robot 100.0, 17:58
+Collected Scrap metal
+Collected Scrap metal

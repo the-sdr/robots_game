@@ -9,12 +9,13 @@ extends RefCounted
 # A key with an "_easy" twin uses the twin on Easy.
 
 const DEFAULTS := {
-	# cutter ("hold_heat")
-	"cutter_heat_seconds": 1.6, "cutter_heat_seconds_easy": 2.6,
-	"cutter_clean_from": 0.72, "cutter_clean_from_easy": 0.55,
-	"cutter_clean_to": 0.84, "cutter_clean_to_easy": 0.92,
-	"cutter_rate": 1.4, "cutter_clean_bonus": 1.5,
-	"cutter_overheat_seconds": 2.0, "cutter_cool_rate": 1.0,
+	# cutter ("hold_heat"); heat + green zone from tune_6 (Surface, Medium fights),
+	# strength / overheat / cooling from tune_10 (laptop)
+	"cutter_heat_seconds": 0.9, "cutter_heat_seconds_easy": 2.6,
+	"cutter_clean_from": 0.6, "cutter_clean_from_easy": 0.55,
+	"cutter_clean_to": 0.72, "cutter_clean_to_easy": 0.92,
+	"cutter_rate": 1.6, "cutter_clean_bonus": 1.4,
+	"cutter_overheat_seconds": 1.9, "cutter_cool_rate": 0.9,
 	# smasher ("rapid")
 	"smasher_combo_window": 0.55, "smasher_combo_bonus": 0.2, "smasher_cooldown": 0.14,
 	# laser ("trace")
